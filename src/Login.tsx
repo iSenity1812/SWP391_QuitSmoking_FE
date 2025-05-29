@@ -78,7 +78,7 @@ const Login: React.FC = () => {
                     </div>
 
                     <p className="signup-link">
-                        <a href="/signup">Sign up</a>
+                        <a href="/Register">Sign up</a>
                     </p>
                 </form>
             </div>
