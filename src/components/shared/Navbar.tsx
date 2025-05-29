@@ -9,36 +9,49 @@ import {
 import { Info } from "lucide-react";
 import { BookOpen } from "lucide-react";
 import { NavItem } from "@/components/ui/nav-item";
+// import { useTheme } from "@/context/ThemeContext";
+import { ThemeToggle } from "./ThemeToggle";
+import { useLocation } from "react-router-dom";
+
+const navLinks = [
+  { href: "/", label: "Home", icon: Home, isActive: true },
+  { href: "/blog", label: "Blog", icon: BookOpen },
+  { href: "/pricing", label: "Pricing", icon: Gem },
+  { href: "/about", label: "About", icon: Info },
+];
 
 export function Navbar() {
+  const location = useLocation();
+  // const { theme } = useTheme();
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white">
-      <div className="container mx-auto flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 border-b-2 border-emerald-200 dark:border-slate-700 backdrop-blur-xl shadow-lg shadow-emerald-100/50 dark:shadow-slate-900/50">
+      <div className="max-w-1xl mx-auto px-6 flex items-center justify-between h-18">
+        <div className="flex items-center gap-3 text-2xl font-black text-slate-800 dark:text-white">
           <Wind className="h-8 w-8 text-emerald-500" />
-          <span className="text-xl font-bold">QuitTogether</span>
+          <a href="/" className="text-xl font-bold">
+            QuitTogether
+          </a>
         </div>
 
         <nav className="hidden md:flex items-center gap-6">
-          <NavItem href="/" icon={Home} isActive>
-            Home
-          </NavItem>
-          <NavItem href="/blog" icon={BookOpen}>
-            Blog
-          </NavItem>
-          <NavItem href="/pricing" icon={Gem}>
-            Pricing
-          </NavItem>
-          <NavItem href="/about" icon={Info}>
-            About
-          </NavItem>
+          {navLinks.map((item) => (
+            <NavItem
+              key={item.href}
+              href={item.href}
+              icon={item.icon}
+              isActive={item.href === location.pathname}
+            >
+              {item.label}
+            </NavItem>
+          ))}
         </nav>
 
-        <div className="flex items-center gap-4">
-          <Button variant="outline" className="hidden md:flex">
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Button className="hidden md:flex items-center px-4 py-2.5 rounded-xl font-semibold text-sm border-2 border-emerald-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-slate-700 dark:to-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500 hover:scale-105 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
             Log In
           </Button>
-          <Button className="hidden md:flex bg-emerald-500 hover:bg-emerald-600">
+          <Button className="hidden md:flex items-center px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-500/25">
             Sign Up
           </Button>
 
