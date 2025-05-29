@@ -24,6 +24,8 @@ const Login: React.FC = () => {
         if (!formData.email || !formData.password) {
             setMessage("Please enter correct username or password");
             return;
+        } else if (!formData.email || !formData.password) {
+            setMessage("Please Fill the information");
         }
         setMessage("Login success");
     };
