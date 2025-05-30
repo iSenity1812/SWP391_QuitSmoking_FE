@@ -17,10 +17,10 @@ export function HowItWorksSection() {
             <div className="w-24 h-24 bg-gradient-to-br from-purple-200 to-violet-200 rounded-full flex items-center justify-center mb-6 mx-auto">
               <span className="text-3xl font-bold text-coral-600">1</span>
             </div>
-            <h3 className="text-2xl font-semibold text-slate-800 mb-4">
+            <h3 className="text-2xl font-semibold text-slate-800 mb-4 dark:text-white">
               Set Your Quit Date
             </h3>
-            <p className="text-slate-600 leading-relaxed">
+            <p className="text-slate-600 leading-relaxed dark:text-slate-300">
               Choose when you want to quit smoking and let us help you prepare
               for success with personalized planning
             </p>
@@ -30,7 +30,7 @@ export function HowItWorksSection() {
             <div className="w-24 h-24 bg-gradient-to-br from-emerald-200 to-green-200 rounded-full flex items-center justify-center mb-6 mx-auto">
               <span className="text-3xl font-bold text-emerald-600">2</span>
             </div>
-            <h3 className="text-2xl font-semibold text-slate-800 mb-4">
+            <h3 className="text-2xl font-semibold text-slate-800 mb-4 dark:text-white">
               Track Your Progress
             </h3>
             <p className="text-slate-600 leading-relaxed">

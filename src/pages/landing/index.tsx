@@ -1,5 +1,4 @@
 import { BenefitsSection } from "@/components/landing/BenefitsSection";
-import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { UserTestimonials } from "@/components/landing/UserTestimonials";
@@ -16,8 +15,6 @@ export function LandingPage() {
         <HeroSection />
         <MotivationMessages />
         <BenefitsSection />
-        <HowItWorksSection />
-        <FeaturesSection />
         <UserTestimonials />
         <MotivationSection />
       </main>

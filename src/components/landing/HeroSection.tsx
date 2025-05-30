@@ -65,7 +65,12 @@ export function HeroSection() {
             <img
               src="/landing_tree_43-light.jpg"
               alt="Soft edge"
-              className="soft-edge w-[650px] h-auto object-cover"
+              className="soft-edge w-[650px] h-auto object-cover block dark:hidden"
+            />
+            <img
+              src="/landing_tree_43_dark.jpg"
+              alt="soft edge dark"
+              className="soft-edge w-[650px] h-auto object-cover hidden dark:block"
             />
           </div>
         </div>
