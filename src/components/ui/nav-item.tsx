@@ -15,11 +15,10 @@ export function NavItem({
   return (
     <Link
       to={href}
-      className={`flex items-center gap-2 text-sm font-medium ${
-        isActive
+      className={`flex items-center gap-2 text-sm font-medium ${isActive
           ? "text-emerald-500"
           : "text-muted-foreground hover:text-foreground"
-      }`}
+        }`}
     >
       <Icon className="h-4 w-4" />
       {children}
