@@ -21,11 +21,12 @@ const Login: React.FC = () => {
     };
     const handleSubmit = (e: React.FormEvent): void => {
         e.preventDefault();
-        if (!formData.email || !formData.password) {
+        if (!formData.email && !formData.password) {
+            setMessage("Please Fill the information");
+            return;
+        } else if (!formData.email || !formData.password) {
             setMessage("Please enter correct username or password");
             return;
-        } else if (!formData.email && !formData.password) {
-            setMessage("Please Fill the information");
         }
         setMessage("Login success");
     };
