@@ -5,6 +5,7 @@ import { Navbar } from "@/components/shared/Navbar";
 import { Footer } from "@/components/shared/Footer";
 import { MotivationSection } from "@/components/landing/MotivationSection";
 import { MotivationMessages } from "@/components/landing/MotivationMessages";
+import { CoachAndAchievement } from "@/components/landing/CoachAndAchievement";
 
 export function LandingPage() {
   return (
@@ -14,6 +15,7 @@ export function LandingPage() {
         <HeroSection />
         <MotivationMessages />
         <BenefitsSection />
+        <CoachAndAchievement />
         <UserTestimonials />
         <MotivationSection />
       </main>

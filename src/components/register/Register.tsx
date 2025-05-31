@@ -34,7 +34,7 @@ const Register: React.FC = () => {
         }));
     }
     const handleSubmit = (e: React.FormEvent): void => {
-        e.preventDefault;
+        e.preventDefault();
         if (
             !formData.firstname ||
             !formData.lastname ||
