@@ -64,7 +64,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     // Change theme after a short delay
     setTimeout(() => {
       setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
-    }, 200);
+    }, 300);
 
     // Clean up
     setTimeout(() => {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatedSection } from "../shared/AnimatedSection";
-import { Apple, Award, Brain, Crown, Dumbbell, Heart, Leaf, Star, Stethoscope, Trophy, Users } from "lucide-react";
+import { Award, Crown, Heart, Star, Trophy, Users } from "lucide-react";
 
 
 
@@ -10,69 +10,59 @@ export function CoachAndAchievement() {
   const coachesData = [
     {
       id: 1,
-      name: "Dr. Sarah Chen",
-      title: "Chuyên gia Tâm lý",
-      experience: "8 năm kinh nghiệm tâm lý lâm sàng",
-      specialty: "Liệu pháp nhận thức hành vi (CBT) cho cai nghiện",
-      successCases: 450,
-      quote: "Mỗi người đều có sức mạnh để thay đổi, tôi chỉ giúp bạn tìm thấy nó.",
-      gradient: "from-purple-500 to-pink-600",
-      icon: Brain
+      name: "Mike Johnson",
+      title: "Health & Wellness Coach", // Huấn luyện viên Sức khỏe -> Health & Wellness Coach (phổ biến và đúng chuyên môn hơn)
+      experience: "5 years supporting smoking cessation journeys", // 5 năm đồng hành cùng người cai thuốc -> specific hơn
+      specialty: "Integrating exercise and nutrition into cessation plans", // Kết hợp tập luyện và dinh dưỡng trong quá trình cai
+      successCases: 320,
+      quote: "A healthy body builds a stronger mind for your smoke-free journey.", // Tự nhiên hơn
+      gradient: "from-red-400 to-pink-400",
+      // icon: Dumbbell,
+      rating: 4.2, // Thêm rating để tăng tính chuyên nghiệp
+      avatar: "/cham1.jpg",
+      bio: "With 5 years of experience, Mike helps clients quit smoking by integrating tailored fitness and nutrition plans. His holistic approach has supported over 320 success stories."
     },
     {
       id: 2,
-      name: "Mike Johnson",
-      title: "Huấn luyện viên Sức khỏe",
-      experience: "5 năm đồng hành cùng người cai thuốc",
-      specialty: "Kết hợp tập luyện và dinh dưỡng trong quá trình cai",
-      successCases: 320,
-      quote: "Thể chất khỏe mạnh sẽ giúp tinh thần vững vàng hơn trong hành trình cai thuốc.",
-      gradient: "from-orange-500 to-red-600",
-      icon: Dumbbell
+      name: "Dr. James Wilson",
+      title: "Internal Medicine Physician", // Bác sĩ Nội khoa -> Internal Medicine Physician (chính xác hơn)
+      experience: "12 years specializing in respiratory health and smoking cessation", // 12 năm chuyên khoa hô hấp và cai thuốc lá -> rõ ràng hơn
+      specialty: "Medical support and health monitoring during cessation", // Hỗ trợ y khoa và theo dõi sức khỏe trong quá trình cai
+      successCases: 380,
+      quote: "Your body recovers faster than you think. Let me show you how.", // Tự nhiên, mang tính khích lệ hơn
+      gradient: "from-green-500 to-emerald-600",
+      // icon: Stethoscope,
+      rating: 4.7, // Thêm rating để tăng tính chuyên nghiệp
+      avatar: "/cham1.jpg",
+      bio: "A specialist in respiratory health with 12 years of clinical experience, Dr. Wilson offers expert medical guidance and health monitoring to ensure a safer, more effective quit process."
     },
     {
       id: 3,
-      name: "Emma Davis",
-      title: "Chuyên gia Thiền & Mindfulness",
-      experience: "6 năm thực hành và giảng dạy thiền",
-      specialty: "Quản lý stress và cơn thèm qua thiền chánh niệm",
-      successCases: 280,
-      quote: "Khi tâm trí bình tĩnh, mọi cơn thèm đều có thể vượt qua được.",
-      gradient: "from-teal-500 to-cyan-600",
-      icon: Leaf
+      name: "Lisa Thompson",
+      title: "Registered Dietitian", // Chuyên gia Dinh dưỡng -> Registered Dietitian (chuẩn hơn so với Nutritionist chung chung)
+      experience: "7 years providing nutritional counseling for quitters", // 7 năm tư vấn dinh dưỡng cho người cai thuốc -> gọn hơn, rõ ràng
+      specialty: "Developing meal plans to prevent weight gain during cessation", // Lập kế hoạch ăn uống tránh tăng cân khi cai thuốc
+      successCases: 250,
+      quote: "Eating right doesn't just help you quit; it enhances your overall well-being.", // Tự nhiên hơn, nhấn mạnh lợi ích toàn diện
+      gradient: "from-blue-500 to-indigo-400",
+      // icon: Apple,
+      rating: 4.9, // Thêm rating để tăng tính chuyên nghiệp
+      avatar: "/cham1.jpg",
+      bio: "With a focus on preventing weight gain during cessation, Lisa has helped over 250 clients achieve their health goals through personalized meal plans and nutritional counseling."
     },
     {
       id: 4,
-      name: "Dr. James Wilson",
-      title: "Bác sĩ Nội khoa",
-      experience: "12 năm chuyên khoa hô hấp và cai thuốc lá",
-      specialty: "Hỗ trợ y khoa và theo dõi sức khỏe trong quá trình cai",
-      successCases: 380,
-      quote: "Cơ thể bạn phục hồi nhanh hơn bạn nghĩ, hãy để tôi chứng minh điều đó.",
-      gradient: "from-blue-500 to-indigo-600",
-      icon: Stethoscope
-    },
-    {
-      id: 5,
-      name: "Lisa Thompson",
-      title: "Chuyên gia Dinh dưỡng",
-      experience: "7 năm tư vấn dinh dưỡng cho người cai thuốc",
-      specialty: "Lập kế hoạch ăn uống tránh tăng cân khi cai thuốc",
-      successCases: 250,
-      quote: "Ăn đúng cách không chỉ giúp cai thuốc mà còn cải thiện toàn diện sức khỏe.",
-      gradient: "from-green-500 to-emerald-600",
-      icon: Apple
-    },
-    {
-      id: 6,
       name: "Alex Rodriguez",
-      title: "Mentor Cộng đồng",
-      experience: "Cai thuốc thành công 4 năm, 3 năm hỗ trợ cộng đồng",
-      specialty: "Chia sẻ kinh nghiệm thực tế và hỗ trợ tinh thần 24/7",
+      title: "Community Mentor", // Mentor Cộng đồng
+      experience: "4 years smoke-free, 3 years community support", // Cai thuốc thành công 4 năm, 3 năm hỗ trợ cộng đồng -> gọn và rõ ràng
+      specialty: "Sharing real-world experience and 24/7 emotional support", // Chia sẻ kinh nghiệm thực tế và hỗ trợ tinh thần 24/7
       successCases: 180,
-      quote: "Tôi hiểu bạn đang trải qua gì, vì tôi đã từng ở vị trí đó.",
-      gradient: "from-yellow-500 to-orange-600",
-      icon: Users
+      quote: "I understand what you're going through because I've been there.", // Tự nhiên và chân thật hơn
+      gradient: "from-purple-400 to-pink-400",
+      // icon: Users,
+      rating: 4.8, // Thêm rating để tăng tính chuyên nghiệp
+      avatar: "/cham1.jpg",
+      bio: "Having successfully quit smoking for 4 years, Alex provides peer support and mentorship, sharing personal experiences and offering emotional guidance to those on their quit journey."
     }
   ];
 
@@ -122,22 +112,23 @@ export function CoachAndAchievement() {
   ]
 
   return (
-    <AnimatedSection animation="fadeUp" delay={400}>
-      <section
-        id="progress"
-        className="py-20 bg-gradient-to-br from-emerald-50 to-white dark:from-slate-800 dark:to-slate-900"
-      >
-        <div className="max-w-6xl mx-auto px-6">
+
+    <section
+      id="progress"
+      className="py-20 bg-gradient-to-bl from-emerald-50 to-white dark:from-slate-900/99 dark:to-slate-800"
+    >
+      <AnimatedSection animation="fadeUp" delay={200}>
+        <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-black mb-6 text-slate-800 dark:text-white">
-              Text
+            <h2 className="text-4xl lg:text-4xl font-black mb-6 text-slate-800 dark:text-white">
+              Introduce our Coaches & Achievements
             </h2>
             <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto font-medium leading-relaxed">
-              See your achievements and compete with others on their quit journey! 🎯
+              See your achievements and compete with others on their quit journey!
             </p>
           </div>
 
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             {/* Tab Navigation */}
             <div className="flex justify-center mb-12">
               <div className="bg-white dark:bg-slate-800 p-2 rounded-2xl shadow-xl border-2 border-emerald-100 dark:border-slate-700">
@@ -169,16 +160,16 @@ export function CoachAndAchievement() {
             {/* Tab Content */}
             <div className="min-h-[500px]">
               {activeTab === "coaches" && (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                   {coachesData.map((coach, index) => (
                     <AnimatedSection key={coach.id} animation="fadeUp" delay={index * 150}>
-                      <div className="group relative bg-gradient-to-br from-teal-50 to-teal-100 dark:from-slate-800 dark:to-slate-700 rounded-3xl p-8 shadow-xl border-2 border-emerald-100 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-500 hover:scale-105 hover:-translate-y-3 overflow-hidden">
+                      <div className="group relative bg-[#FBFBFB] bg-gradient-to-br dark:from-slate-800 dark:to-slate-700 rounded-3xl p-8 shadow-xl border-2 border-emerald-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-400/50 transition-all duration-500 hover:scale-105 hover:-translate-y-3 overflow-hidden">
                         {/* Background Gradient Animation */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/55 to-emerald-500/5 dark:from-emerald-200/15 dark:to-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
                         {/* Coach Avatar */}
-                        <div className="relative text-center mb-6">
-                          <div className="relative mx-auto mb-4">
+                        <div className="relative text-center mb-4">
+                          <div className="flex justify-center relative mx-auto mb-4">
                             <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${coach.gradient} flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300`}>
                               <img
                                 src={coach.avatar}
@@ -197,35 +188,33 @@ export function CoachAndAchievement() {
                           </h3>
 
                           <div className="flex items-center justify-center gap-2 mb-3">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${coach.specialtyGradient} shadow-md`}>
+                            <span className={`px-3 py-2 rounded-full text-xs font-bold text-white bg-gradient-to-r ${coach.gradient} shadow-md`}>
                               {coach.specialty}
                             </span>
                           </div>
                         </div>
 
                         {/* Coach Stats */}
-                        <div className="space-y-4 mb-6">
-                          <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 border-2 border-emerald-100 dark:border-slate-600">
-                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                              🎯 Success Rate
-                            </span>
-                            <span className="font-black text-emerald-600 dark:text-emerald-400">
-                              {coach.successRate}%
-                            </span>
-                          </div>
 
-                          <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 border-2 border-emerald-100 dark:border-slate-600">
-                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                              👥 Clients Helped
-                            </span>
-                            <span className="font-black text-blue-600 dark:text-blue-400">
-                              {coach.clientsHelped}+
-                            </span>
-                          </div>
+                        {/* Coach Bio */}
 
-                          <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 border-2 border-emerald-100 dark:border-slate-600">
-                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                              ⭐ Rating
+                        <div className="space-y-4">
+                          {/* <div className="flex items-center justify-between min-h-10">
+                            <span className="font-sm text-slate-600 dark:text-white">
+                              <ul>
+                                <li>{coach.experience}</li>
+                              </ul>
+                            </span>
+                          </div> */}
+
+                          <p className="text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+                            {coach.bio}
+                          </p>
+
+
+                          <div className="flex items-center justify-between p-3 mt-3 rounded-xl bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 border-2 border-emerald-100 dark:border-slate-600">
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                              Rating
                             </span>
                             <div className="flex items-center gap-1">
                               {[...Array(5)].map((_, i) => (
@@ -238,15 +227,12 @@ export function CoachAndAchievement() {
                           </div>
                         </div>
 
-                        {/* Coach Bio */}
-                        <p className="text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
-                          {coach.bio}
-                        </p>
+
 
                         {/* Contact Button */}
-                        <button className={`w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r ${coach.gradient} shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group-hover:from-emerald-500 group-hover:to-blue-500`}>
+                        {/* <button className={`w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r ${coach.gradient} shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group-hover:from-emerald-500 group-hover:to-blue-500`}>
                           💬 Chat with {coach.name.split(' ')[0]}
-                        </button>
+                        </button> */}
                       </div>
                     </AnimatedSection>
                   ))}
@@ -297,7 +283,8 @@ export function CoachAndAchievement() {
             </div>
           </div>
         </div>
-      </section>
-    </AnimatedSection>
+      </AnimatedSection>
+    </section >
+
   )
 }

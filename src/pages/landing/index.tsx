@@ -6,6 +6,7 @@ import { Footer } from "@/components/shared/Footer";
 import { MotivationSection } from "@/components/landing/MotivationSection";
 import { MotivationMessages } from "@/components/landing/MotivationMessages";
 import { CoachAndAchievement } from "@/components/landing/CoachAndAchievement";
+import { SubscriptionsSection } from "@/components/landing/SubscriptionsSection";
 
 export function LandingPage() {
   return (
@@ -16,7 +17,7 @@ export function LandingPage() {
         <MotivationMessages />
         <BenefitsSection />
         <CoachAndAchievement />
-        <UserTestimonials />
+        <SubscriptionsSection />
         <MotivationSection />
       </main>
       <Footer />
