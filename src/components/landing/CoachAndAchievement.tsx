@@ -165,7 +165,7 @@ export function CoachAndAchievement() {
                     <AnimatedSection key={coach.id} animation="fadeUp" delay={index * 150}>
                       <div className="group relative bg-[#FBFBFB] bg-gradient-to-br dark:from-slate-800 dark:to-slate-700 rounded-3xl p-8 shadow-xl border-2 border-emerald-100 dark:border-slate-700 hover:border-emerald-200 dark:hover:border-emerald-400/50 transition-all duration-500 hover:scale-105 hover:-translate-y-3 overflow-hidden">
                         {/* Background Gradient Animation */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/55 to-emerald-500/5 dark:from-emerald-200/15 dark:to-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/55 to-emerald-500/5 dark:from-emerald-200/15 dark:to-sky-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
                         {/* Coach Avatar */}
                         <div className="relative text-center mb-4">

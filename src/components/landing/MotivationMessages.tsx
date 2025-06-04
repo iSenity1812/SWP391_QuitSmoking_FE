@@ -16,12 +16,12 @@ export function MotivationMessages() {
 
   return (
 
-    <section className="w-full bg-emerald-500 py-6">
+    <section className="w-full bg-emerald-500 py-6" >
       <AnimatedSection animation="fadeUp" delay={400}>
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse">
         </div>
         <div className="max-w-4xl mx-auto px-6 relative z-10">
-          <div className="flex items-center justify-center gap-4 text-center text-white"> 
+          <div className="flex items-center justify-center gap-4 text-center text-white">
             <RefreshCw className="text-3xl animate-spin-slow" />
             <p className="text-xl lg:text-2xl font-bold italic text-white drop-shadow-lg">{randomQuote}</p>
           </div>
