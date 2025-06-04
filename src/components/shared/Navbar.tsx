@@ -55,7 +55,7 @@ export function Navbar() {
             Log In
           </Link>
           <Link
-            to={"/signup"}
+            to={"/register"}
             className="hidden md:flex items-center px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-500/25">
             Sign Up
           </Link>

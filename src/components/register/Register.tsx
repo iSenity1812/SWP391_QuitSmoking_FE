@@ -55,33 +55,7 @@ const Register: React.FC = () => {
                     <h1>Register</h1>
                 </div>
                 <form onSubmit={handleSubmit} className="login-form">
-                    <div className="form-group">
-                        <label htmlFor="firstname">Firstname</label>
-                        <input
 
-                            type="text"
-                            id="firstname"
-                            name="firsname"
-                            placeholder="Enter your firstname"
-                            value={formData.firstname}
-                            onChange={handleChange}
-                            className="form-input"
-                        />
-
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="lastname">lastname</label>
-                        <input
-
-                            type="text"
-                            id="lastname"
-                            name="lastname"
-                            placeholder="Enter your lastname"
-                            value={formData.lastname}
-                            onChange={handleChange}
-                            className="form-input"
-                        />
-                    </div>
                     <div className="form-group">
                         <label htmlFor="username">username</label>
                         <input
@@ -123,19 +97,19 @@ const Register: React.FC = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Gender</label>
-                        <select
-                            className="form-input"
-                            id="gender"
-                            name="gender"
-                            value={formData.gender}
+                        <label htmlFor="c-password">Confirm password</label>
+                        <input
+
+                            type="password"
+                            id="c-password"
+                            name="c-password"
+                            placeholder="Enter your password"
+                            value={formData.password}
                             onChange={handleChange}
-                        >
-                            <option value="male">Nam</option>
-                            <option value="female">Nữ</option>
-                            <option value="other">Khác</option>
-                        </select>
+                            className="form-input"
+                        />
                     </div>
+
                     <button type="submit" className="login-button">Log in</button>
                     {message && <div className="message"  >{message}</div>}
                     <div className="divider">
@@ -143,7 +117,7 @@ const Register: React.FC = () => {
                     </div>
 
                     <p className="signup-link">
-                        <a href="/Login">Sign in</a>
+                        <a href="/Login">Sign up</a>
                     </p>
 
                 </form>
