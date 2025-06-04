@@ -10,7 +10,7 @@ export function HeroSection() {
 
     <section
       id="hero"
-      className="py-20 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden"
+      className="py-40 mt-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden"
     >
       <AnimatedSection animation="fadeUp" delay={400}>
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-emerald-200/30 to-emerald-300/20 dark:from-emerald-500/10 dark:to-emerald-600/5 rounded-full blur-3xl animate-pulse"></div>
@@ -47,9 +47,10 @@ export function HeroSection() {
             <div className="flex items-center gap-4 pt-4">
               <div className="flex -space-x-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <Avatar key={i} className="border-2 border-white">
+                  <Avatar key={i} className="border-2 border-emerald-600 dark:border-white">
                     <AvatarImage
-                      src={`/placeholder.svg?height=40&width=40&text=User${i}`}
+                      // src={`/placeholder.svg?height=40&width=40&text=User${i}`}
+                      src="/public/cham1.jpg"
                     />
                     <AvatarFallback>U{i}</AvatarFallback>
                   </Avatar>

@@ -6,7 +6,10 @@ export const SubscriptionsSection = () => {
             id="plans"
             className="py-20 bg-gradient-to-br from-emerald-50 to-white dark:from-slate-800 dark:to-slate-900"
         >
-            <AnimatedSection animation="fadeUp" delay={400}>
+
+            <AnimatedSection animation="fadeUp" delay={400} className="relative z-10">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-emerald-200/30 to-emerald-300/20 dark:from-emerald-500/10 dark:to-emerald-600/30 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-emerald-100/40 to-emerald-200/30 dark:from-emerald-600/10 dark:to-emerald-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
                 <div className="max-w-6xl mx-auto px-6">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl lg:text-5xl font-black mb-6 text-slate-800 dark:text-white">

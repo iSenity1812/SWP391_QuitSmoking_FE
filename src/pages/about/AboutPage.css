@@ -1,0 +1,79 @@
+/* Style cho trang About, dựa trên thiết kế trang chủ */
+body {
+    background-color: #1a202c;
+    /* Nền tối */
+    color: #ffffff;
+    /* Chữ trắng */
+    font-family: 'Arial', sans-serif;
+    /* Sử dụng font chữ phù hợp */
+    margin: 0;
+    padding: 0;
+}
+
+.about-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 20px;
+    max-width: 1280px;
+    margin: 0 auto;
+    min-height: 100vh;
+}
+
+.about-header {
+    background-color: #f0fff4;
+    /* Màu nền xanh lá cây nhạt */
+    padding: 80px 20px;
+    text-align: center;
+    margin-bottom: 40px;
+    width: 100%;
+    /* Chiếm toàn bộ chiều rộng */
+}
+
+.about-header h1 {
+    font-size: 3.5rem;
+    color: #2d3748;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.about-header p {
+    font-size: 1.2rem;
+    color: #4a5568;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.about-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    /* Khoảng cách giữa các section */
+}
+
+.about-content section {
+    background-color: #2d3748;
+    /* Nền tối hơn cho từng section */
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+.about-content h2 {
+    font-size: 2rem;
+    color: #48bb78;
+    /* Màu xanh lá cây */
+    margin-bottom: 20px;
+    font-weight: 600;
+    border-bottom: 2px solid #4a5568;
+    padding-bottom: 10px;
+}
+
+.about-content p {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #a0aec0;
+    /* Màu xám nhạt cho nội dung */
+}

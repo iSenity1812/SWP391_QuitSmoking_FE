@@ -1,0 +1,234 @@
+body {
+    background-color: #1a202c;
+    /* Nền tối */
+    color: #ffffff;
+    /* Chữ trắng */
+    font-family: 'Arial', sans-serif;
+    /* Sử dụng font chữ phù hợp với dự án của bạn */
+    margin: 0;
+    /* Loại bỏ margin mặc định của body */
+    padding: 0;
+}
+
+.blog-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 20px;
+    /* Tăng padding trên/dưới */
+    max-width: 1280px;
+    /* Tăng max-width để khớp với Navbar nếu cần */
+    margin: 0 auto;
+    /* Căn giữa container chính */
+    min-height: 100vh;
+    /* Đảm bảo chiều cao tối thiểu */
+    padding-top: 0;
+    /* Loại bỏ padding-top nếu header có padding */
+}
+
+.blog-title {
+    font-size: 3.5rem;
+    /* Tiêu đề lớn hơn */
+    margin-bottom: 50px;
+    /* Khoảng cách dưới tiêu đề */
+    color: #48bb78;
+    /* Màu xanh lá cây tươi sáng */
+    text-align: center;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    /* Thêm đổ bóng nhẹ cho tiêu đề */
+}
+
+.blog-content-area {
+    display: flex;
+    width: 100%;
+    gap: 40px;
+    /* Khoảng cách giữa phần nội dung blog và sidebar */
+    flex-wrap: wrap;
+    /* Cho phép xuống dòng trên màn hình nhỏ */
+}
+
+.blog-posts-container {
+    flex-grow: 1;
+    /* Cho phép phần bài viết chiếm hết không gian còn lại */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    /* Layout responsive dạng grid, bài viết có chiều rộng tối thiểu 320px */
+    gap: 30px;
+    /* Khoảng cách giữa các bài viết */
+}
+
+.blog-post {
+    background-color: #2d3748;
+    /* Nền tối hơn cho từng bài viết (card) */
+    padding: 25px;
+    /* Tăng padding bên trong card */
+    border-radius: 12px;
+    /* Bo góc nhiều hơn */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    /* Đổ bóng sâu hơn */
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* Thêm hiệu ứng hover */
+    overflow: hidden;
+    /* Đảm bảo nội dung không tràn ra ngoài bo góc */
+}
+
+.blog-post:hover {
+    transform: translateY(-5px);
+    /* Nâng nhẹ card lên khi hover */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    /* Đổ bóng mạnh hơn khi hover */
+}
+
+
+.post-image {
+    width: 100%;
+    height: 220px;
+    /* Chiều cao cố định cho ảnh */
+    object-fit: cover;
+    /* Đảm bảo ảnh bao phủ toàn bộ khu vực */
+    border-radius: 8px;
+    /* Bo góc cho ảnh */
+    margin-bottom: 20px;
+    /* Khoảng cách dưới ảnh */
+}
+
+.post-title {
+    font-size: 1.6rem;
+    /* Điều chỉnh kích thước tiêu đề bài viết */
+    margin-bottom: 10px;
+    color: #48bb78;
+    /* Màu xanh lá cây */
+    font-weight: 600;
+    /* Chữ đậm hơn */
+}
+
+.post-content {
+    font-size: 1rem;
+    line-height: 1.7;
+    /* Tăng khoảng cách dòng */
+    margin-bottom: 15px;
+    color: #a0aec0;
+    /* Màu xám nhạt cho nội dung */
+    flex-grow: 1;
+    /* Đẩy phần meta và comment xuống cuối */
+}
+
+.post-meta {
+    /* Thêm một class bao bọc author và date */
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #a0aec0;
+    margin-bottom: 15px;
+}
+
+.post-author,
+.post-date {
+    margin: 0;
+    /* Loại bỏ margin mặc định */
+}
+
+.comments-container {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #4a5568;
+    /* Đường viền phân cách nhẹ */
+}
+
+.comment-title {
+    font-size: 1.4rem;
+    /* Điều chỉnh kích thước tiêu đề bình luận */
+    margin-bottom: 15px;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.sidebar {
+    width: 300px;
+    /* Chiều rộng cố định cho sidebar */
+    flex-shrink: 0;
+    /* Ngăn sidebar bị co lại */
+    background-color: #2d3748;
+    /* Nền tối hơn cho sidebar */
+    padding: 25px;
+    /* Tăng padding */
+    border-radius: 12px;
+    /* Bo góc nhiều hơn */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    /* Đổ bóng sâu hơn */
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    /* Khoảng cách giữa các phần trong sidebar */
+}
+
+.members-title,
+.coaches-title {
+    font-size: 1.8rem;
+    /* Kích thước tiêu đề sidebar */
+    margin-bottom: 15px;
+    color: #48bb78;
+    /* Màu xanh lá cây */
+    font-weight: 600;
+    border-bottom: 2px solid #4a5568;
+    /* Đường viền dưới tiêu đề */
+    padding-bottom: 10px;
+}
+
+/* Style cho danh sách thành viên và huấn luyện viên */
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar li {
+    margin-bottom: 12px;
+    /* Tăng khoảng cách giữa các mục */
+    color: #a0aec0;
+    /* Màu chữ */
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar li::before {
+    /* Thêm một chấm hoặc icon trước mỗi mục */
+    content: '•';
+    /* Hoặc sử dụng icon từ thư viện */
+    color: #48bb78;
+    /* Màu xanh lá cây */
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+}
+
+.blog-header {
+    background-color: #f0fff4;
+    /* Màu nền xanh lá cây nhạt */
+    padding: 80px 20px;
+    /* Khoảng cách lớn */
+    text-align: center;
+    margin-bottom: 40px;
+    /* Khoảng cách dưới header */
+}
+
+.blog-header h1 {
+    font-size: 3.5rem;
+    /* Kích thước tiêu đề lớn */
+    color: #2d3748;
+    /* Màu chữ tối */
+    margin-bottom: 20px;
+}
+
+.blog-header p {
+    font-size: 1.2rem;
+    color: #4a5568;
+    /* Màu chữ xám */
+    max-width: 800px;
+    margin: 0 auto;
+}
