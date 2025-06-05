@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Link } from "react-router-dom"
 import "./styles/style.css";
 import { AnimatedSection } from "../shared/AnimatedSection";
 
@@ -36,12 +37,14 @@ export function HeroSection() {
               along the way.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button size="lg" className="px-8 py-4 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-emerald-200/50 dark:shadow-emerald-500/25">
-                Get Started Free
-              </Button>
-              <Button size="lg" className="px-8 py-4 rounded-xl font-bold text-lg text-slate-700 dark:text-slate-300 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-slate-700 dark:to-slate-600 border-2 border-emerald-200 dark:border-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500 hover:scale-105 transition-all duration-300 hover:-translate-y-1 shadow-lg">
-                See How It Works
-              </Button>
+              <Link to="/plan">
+                <Button
+                  size="lg"
+                  className="px-8 py-4 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-emerald-200/50 dark:shadow-emerald-500/25"
+                >
+                  Get Started Free
+                </Button>
+              </Link>
             </div>
 
             <div className="flex items-center gap-4 pt-4">
