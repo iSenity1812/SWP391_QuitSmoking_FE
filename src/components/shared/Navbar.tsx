@@ -16,7 +16,7 @@ import { Link, useLocation } from "react-router-dom";
 const navLinks = [
   { href: "/", label: "Home", icon: Home, isActive: true },
   { href: "/blog", label: "Blog", icon: BookOpen },
-  { href: "/pricing", label: "Pricing", icon: Gem },
+  { href: "plan/", label: "Check", icon: Gem },
   { href: "/about", label: "About", icon: Info },
 ];
 
