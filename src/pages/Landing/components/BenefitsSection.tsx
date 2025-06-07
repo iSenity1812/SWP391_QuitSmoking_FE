@@ -1,5 +1,5 @@
 import { BarChart3, Calendar, DollarSign, Target } from "lucide-react";
-import { AnimatedSection } from "../../components/ui/AnimatedSection";
+import { AnimatedSection } from "../../../components/ui/AnimatedSection";
 
 export function BenefitsSection() {
   return (
