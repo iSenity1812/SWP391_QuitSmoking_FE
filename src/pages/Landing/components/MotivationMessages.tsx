@@ -1,5 +1,5 @@
 import { RefreshCw } from "lucide-react";
-import { AnimatedSection } from "../../../components/ui/AnimatedSection";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
 
 export function MotivationMessages() {
   const messages = [

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import './BlogPage.css'; // Import file CSS
+import './styles/BlogPage.css'; // Import file CSS
+
 
 // Định nghĩa kiểu cho Comment
 interface Comment {
