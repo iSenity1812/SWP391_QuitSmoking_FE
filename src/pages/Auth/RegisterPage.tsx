@@ -2,9 +2,9 @@
 
 import { motion } from "framer-motion";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import { AuthHeader } from "@/pages/Auth/components/AuthHeader";
+import { AuthHeader } from "@/pages/auth/components/AuthHeader";
 
-import { RegisterForm } from "@/pages/Auth/components/RegisterForm"; // Component chính
+import { RegisterForm } from "@/pages/auth/components/RegisterForm"; // Component chính
 
 export default function RegisterPage() {
   return (
