@@ -1,10 +1,10 @@
 // src/pages/RegisterPage.tsx
 
 import { motion } from "framer-motion";
-import { ThemeToggle } from "@/components/shared/ThemeToggle";
-import { AuthHeader } from "@/components/features/auth/AuthHeader";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { AuthHeader } from "@/pages/Auth/components/AuthHeader";
 
-import { RegisterForm } from "@/components/features/auth/RegisterForm"; // Component chính
+import { RegisterForm } from "@/pages/Auth/components/RegisterForm"; // Component chính
 
 export default function RegisterPage() {
   return (

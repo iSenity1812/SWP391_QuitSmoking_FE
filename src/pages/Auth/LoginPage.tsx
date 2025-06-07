@@ -5,10 +5,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Link } from "react-router-dom";
 import { Sparkles, ArrowRight } from "lucide-react"; // Thay đổi ArrowLeft thành ArrowRight cho Login
 
-import { UsernameOrEmailInput } from "@/components/login/login";
-import { PasswordInput } from "@/components/login/login"; // Sử dụng lại PasswordInput từ Register
-import { SubmitButton } from "@/components/login/login"; // Sử dụng lại SubmitButton
-import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { UsernameOrEmailInput } from "@/pages/Auth/components/login";
+import { PasswordInput } from "@/pages/Auth/components/login"; // Sử dụng lại PasswordInput từ Register
+import { SubmitButton } from "@/pages/Auth/components/login"; // Sử dụng lại SubmitButton
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 export const LoginForm: React.FC = () => {
   const [usernameOrEmail, setUsernameOrEmail] = useState("");

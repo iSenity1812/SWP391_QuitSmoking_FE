@@ -1,12 +1,12 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { LandingPage } from "./pages/landing";
-import { Navbar } from "./components/shared/Navbar";
-import BlogPage from "./pages/blog/BlogPage";
-import AboutPage from "./pages/about/AboutPage";
-import PlanPage from "./pages/plan/PlanPage";
-import LoginPage from './pages/login';
+import { LandingPage } from "./pages/Landing/LandingPage";
+import { Navbar } from "./components/ui/Navbar";
+import BlogPage from "./pages/Blog/BlogPage";
+import AboutPage from "./pages/About/AboutPage";
+import PlanPage from "./pages/Plan/PlanPage";
+import LoginPage from './pages/Auth/LoginPage';
 import { AnimatePresence } from 'framer-motion';
-import RegisterPage from './pages/register';
+import RegisterPage from './pages/Auth/RegisterPage';
 
 function shouldHideNavbar(pathname: string) {
   const hiddenPaths = [

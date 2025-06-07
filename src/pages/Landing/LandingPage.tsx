@@ -1,11 +1,11 @@
-import { BenefitsSection } from "@/components/landing/BenefitsSection";
-import { HeroSection } from "@/components/landing/HeroSection";
-import { Navbar } from "@/components/shared/Navbar";
-import { Footer } from "@/components/shared/Footer";
-import { MotivationSection } from "@/components/landing/MotivationSection";
-import { MotivationMessages } from "@/components/landing/MotivationMessages";
-import { CoachAndAchievement } from "@/components/landing/CoachAndAchievement";
-import { SubscriptionsSection } from "@/components/landing/SubscriptionsSection";
+import { BenefitsSection } from "@/pages/Landing/BenefitsSection";
+import { HeroSection } from "@/pages/Landing/HeroSection";
+import { Navbar } from "@/components/ui/Navbar";
+import { Footer } from "@/components/ui/Footer";
+import { MotivationSection } from "@/pages/Landing/MotivationSection";
+import { MotivationMessages } from "@/pages/Landing/MotivationMessages";
+import { CoachAndAchievement } from "@/pages/Landing/CoachAndAchievement";
+import { SubscriptionsSection } from "@/pages/Landing/SubscriptionsSection";
 import { motion } from "framer-motion";
 
 const pageVariants = {

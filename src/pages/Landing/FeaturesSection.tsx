@@ -1,5 +1,5 @@
 import { Smile, Wind, BarChart3, Users } from "lucide-react";
-import { AnimatedSection } from "../shared/AnimatedSection";
+import { AnimatedSection } from "../../components/ui/AnimatedSection";
 
 export function FeaturesSection() {
   return (

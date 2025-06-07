@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { AnimatedSection } from "@/components/shared/AnimatedSection"
+import { AnimatedSection } from "@/components/ui/AnimatedSection"
 import { motion } from "framer-motion"
 import {
     Heart,

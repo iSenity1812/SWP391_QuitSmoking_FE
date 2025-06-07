@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { AnimatedSection } from "@/components/shared/AnimatedSection"
+import { AnimatedSection } from "@/components/ui/AnimatedSection"
 import {
     CalendarIcon,
     Target,

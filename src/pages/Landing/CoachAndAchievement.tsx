@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AnimatedSection } from "../shared/AnimatedSection";
+import { AnimatedSection } from "../../components/ui/AnimatedSection";
 import { Award, Crown, Heart, Star, Trophy, Users } from "lucide-react";
 
 

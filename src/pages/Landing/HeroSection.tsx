@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom"
 import "./styles/style.css";
-import { AnimatedSection } from "../shared/AnimatedSection";
+import { AnimatedSection } from "../../components/ui/AnimatedSection";
 
 
 export function HeroSection() {
