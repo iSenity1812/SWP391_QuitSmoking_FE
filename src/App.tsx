@@ -1,9 +1,9 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { LandingPage } from "./pages/landing/components/LandingPage";
+import { LandingPage } from "./pages/Landing/components/LandingPage";
 import { Navbar } from "./components/ui/Navbar";
-import BlogPage from "./pages/Blog/BlogPage";
+import BlogPage from "./pages/blog/BlogPage";
 import AboutPage from "./pages/about/AboutPage";
-import PlanPage from "./pages/Plan/PlanPage";
+import PlanPage from './pages/plan/PlanPage';
 import LoginPage from './pages/auth/LoginPage';
 import { AnimatePresence } from 'framer-motion';
 import RegisterPage from './pages/auth/RegisterPage';
