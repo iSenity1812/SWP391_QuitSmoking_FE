@@ -13,9 +13,9 @@ interface ProgressDetailsProps {
 
 export const ProgressDetails: React.FC<ProgressDetailsProps> = ({ smokeFreeDays, moneySaved, cigarettesNotSmoked }) => {
     // Calculate health improvements based on smoke-free days
-    const heartHealth = Math.min(100 + smokeFreeDays * 0.2, 15).toFixed(1)
-    const lungFunction = Math.min(100 + smokeFreeDays * 0.3, 20).toFixed(1)
-    const energyLevel = Math.min(100 + smokeFreeDays * 0.4, 25).toFixed(1)
+    const heartHealth = Math.min(smokeFreeDays * 0.2, 15).toFixed(1)
+    const lungFunction = Math.min(smokeFreeDays * 0.3, 20).toFixed(1)
+    const energyLevel = Math.min(smokeFreeDays * 0.4, 25).toFixed(1)
 
     // Calculate milestones achieved
     const milestonesAchieved = Math.floor(smokeFreeDays / 7) + (smokeFreeDays >= 1 ? 1 : 0)

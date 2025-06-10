@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -39,6 +39,16 @@ export default function PlanPage() {
         handleDateChange,
         handleNumberChange,
     } = usePlanForm(setCurrentPlan)
+
+    // Force re-render when localStorage changes
+    useEffect(() => {
+        const handleStorageChange = () => {
+            window.location.reload()
+        }
+
+        window.addEventListener("storage", handleStorageChange)
+        return () => window.removeEventListener("storage", handleStorageChange)
+    }, [])
 
     // Calculate cigarettes not smoked
     const cigarettesNotSmoked = currentPlan ? smokeFreeDays * currentPlan.dailyCigarettes : 0

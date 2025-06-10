@@ -10,16 +10,38 @@ export const usePlanStorage = () => {
 
     // Load from localStorage
     useEffect(() => {
-        const savedPlan = localStorage.getItem(STORAGE_KEYS.PLAN)
+        // Try all possible storage keys
+        const possibleKeys = [STORAGE_KEYS.PLAN, "plan", "currentPlan", "PLAN"]
+        let savedPlan = null
+
+        for (const key of possibleKeys) {
+            const planData = localStorage.getItem(key)
+            if (planData) {
+                savedPlan = planData
+                break
+            }
+        }
+
         if (savedPlan) {
             try {
                 const parsedPlan = JSON.parse(savedPlan)
-                parsedPlan.startDate = new Date(parsedPlan.startDate)
-                parsedPlan.targetDate = new Date(parsedPlan.targetDate)
-                setCurrentPlan(parsedPlan)
+
+                // Convert date strings back to Date objects
+                if (parsedPlan.startDate) {
+                    parsedPlan.startDate = new Date(parsedPlan.startDate)
+                }
+                if (parsedPlan.targetDate) {
+                    parsedPlan.targetDate = new Date(parsedPlan.targetDate)
+                }
+
+                // Ensure all required fields exist
+                if (parsedPlan.id && parsedPlan.title && parsedPlan.startDate && parsedPlan.targetDate) {
+                    setCurrentPlan(parsedPlan)
+                }
             } catch (error) {
                 console.error("Error loading plan:", error)
-                localStorage.removeItem(STORAGE_KEYS.PLAN)
+                // Clear corrupted data
+                possibleKeys.forEach((key) => localStorage.removeItem(key))
             }
         }
 
@@ -41,9 +63,15 @@ export const usePlanStorage = () => {
     // Save to localStorage
     useEffect(() => {
         if (currentPlan) {
+            // Save to multiple keys to ensure compatibility
             localStorage.setItem(STORAGE_KEYS.PLAN, JSON.stringify(currentPlan))
+            localStorage.setItem("plan", JSON.stringify(currentPlan))
+            localStorage.setItem("currentPlan", JSON.stringify(currentPlan))
         } else {
+            // Clear all plan keys
             localStorage.removeItem(STORAGE_KEYS.PLAN)
+            localStorage.removeItem("plan")
+            localStorage.removeItem("currentPlan")
         }
     }, [currentPlan])
 
