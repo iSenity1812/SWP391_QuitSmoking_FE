@@ -7,6 +7,7 @@ import { MotivationMessages } from "@/pages/landing/components/MotivationMessage
 import { CoachAndAchievement } from "@/pages/landing/components/CoachAndAchievement";
 import { SubscriptionsSection } from "@/pages/landing/components/SubscriptionsSection";
 import { motion } from "framer-motion";
+import { TestimonialSlider } from "@/pages/landing/components/TestimonialSlider";
 
 const pageVariants = {
   initial: {
@@ -38,6 +39,7 @@ export function LandingPage() {
           <BenefitsSection />
           <CoachAndAchievement />
           <SubscriptionsSection />
+          <TestimonialSlider />
           <MotivationSection />
         </main>
         <Footer />
