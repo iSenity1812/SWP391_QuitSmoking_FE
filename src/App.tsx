@@ -61,5 +61,5 @@ export default function App() {
         </AuthProvider>
       </main>
     </div>
-  );
+  )
 }
