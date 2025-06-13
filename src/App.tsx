@@ -11,6 +11,8 @@ import { AnimatePresence } from "framer-motion"
 import RegisterPage from "./pages/auth/RegisterPage"
 import { OnboardingPage } from "./pages/onboarding/onBoardingPage"
 import { PlanSelectionDirectPage } from "./pages/plan-selection/PlanDirectPage"
+import AdminPage from "./pages/admin/AdminPage"
+import { useEffect, useState } from "react"
 
 function shouldHideNavbar(pathname: string) {
   const hiddenPaths = [
@@ -31,8 +33,29 @@ export default function App() {
   const location = useLocation()
   const shouldShowNavbar = !shouldHideNavbar(location.pathname)
 
-  // Check if onboarding is completed
-  const isOnboardingCompleted = localStorage.getItem("onboarding_completed") === "true"
+  // Use state to track onboarding status with a default of true (completed)
+  const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(true)
+
+  useEffect(() => {
+    // Check localStorage only once on initial load
+    const storedOnboardingStatus = localStorage.getItem("onboarding_completed")
+
+    // Only update state if localStorage has a value and it's "false"
+    if (storedOnboardingStatus === "false") {
+      setIsOnboardingCompleted(false)
+    }
+
+    // For debugging - log the current status
+    console.log("Onboarding completed status:", isOnboardingCompleted)
+  }, [])
+
+  // Force complete onboarding (for development/testing)
+  const forceCompleteOnboarding = () => {
+    localStorage.setItem("onboarding_completed", "true")
+    setIsOnboardingCompleted(true)
+    console.log("Onboarding manually completed")
+  }
+
   const isOnOnboardingPage = location.pathname === "/onboarding"
   const isPlanSelectionPage = location.pathname === "/plan-selection"
   const isHomePage = location.pathname === "/"
@@ -61,6 +84,16 @@ export default function App() {
     <div className="min-h-screen flex flex-col">
       {shouldShowNavbar && <Navbar />}
       <main className="flex-1">
+        {/* Hidden button for development to force complete onboarding */}
+        {!isOnboardingCompleted && (
+          <button
+            onClick={forceCompleteOnboarding}
+            className="fixed bottom-4 right-4 bg-red-500 text-white px-3 py-1 rounded-md text-xs z-50"
+          >
+            Skip Onboarding (Dev)
+          </button>
+        )}
+
         <AnimatePresence mode="wait" initial={false}>
           <Routes location={location} key={location.pathname}>
             <Route path="/onboarding" element={<OnboardingPage />} />
@@ -71,6 +104,7 @@ export default function App() {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/plan" element={<PlanPage />} />
+            <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </AnimatePresence>
       </main>
