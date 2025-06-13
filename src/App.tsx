@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import { PrivateRoute } from './pages/auth/PrivateRoute';
 import { PublicRoute } from './pages/auth/PublicRoute';
+import { PlanSelectionDirectPage } from './pages/plan-selection/PlanDirectPage';
 
 
 export default function App() {
@@ -45,9 +46,10 @@ export default function App() {
               <Route path='/about' element={<AboutPage />} />
               {/* <Route path='/plan' element={} /> */}
 
-              <Route element={<PrivateRoute />}>
+              <Route element={<PrivateRoute allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']} />}>
                 <Route path='/plan' element={<PlanPage />} />
                 {/* <Route path='/profile' element={<PrrofilePage />} /> */}
+                <Route path="/plan-selection" element={<PlanSelectionDirectPage />} />
               </Route>
 
               {/* route chỉ dành cho admin */}

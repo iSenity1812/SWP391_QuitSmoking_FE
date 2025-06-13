@@ -36,7 +36,7 @@ function shouldHideNavbar(pathname: string) {
 
 export function Navbar() {
   const location = useLocation();
-  const { isAuthenticated, user, logout, isLoading } = useAuth();
+  const { isAuthenticated, logout, isLoading } = useAuth();
   const showNavbar = !shouldHideNavbar(location.pathname);
 
   if (!showNavbar) {
