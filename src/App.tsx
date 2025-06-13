@@ -12,6 +12,7 @@ import RegisterPage from "./pages/auth/RegisterPage"
 import { OnboardingPage } from "./pages/onboarding/onBoardingPage"
 import { PlanSelectionDirectPage } from "./pages/plan-selection/PlanDirectPage"
 import AdminPage from "./pages/admin/AdminPage"
+import UserProfilePage from "./pages/user/userProfilePage"
 import { useEffect, useState } from "react"
 
 function shouldHideNavbar(pathname: string) {
@@ -23,6 +24,7 @@ function shouldHideNavbar(pathname: string) {
     "/forgot-password",
     "/onboarding",
     "/plan-selection",
+    "/profile", // Hide navbar on profile page too
   ]
 
   // Dùng startsWith để hỗ trợ cả các route như /admin/dashboard
@@ -105,6 +107,7 @@ export default function App() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/plan" element={<PlanPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/profile" element={<UserProfilePage />} />
           </Routes>
         </AnimatePresence>
       </main>
