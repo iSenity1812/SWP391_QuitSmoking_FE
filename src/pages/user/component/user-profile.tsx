@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,7 +22,6 @@ import {
     Share2,
     Download,
     Users,
-    Star,
     Plus,
     Filter,
     Search,
@@ -40,6 +39,11 @@ export function UserProfile({ className }: UserProfileProps) {
     const [activeTab, setActiveTab] = useState("overview")
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
+    const [achievementNotification, setAchievementNotification] = useState<{
+        show: boolean
+        achievement: any
+    }>({ show: false, achievement: null })
+
     const [user] = useState({
         name: "Nguyễn Văn A",
         email: "nguyenvana@example.com",
@@ -52,11 +56,280 @@ export function UserProfile({ className }: UserProfileProps) {
         level: "Bạc",
         streak: 45,
         achievements: [
-            { id: 1, name: "Tuần đầu tiên", completed: true, date: "22/04/2023", points: 100 },
-            { id: 2, name: "Một tháng không hút thuốc", completed: true, date: "15/05/2023", points: 500 },
-            { id: 3, name: "Ba tháng không hút thuốc", completed: false, points: 1000 },
-            { id: 4, name: "Sáu tháng không hút thuốc", completed: false, points: 2000 },
-            { id: 5, name: "Một năm không hút thuốc", completed: false, points: 5000 },
+            // Thời gian (Time-based achievements)
+            {
+                id: 1,
+                name: "Good Start",
+                description: "Không hút thuốc 1 ngày",
+                category: "time",
+                completed: true,
+                date: "22/04/2023",
+                points: 50,
+                icon: "calendar",
+                daysRequired: 1,
+            },
+            {
+                id: 2,
+                name: "Tuần Đầu Tiên",
+                description: "Hoàn thành 7 ngày không hút thuốc",
+                category: "time",
+                completed: true,
+                date: "28/04/2023",
+                points: 100,
+                icon: "trophy",
+                daysRequired: 7,
+            },
+            {
+                id: 3,
+                name: "First Month",
+                description: "Kiên trì không hút thuốc trong 1 tháng",
+                category: "time",
+                completed: true,
+                date: "15/05/2023",
+                points: 500,
+                icon: "award",
+                daysRequired: 30,
+            },
+            {
+                id: 4,
+                name: "Quý Đầu Tiên",
+                description: "3 tháng không hút thuốc - thói quen mới!",
+                category: "time",
+                completed: false,
+                points: 1000,
+                icon: "medal",
+                daysRequired: 90,
+            },
+            {
+                id: 5,
+                name: "Nửa Năm Chiến Thắng",
+                description: "6 tháng không hút thuốc",
+                category: "time",
+                completed: false,
+                points: 2000,
+                icon: "crown",
+                daysRequired: 180,
+            },
+            {
+                id: 6,
+                name: "365 Days Warrior",
+                description: "Không hút thuốc trong vòng 1 năm",
+                category: "time",
+                completed: false,
+                points: 5000,
+                icon: "flame",
+                daysRequired: 365,
+            },
+
+            // Tiết kiệm (Money-based achievements)
+            {
+                id: 7,
+                name: "Pocket Saver",
+                description: "Tiết kiệm được 100,000đ",
+                category: "saving",
+                completed: true,
+                date: "25/04/2023",
+                points: 100,
+                icon: "coins",
+                moneyRequired: 100000,
+            },
+            {
+                id: 8,
+                name: "Budget Booster",
+                description: "Tiết kiệm được 500,000đ",
+                category: "saving",
+                completed: true,
+                date: "10/05/2023",
+                points: 300,
+                icon: "piggy-bank",
+                moneyRequired: 500000,
+            },
+            {
+                id: 9,
+                name: "Smart Spender",
+                description: "Tiết kiệm được 1,000,000đ",
+                category: "saving",
+                completed: true,
+                date: "01/06/2023",
+                points: 500,
+                icon: "banknote",
+                moneyRequired: 1000000,
+            },
+            {
+                id: 10,
+                name: "Wealth Builder",
+                description: "Tiết kiệm được 5,000,000đ",
+                category: "saving",
+                completed: false,
+                points: 1500,
+                icon: "gem",
+                moneyRequired: 5000000,
+            },
+            {
+                id: 11,
+                name: "Vacation Funded",
+                description: "Tiết kiệm trên 5,000,000đ - đủ tiền đi du lịch!",
+                category: "saving",
+                completed: false,
+                points: 3000,
+                icon: "plane",
+                moneyRequired: 5000000,
+            },
+
+            // Số lượng (Quantity-based achievements)
+            {
+                id: 12,
+                name: "Great Effort",
+                description: "Hôm nay bạn không hút thuốc",
+                category: "daily",
+                completed: true,
+                date: "Hôm nay",
+                points: 10,
+                icon: "check-circle",
+                isDaily: true,
+            },
+            {
+                id: 13,
+                name: "Keep Going",
+                description: "Giảm số điếu thuốc hút so với hôm qua",
+                category: "progress",
+                completed: true,
+                date: "Hôm qua",
+                points: 20,
+                icon: "trending-down",
+                isDaily: true,
+            },
+            {
+                id: 14,
+                name: "Hundred Club",
+                description: "Tránh được 100 điếu thuốc",
+                category: "quantity",
+                completed: true,
+                date: "30/04/2023",
+                points: 200,
+                icon: "target",
+                cigarettesAvoided: 100,
+            },
+            {
+                id: 15,
+                name: "Five Hundred Strong",
+                description: "Tránh được 500 điếu thuốc",
+                category: "quantity",
+                completed: false,
+                points: 500,
+                icon: "shield",
+                cigarettesAvoided: 500,
+            },
+
+            // Comeback & Resilience
+            {
+                id: 16,
+                name: "Comeback King",
+                description: "Quay lại chuỗi > 10 ngày sau khi bị gián đoạn",
+                category: "resilience",
+                completed: false,
+                points: 800,
+                icon: "refresh-cw",
+                comebackStreak: 10,
+            },
+            {
+                id: 17,
+                name: "Phoenix Rising",
+                description: "Bắt đầu lại và đạt streak 30 ngày sau thất bại",
+                category: "resilience",
+                completed: false,
+                points: 1200,
+                icon: "sunrise",
+                comebackStreak: 30,
+            },
+
+            // Sức khỏe (Health-based achievements)
+            {
+                id: 18,
+                name: "Breath of Fresh Air",
+                description: "Chức năng phổi cải thiện 25%",
+                category: "health",
+                completed: true,
+                date: "20/05/2023",
+                points: 400,
+                icon: "heart",
+                healthImprovement: 25,
+            },
+            {
+                id: 19,
+                name: "Healthy Heart",
+                description: "Sức khỏe tim mạch cải thiện 50%",
+                category: "health",
+                completed: false,
+                points: 600,
+                icon: "activity",
+                healthImprovement: 50,
+            },
+
+            // Cộng đồng (Social achievements)
+            {
+                id: 20,
+                name: "Motivator",
+                description: "Giúp đỡ 5 người bạn trong hành trình cai thuốc",
+                category: "social",
+                completed: false,
+                points: 300,
+                icon: "users",
+                friendsHelped: 5,
+            },
+            {
+                id: 21,
+                name: "Community Leader",
+                description: "Chia sẻ kinh nghiệm và nhận 50 lượt thích",
+                category: "social",
+                completed: false,
+                points: 400,
+                icon: "heart",
+                likesReceived: 50,
+            },
+
+            // Đặc biệt (Special achievements)
+            {
+                id: 22,
+                name: "New Year, New Me",
+                description: "Bắt đầu hành trình cai thuốc vào đầu năm",
+                category: "special",
+                completed: false,
+                points: 200,
+                icon: "sparkles",
+                isSpecial: true,
+            },
+            {
+                id: 23,
+                name: "Birthday Gift",
+                description: "Không hút thuốc trong ngày sinh nhật",
+                category: "special",
+                completed: false,
+                points: 150,
+                icon: "gift",
+                isSpecial: true,
+            },
+            {
+                id: 24,
+                name: "Weekend Warrior",
+                description: "Hoàn thành 10 cuối tuần không hút thuốc",
+                category: "special",
+                completed: false,
+                points: 350,
+                icon: "calendar-days",
+                weekendsCompleted: 10,
+            },
+        ],
+        achievementCategories: [
+            { id: "all", name: "Tất cả", count: 24 },
+            { id: "time", name: "Thời gian", count: 6 },
+            { id: "saving", name: "Tiết kiệm", count: 5 },
+            { id: "quantity", name: "Số lượng", count: 3 },
+            { id: "health", name: "Sức khỏe", count: 2 },
+            { id: "social", name: "Cộng đồng", count: 2 },
+            { id: "resilience", name: "Kiên cường", count: 2 },
+            { id: "special", name: "Đặc biệt", count: 3 },
+            { id: "daily", name: "Hàng ngày", count: 1 },
         ],
         nextMilestone: {
             name: "50 ngày không hút thuốc",
@@ -72,11 +345,9 @@ export function UserProfile({ className }: UserProfileProps) {
         weeklyProgress: [
             { day: "T2", cigarettes: 0, mood: 8 },
             { day: "T3", cigarettes: 0, mood: 9 },
-            { day: "T4", cigarettes: 0, mood: 7 },
-            { day: "T5", cigarettes: 0, mood: 8 },
-            { day: "T6", cigarettes: 0, mood: 9 },
-            { day: "T7", cigarettes: 0, mood: 10 },
-            { day: "CN", cigarettes: 0, mood: 9 },
+            { day: "T4", cigarettes: 0, mood: 8 },
+            { day: "T5", cigarettes: 0, mood: 9 },
+            { day: "T6", cigarettes: 0, mood: 10 },
         ],
         friends: [
             { name: "Trần Thị B", avatar: "/placeholder.svg", streak: 32, status: "online" },
@@ -91,13 +362,59 @@ export function UserProfile({ className }: UserProfileProps) {
         ],
     })
 
+    // Simulate achievement checking
+    useEffect(() => {
+        const checkAchievements = () => {
+            // Check for new achievements based on current progress
+            const newAchievements = user.achievements.filter((achievement) => {
+                if (achievement.completed) return false
+
+                // Check time-based achievements
+                if (achievement.daysRequired && user.daysSmokeFreee >= achievement.daysRequired) {
+                    return true
+                }
+
+                // Check money-based achievements
+                if (
+                    achievement.moneyRequired &&
+                    Number.parseInt(user.moneySaved.replace(/\./g, "")) >= achievement.moneyRequired
+                ) {
+                    return true
+                }
+
+                // Check cigarette-based achievements
+                if (achievement.cigarettesAvoided && user.cigarettesAvoided >= achievement.cigarettesAvoided) {
+                    return true
+                }
+
+                // Check health-based achievements
+                if (achievement.healthImprovement && user.healthImprovement >= achievement.healthImprovement) {
+                    return true
+                }
+
+                return false
+            })
+
+            // Show notification for the first new achievement
+            if (newAchievements.length > 0) {
+                setAchievementNotification({
+                    show: true,
+                    achievement: newAchievements[0],
+                })
+            }
+        }
+
+        // Check achievements when component mounts or user data changes
+        const timer = setTimeout(checkAchievements, 1000)
+        return () => clearTimeout(timer)
+    }, [user.daysSmokeFreee, user.moneySaved, user.cigarettesAvoided, user.healthImprovement])
+
     const sidebarItems = [
         { id: "overview", label: "Tổng quan", icon: LayoutDashboard },
         { id: "progress", label: "Tiến trình", icon: ChartBar },
         { id: "achievements", label: "Thành tựu", icon: Award },
         { id: "health", label: "Sức khỏe", icon: Heart },
         { id: "social", label: "Cộng đồng", icon: Users },
-        { id: "analytics", label: "Phân tích", icon: Target },
     ]
 
     return (
@@ -121,9 +438,6 @@ export function UserProfile({ className }: UserProfileProps) {
                             </Avatar>
                             <div>
                                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Chào mừng, {user.name}!</h1>
-                                <p className="text-slate-600 dark:text-slate-400">
-                                    {user.daysSmokeFreee} ngày không hút thuốc • Cấp độ {user.level}
-                                </p>
                             </div>
                         </div>
                         <div className="hidden sm:flex items-center gap-3">
@@ -139,6 +453,68 @@ export function UserProfile({ className }: UserProfileProps) {
                     </div>
                 </div>
             </div>
+
+            {/* Achievement Notification Modal */}
+            {achievementNotification.show && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 max-w-md mx-4 shadow-2xl border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-300">
+                        <div className="text-center">
+                            {/* Celebration Animation */}
+                            <div className="relative mb-6">
+                                <div className="bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full p-6 inline-block animate-bounce">
+                                    <Trophy className="h-16 w-16 text-white" />
+                                </div>
+                                {/* Sparkle effects */}
+                                <div className="absolute -top-2 -right-2 text-yellow-400 animate-pulse">✨</div>
+                                <div className="absolute -bottom-2 -left-2 text-yellow-400 animate-pulse delay-150">⭐</div>
+                                <div className="absolute top-1/2 -right-4 text-yellow-400 animate-pulse delay-300">🎉</div>
+                            </div>
+
+                            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Chúc mừng!</h2>
+
+                            <p className="text-lg text-slate-600 dark:text-slate-400 mb-4">Bạn đã đạt được thành tựu</p>
+
+                            <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 rounded-xl p-4 mb-6 border border-emerald-200 dark:border-emerald-800">
+                                <div className="flex items-center justify-center gap-3 mb-3">
+                                    <Award className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                                    <h3 className="text-xl font-bold text-emerald-700 dark:text-emerald-400">
+                                        {achievementNotification.achievement?.name}
+                                    </h3>
+                                </div>
+                                <p className="text-emerald-600 dark:text-emerald-400 text-sm mb-3">
+                                    {achievementNotification.achievement?.description}
+                                </p>
+                                <div className="flex items-center justify-center gap-2">
+                                    <Coins className="h-5 w-5 text-yellow-500" />
+                                    <span className="font-semibold text-yellow-600">
+                                        +{achievementNotification.achievement?.points} điểm
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <Button
+                                    onClick={() => {
+                                        setAchievementNotification({ show: false, achievement: null })
+                                        setActiveTab("achievements")
+                                    }}
+                                    className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
+                                >
+                                    <Award className="h-4 w-4 mr-2" />
+                                    Xem thành tựu
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setAchievementNotification({ show: false, achievement: null })}
+                                    className="flex-1"
+                                >
+                                    Đóng
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
                 <div className="flex flex-col md:flex-row gap-6">
@@ -182,17 +558,6 @@ export function UserProfile({ className }: UserProfileProps) {
                                         <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
                                     </div>
                                 </div>
-
-                                <div className="space-y-1 mb-6">
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">Streak hiện tại</p>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                                            {user.daysSmokeFreee}
-                                        </span>
-                                        <span className="text-sm text-slate-600 dark:text-slate-400">ngày</span>
-                                    </div>
-                                    <Progress value={user.daysSmokeFreee} max={50} className="h-2" />
-                                </div>
                             </div>
 
                             <div className="space-y-1">
@@ -224,14 +589,17 @@ export function UserProfile({ className }: UserProfileProps) {
                                     <Share2 className="h-4 w-4 mr-2" />
                                     Chia sẻ tiến trình
                                 </Button>
-                                <Button variant="outline" className="w-full justify-start mt-2" size="sm">
-                                    <Settings className="h-4 w-4 mr-2" />
-                                    Cài đặt tài khoản
-                                </Button>
                                 <Button
                                     variant="outline"
                                     className="w-full justify-start mt-2 text-rose-600 dark:text-rose-400"
                                     size="sm"
+                                    onClick={() => {
+                                        // Clear any user session data
+                                        localStorage.removeItem("user_session")
+                                        localStorage.removeItem("auth_token")
+                                        // Redirect to homepage
+                                        window.location.href = "/"
+                                    }}
                                 >
                                     <LogOut className="h-4 w-4 mr-2" />
                                     Đăng xuất
@@ -372,6 +740,25 @@ export function UserProfile({ className }: UserProfileProps) {
                                                         <Download className="h-4 w-4 mr-3" />
                                                         Xuất báo cáo
                                                     </Button>
+                                                    <Button
+                                                        className="w-full justify-start"
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            // Simulate unlocking a random incomplete achievement
+                                                            const incompleteAchievements = user.achievements.filter((a) => !a.completed)
+                                                            if (incompleteAchievements.length > 0) {
+                                                                const randomAchievement =
+                                                                    incompleteAchievements[Math.floor(Math.random() * incompleteAchievements.length)]
+                                                                setAchievementNotification({
+                                                                    show: true,
+                                                                    achievement: randomAchievement,
+                                                                })
+                                                            }
+                                                        }}
+                                                    >
+                                                        <Trophy className="h-4 w-4 mr-3" />
+                                                        Test Achievement
+                                                    </Button>
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -425,59 +812,87 @@ export function UserProfile({ className }: UserProfileProps) {
                             {activeTab === "progress" && (
                                 <div className="space-y-6">
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                        {/* Weekly Progress */}
+                                        {/* Total Plan Days */}
                                         <Card>
                                             <CardHeader>
-                                                <CardTitle>Tiến trình tuần này</CardTitle>
+                                                <CardTitle>Tổng Số Ngày Theo Kế Hoạch</CardTitle>
                                             </CardHeader>
                                             <CardContent>
+                                                <div className="text-center mb-6">
+                                                    <div className="bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-full p-8 inline-block mb-4">
+                                                        <Calendar className="h-16 w-16 text-blue-600 dark:text-blue-400" />
+                                                    </div>
+                                                    <h3 className="text-4xl font-bold text-blue-700 dark:text-blue-400 mb-2">
+                                                        {user.daysSmokeFreee * 3} ngày
+                                                    </h3>
+                                                    <p className="text-slate-600 dark:text-slate-400">
+                                                        Tổng số ngày bạn đã thực hiện theo kế hoạch
+                                                    </p>
+                                                </div>
+
                                                 <div className="space-y-4">
-                                                    {user.weeklyProgress.map((day, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg"
-                                                        >
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center">
-                                                                    <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-                                                                        {day.day}
-                                                                    </span>
-                                                                </div>
-                                                                <div>
-                                                                    <p className="font-medium text-slate-900 dark:text-white">0 điếu thuốc</p>
-                                                                    <p className="text-sm text-slate-500 dark:text-slate-400">Tâm trạng: {day.mood}/10</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex gap-1">
-                                                                {Array.from({ length: day.mood }).map((_, i) => (
-                                                                    <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                    <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                                        <span className="font-medium text-slate-900 dark:text-white">Kế hoạch đã tạo</span>
+                                                        <span className="text-blue-600 dark:text-blue-400 font-semibold">3 kế hoạch</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                                        <span className="font-medium text-slate-900 dark:text-white">Kế hoạch hoàn thành</span>
+                                                        <span className="text-green-600 dark:text-green-400 font-semibold">2 kế hoạch</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                                                        <span className="font-medium text-slate-900 dark:text-white">Kế hoạch đang thực hiện</span>
+                                                        <span className="text-orange-600 dark:text-orange-400 font-semibold">1 kế hoạch</span>
+                                                    </div>
                                                 </div>
                                             </CardContent>
                                         </Card>
 
-                                        {/* Health Benefits */}
+                                        {/* Highest Streak Achieved */}
                                         <Card>
                                             <CardHeader>
-                                                <CardTitle>Lợi ích sức khỏe</CardTitle>
+                                                <CardTitle>Streak Cao Nhất Đạt Được</CardTitle>
                                             </CardHeader>
                                             <CardContent>
+                                                <div className="text-center mb-6">
+                                                    <div className="bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900 dark:to-emerald-800 rounded-full p-8 inline-block mb-4">
+                                                        <Trophy className="h-16 w-16 text-emerald-600 dark:text-emerald-400" />
+                                                    </div>
+                                                    <h3 className="text-4xl font-bold text-emerald-700 dark:text-emerald-400 mb-2">
+                                                        {Math.max(user.daysSmokeFreee, 67)} ngày
+                                                    </h3>
+                                                    <p className="text-slate-600 dark:text-slate-400">Kỷ lục streak dài nhất của bạn</p>
+                                                </div>
+
                                                 <div className="space-y-4">
-                                                    {user.healthBenefits.map((benefit, index) => (
-                                                        <div key={index} className="space-y-2">
-                                                            <div className="flex justify-between items-center">
-                                                                <span className="font-medium text-slate-900 dark:text-white">{benefit.name}</span>
-                                                                <span className="text-sm text-slate-600 dark:text-slate-400">
-                                                                    {benefit.improvement}%
-                                                                </span>
-                                                            </div>
-                                                            <Progress value={benefit.improvement} className="h-2" />
-                                                            <p className="text-sm text-slate-500 dark:text-slate-400">{benefit.description}</p>
-                                                        </div>
-                                                    ))}
+                                                    <div className="flex items-center justify-between p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                                                        <span className="font-medium text-slate-900 dark:text-white">Streak hiện tại</span>
+                                                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                                            {user.daysSmokeFreee} ngày
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                                                        <span className="font-medium text-slate-900 dark:text-white">Lần thử lại</span>
+                                                        <span className="text-yellow-600 dark:text-yellow-400 font-semibold">2 lần</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                                                        <span className="font-medium text-slate-900 dark:text-white">Tỷ lệ thành công</span>
+                                                        <span className="text-purple-600 dark:text-purple-400 font-semibold">85%</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-6">
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                            Tiến độ đến kỷ lục mới
+                                                        </span>
+                                                        <span className="text-sm text-slate-500 dark:text-slate-400">
+                                                            {user.daysSmokeFreee}/{Math.max(user.daysSmokeFreee, 67) + 10}
+                                                        </span>
+                                                    </div>
+                                                    <Progress
+                                                        value={(user.daysSmokeFreee / (Math.max(user.daysSmokeFreee, 67) + 10)) * 100}
+                                                        className="h-3"
+                                                    />
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -502,17 +917,98 @@ export function UserProfile({ className }: UserProfileProps) {
                                         </div>
                                     </div>
 
+                                    {/* Achievement Categories */}
+                                    <div className="flex flex-wrap gap-2 mb-6">
+                                        {user.achievementCategories.map((category) => (
+                                            <Button key={category.id} variant="outline" size="sm" className="text-xs">
+                                                {category.name} ({category.count})
+                                            </Button>
+                                        ))}
+                                    </div>
+
+                                    {/* Achievement Stats */}
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                                        <Card className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
+                                            <CardContent className="p-4 text-center">
+                                                <Trophy className="h-8 w-8 mx-auto mb-2" />
+                                                <p className="text-2xl font-bold">{user.achievements.filter((a) => a.completed).length}</p>
+                                                <p className="text-sm opacity-90">Đã hoàn thành</p>
+                                            </CardContent>
+                                        </Card>
+                                        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                                            <CardContent className="p-4 text-center">
+                                                <Target className="h-8 w-8 mx-auto mb-2" />
+                                                <p className="text-2xl font-bold">{user.achievements.filter((a) => !a.completed).length}</p>
+                                                <p className="text-sm opacity-90">Chưa hoàn thành</p>
+                                            </CardContent>
+                                        </Card>
+                                        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+                                            <CardContent className="p-4 text-center">
+                                                <Coins className="h-8 w-8 mx-auto mb-2" />
+                                                <p className="text-2xl font-bold">
+                                                    {user.achievements.filter((a) => a.completed).reduce((sum, a) => sum + a.points, 0)}
+                                                </p>
+                                                <p className="text-sm opacity-90">Tổng điểm</p>
+                                            </CardContent>
+                                        </Card>
+                                        <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+                                            <CardContent className="p-4 text-center">
+                                                <Award className="h-8 w-8 mx-auto mb-2" />
+                                                <p className="text-2xl font-bold">
+                                                    {Math.round(
+                                                        (user.achievements.filter((a) => a.completed).length / user.achievements.length) * 100,
+                                                    )}
+                                                    %
+                                                </p>
+                                                <p className="text-sm opacity-90">Hoàn thành</p>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         {user.achievements.map((achievement) => (
                                             <Card
                                                 key={achievement.id}
-                                                className={`${achievement.completed
+                                                className={`relative ${achievement.completed
                                                         ? "bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-emerald-200 dark:border-emerald-800"
                                                         : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
                                                     }`}
                                             >
                                                 <CardContent className="p-6">
                                                     <div className="text-center">
+                                                        {/* Category Badge */}
+                                                        <div className="absolute top-2 right-2">
+                                                            <Badge
+                                                                variant="outline"
+                                                                className={`text-xs ${achievement.category === "time"
+                                                                        ? "border-blue-300 text-blue-600"
+                                                                        : achievement.category === "saving"
+                                                                            ? "border-green-300 text-green-600"
+                                                                            : achievement.category === "health"
+                                                                                ? "border-red-300 text-red-600"
+                                                                                : achievement.category === "social"
+                                                                                    ? "border-purple-300 text-purple-600"
+                                                                                    : "border-gray-300 text-gray-600"
+                                                                    }`}
+                                                            >
+                                                                {achievement.category === "time"
+                                                                    ? "Thời gian"
+                                                                    : achievement.category === "saving"
+                                                                        ? "Tiết kiệm"
+                                                                        : achievement.category === "health"
+                                                                            ? "Sức khỏe"
+                                                                            : achievement.category === "social"
+                                                                                ? "Cộng đồng"
+                                                                                : achievement.category === "resilience"
+                                                                                    ? "Kiên cường"
+                                                                                    : achievement.category === "special"
+                                                                                        ? "Đặc biệt"
+                                                                                        : achievement.category === "quantity"
+                                                                                            ? "Số lượng"
+                                                                                            : "Hàng ngày"}
+                                                            </Badge>
+                                                        </div>
+
                                                         <div
                                                             className={`rounded-full p-4 mb-4 inline-block ${achievement.completed
                                                                     ? "bg-emerald-100 dark:bg-emerald-900"
@@ -534,7 +1030,11 @@ export function UserProfile({ className }: UserProfileProps) {
                                                         >
                                                             {achievement.name}
                                                         </h3>
-                                                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{achievement.points} điểm</p>
+                                                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{achievement.description}</p>
+                                                        <div className="flex items-center justify-center gap-2 mb-3">
+                                                            <Coins className="h-4 w-4 text-yellow-500" />
+                                                            <span className="text-sm font-medium text-yellow-600">{achievement.points} điểm</span>
+                                                        </div>
                                                         {achievement.completed ? (
                                                             <Badge
                                                                 variant="secondary"
@@ -549,6 +1049,18 @@ export function UserProfile({ className }: UserProfileProps) {
                                                         )}
                                                     </div>
                                                 </CardContent>
+
+                                                {/* Progress indicator for incomplete achievements */}
+                                                {!achievement.completed && achievement.daysRequired && (
+                                                    <div className="absolute bottom-0 left-0 right-0 bg-slate-200 dark:bg-slate-700 h-1">
+                                                        <div
+                                                            className="bg-emerald-500 h-1 transition-all duration-300"
+                                                            style={{
+                                                                width: `${Math.min((user.daysSmokeFreee / achievement.daysRequired) * 100, 100)}%`,
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
                                             </Card>
                                         ))}
                                     </div>
@@ -724,76 +1236,6 @@ export function UserProfile({ className }: UserProfileProps) {
                                                             <p className="font-medium text-slate-900 dark:text-white">Trần Thị B</p>
                                                             <p className="text-sm text-slate-500 dark:text-slate-400">32 ngày</p>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Analytics Tab */}
-                            {activeTab === "analytics" && (
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle>Thống kê tổng quan</CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="text-center p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-                                                        <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                                                            {user.daysSmokeFreee}
-                                                        </p>
-                                                        <p className="text-sm text-slate-600 dark:text-slate-400">Ngày không hút thuốc</p>
-                                                    </div>
-                                                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                                            {user.cigarettesAvoided}
-                                                        </p>
-                                                        <p className="text-sm text-slate-600 dark:text-slate-400">Điếu thuốc đã tránh</p>
-                                                    </div>
-                                                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                                                        <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                                                            {user.moneySaved}đ
-                                                        </p>
-                                                        <p className="text-sm text-slate-600 dark:text-slate-400">Tiền tiết kiệm</p>
-                                                    </div>
-                                                    <div className="text-center p-4 bg-rose-50 dark:bg-rose-900/20 rounded-lg">
-                                                        <p className="text-2xl font-bold text-rose-600 dark:text-rose-400">
-                                                            {user.healthImprovement}%
-                                                        </p>
-                                                        <p className="text-sm text-slate-600 dark:text-slate-400">Sức khỏe cải thiện</p>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle>Dự báo</CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="space-y-4">
-                                                    <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg">
-                                                        <h4 className="font-semibold text-green-700 dark:text-green-400">Trong 1 tháng tới</h4>
-                                                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                                                            Bạn sẽ tiết kiệm thêm 1.500.000đ
-                                                        </p>
-                                                        <p className="text-sm text-slate-600 dark:text-slate-400">Tránh được thêm 300 điếu thuốc</p>
-                                                    </div>
-                                                    <div className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg">
-                                                        <h4 className="font-semibold text-blue-700 dark:text-blue-400">Trong 6 tháng tới</h4>
-                                                        <p className="text-sm text-slate-600 dark:text-slate-400">Chức năng phổi cải thiện 50%</p>
-                                                        <p className="text-sm text-slate-600 dark:text-slate-400">Nguy cơ tim mạch giảm 40%</p>
-                                                    </div>
-                                                    <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg">
-                                                        <h4 className="font-semibold text-purple-700 dark:text-purple-400">Trong 1 năm tới</h4>
-                                                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                                                            Tiết kiệm tổng cộng 18.000.000đ
-                                                        </p>
-                                                        <p className="text-sm text-slate-600 dark:text-slate-400">Nguy cơ ung thư phổi giảm 50%</p>
                                                     </div>
                                                 </div>
                                             </CardContent>

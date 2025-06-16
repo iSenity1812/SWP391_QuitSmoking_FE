@@ -1,320 +1,410 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { MessageSquare, Mail, Send, Search, Plus, AlertCircle, Users } from "lucide-react"
+import { MessageSquare, Users, Search, Send, Plus } from "lucide-react"
 
+// Types for chat system
 interface Message {
-    id: number
-    sender: string
-    recipient: string
-    subject?: string
+    id: string
+    senderId: string
+    senderName: string
+    senderType: "coach" | "user"
     content: string
-    timestamp: string
-    type: "chat" | "email"
-    status: "sent" | "delivered" | "read" | "unread"
-    urgent: boolean
-    avatar: string
+    timestamp: Date
+    isRead: boolean
 }
 
-interface ChatRoom {
-    id: number
-    name: string
-    participants: string[]
+interface Conversation {
+    id: string
+    participantId: string
+    participantName: string
+    participantAvatar?: string
     lastMessage: string
-    lastMessageTime: string
+    lastMessageTime: Date
     unreadCount: number
-    type: "individual" | "group"
-    avatar: string
+    isUrgent: boolean
+    isGroup?: boolean
 }
 
 export function CommunicationCenter() {
-    const [activeChat, setActiveChat] = useState<number | null>(null)
+    const [conversations, setConversations] = useState<Conversation[]>([])
+    const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
+    const [messages, setMessages] = useState<{ [conversationId: string]: Message[] }>({})
     const [newMessage, setNewMessage] = useState("")
-    const [emailSubject, setEmailSubject] = useState("")
-    const [emailContent, setEmailContent] = useState("")
     const [searchTerm, setSearchTerm] = useState("")
+    const messagesEndRef = useRef<HTMLDivElement>(null)
 
-    const messages: Message[] = [
-        {
-            id: 1,
-            sender: "Nguyễn Văn An",
-            recipient: "Coach",
-            content: "Chào coach, em đang gặp khó khăn trong việc kiểm soát cơn thèm thuốc vào buổi tối.",
-            timestamp: "10:30 AM",
-            type: "chat",
-            status: "unread",
-            urgent: true,
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-        {
-            id: 2,
-            sender: "Trần Thị Bình",
-            recipient: "Coach",
-            subject: "Cập nhật tiến độ tuần 2",
-            content:
-                "Coach ơi, em muốn báo cáo tiến độ của em trong tuần thứ 2. Em đã giảm được từ 15 điếu xuống 8 điếu mỗi ngày.",
-            timestamp: "9:15 AM",
-            type: "email",
-            status: "read",
-            urgent: false,
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-        {
-            id: 3,
-            sender: "Lê Văn Cường",
-            recipient: "Coach",
-            content: "Coach, em cảm ơn coach rất nhiều. Hôm nay là ngày thứ 30 em không hút thuốc!",
-            timestamp: "Yesterday",
-            type: "chat",
-            status: "read",
-            urgent: false,
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-    ]
+    // Initialize mock data
+    useEffect(() => {
+        const mockConversations: Conversation[] = [
+            {
+                id: "conv1",
+                participantId: "user1",
+                participantName: "Nguyễn Văn An",
+                participantAvatar: "/placeholder.svg?height=40&width=40",
+                lastMessage: "Chào coach, em đang gặp khó khán trong việc kiểm soát cơn thèm thuốc vào buổi tối.",
+                lastMessageTime: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+                unreadCount: 2,
+                isUrgent: false,
+            },
+            {
+                id: "conv2",
+                participantId: "group1",
+                participantName: "Nhóm Hỗ Trợ Tuần 1",
+                participantAvatar: "/placeholder.svg?height=40&width=40",
+                lastMessage: "Mọi người cùng chia sẻ kinh nghiệm nhé",
+                lastMessageTime: new Date(Date.now() - 75 * 60 * 1000), // 1 hour 15 minutes ago
+                unreadCount: 0,
+                isUrgent: false,
+                isGroup: true,
+            },
+            {
+                id: "conv3",
+                participantId: "user3",
+                participantName: "Lê Văn Cường",
+                participantAvatar: "/placeholder.svg?height=40&width=40",
+                lastMessage: "Cảm ơn coach rất nhiều!",
+                lastMessageTime: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
+                unreadCount: 0,
+                isUrgent: false,
+            },
+        ]
 
-    const chatRooms: ChatRoom[] = [
-        {
-            id: 1,
-            name: "Nguyễn Văn An",
-            participants: ["Nguyễn Văn An", "Coach"],
-            lastMessage: "Chào coach, em đang gặp khó khăn...",
-            lastMessageTime: "10:30 AM",
-            unreadCount: 2,
-            type: "individual",
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-        {
-            id: 2,
-            name: "Nhóm Hỗ Trợ Tuần 1",
-            participants: ["Trần Thị Bình", "Phạm Văn Đức", "Lê Thị Mai", "Coach"],
-            lastMessage: "Mọi người cùng chia sẻ kinh nghiệm nhé",
-            lastMessageTime: "9:45 AM",
-            unreadCount: 0,
-            type: "group",
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-        {
-            id: 3,
-            name: "Lê Văn Cường",
-            participants: ["Lê Văn Cường", "Coach"],
-            lastMessage: "Cảm ơn coach rất nhiều!",
-            lastMessageTime: "Yesterday",
-            unreadCount: 0,
-            type: "individual",
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-    ]
-
-    const handleSendMessage = () => {
-        if (newMessage.trim()) {
-            console.log("Sending message:", newMessage)
-            setNewMessage("")
+        const mockMessages: { [key: string]: Message[] } = {
+            conv1: [
+                {
+                    id: "msg1",
+                    senderId: "user1",
+                    senderName: "Nguyễn Văn An",
+                    senderType: "user",
+                    content: "Chào coach, em đang gặp khó khán trong việc kiểm soát cơn thèm thuốc vào buổi tối.",
+                    timestamp: new Date(Date.now() - 30 * 60 * 1000),
+                    isRead: false,
+                },
+                {
+                    id: "msg2",
+                    senderId: "coach1",
+                    senderName: "Coach Minh",
+                    senderType: "coach",
+                    content: "Chào Anh! Coach hiểu cảm giác của em. Hãy thử áp dụng kỹ thuật thở sâu khi có cơn thèm nhé.",
+                    timestamp: new Date(Date.now() - 25 * 60 * 1000),
+                    isRead: true,
+                },
+            ],
+            conv2: [
+                {
+                    id: "msg3",
+                    senderId: "coach1",
+                    senderName: "Coach Minh",
+                    senderType: "coach",
+                    content: "Chào mọi người! Hôm nay chúng ta sẽ thảo luận về cách vượt qua tuần đầu tiên.",
+                    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+                    isRead: true,
+                },
+                {
+                    id: "msg4",
+                    senderId: "user2",
+                    senderName: "Trần Thị Mai",
+                    senderType: "user",
+                    content: "Mọi người cùng chia sẻ kinh nghiệm nhé",
+                    timestamp: new Date(Date.now() - 75 * 60 * 1000),
+                    isRead: true,
+                },
+            ],
+            conv3: [
+                {
+                    id: "msg5",
+                    senderId: "user3",
+                    senderName: "Lê Văn Cường",
+                    senderType: "user",
+                    content: "Cảm ơn coach rất nhiều!",
+                    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
+                    isRead: true,
+                },
+            ],
         }
+
+        setConversations(mockConversations)
+        setMessages(mockMessages)
+
+        // Load from localStorage if available
+        const savedConversations = localStorage.getItem("coach-conversations")
+        const savedMessages = localStorage.getItem("coach-messages")
+
+        if (savedConversations) {
+            setConversations(JSON.parse(savedConversations))
+        }
+        if (savedMessages) {
+            setMessages(JSON.parse(savedMessages))
+        }
+    }, [])
+
+    // Save to localStorage whenever conversations or messages change
+    useEffect(() => {
+        localStorage.setItem("coach-conversations", JSON.stringify(conversations))
+    }, [conversations])
+
+    useEffect(() => {
+        localStorage.setItem("coach-messages", JSON.stringify(messages))
+    }, [messages])
+
+    // Auto scroll to bottom when new messages arrive
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    }, [messages, selectedConversation])
+
+    // Send message function
+    const sendMessage = () => {
+        if (!newMessage.trim() || !selectedConversation) return
+
+        const newMsg: Message = {
+            id: `msg_${Date.now()}`,
+            senderId: "coach1",
+            senderName: "Coach Minh",
+            senderType: "coach",
+            content: newMessage.trim(),
+            timestamp: new Date(),
+            isRead: true,
+        }
+
+        // Add message to conversation
+        setMessages((prev) => ({
+            ...prev,
+            [selectedConversation]: [...(prev[selectedConversation] || []), newMsg],
+        }))
+
+        // Update conversation's last message
+        setConversations((prev) =>
+            prev.map((conv) =>
+                conv.id === selectedConversation
+                    ? { ...conv, lastMessage: newMessage.trim(), lastMessageTime: new Date() }
+                    : conv,
+            ),
+        )
+
+        setNewMessage("")
     }
 
-    const handleSendEmail = () => {
-        if (emailSubject.trim() && emailContent.trim()) {
-            console.log("Sending email:", { subject: emailSubject, content: emailContent })
-            setEmailSubject("")
-            setEmailContent("")
-        }
+    // Mark messages as read when conversation is selected
+    const selectConversation = (conversationId: string) => {
+        setSelectedConversation(conversationId)
+
+        // Mark all messages in this conversation as read
+        setMessages((prev) => ({
+            ...prev,
+            [conversationId]: prev[conversationId]?.map((msg) => ({ ...msg, isRead: true })) || [],
+        }))
+
+        // Reset unread count
+        setConversations((prev) => prev.map((conv) => (conv.id === conversationId ? { ...conv, unreadCount: 0 } : conv)))
     }
 
-    const filteredMessages = messages.filter(
-        (message) =>
-            message.sender.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            message.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (message.subject && message.subject.toLowerCase().includes(searchTerm.toLowerCase())),
+    // Filter conversations based on search
+    const filteredConversations = conversations.filter((conv) =>
+        conv.participantName.toLowerCase().includes(searchTerm.toLowerCase()),
     )
 
-    const filteredChatRooms = chatRooms.filter((room) => room.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    // Calculate statistics
+    const totalUnread = conversations.reduce((sum, conv) => sum + conv.unreadCount, 0)
+    const totalConversations = conversations.length
+
+    const formatTime = (date: Date) => {
+        const now = new Date()
+        const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+
+        if (diffInHours < 1) {
+            const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+            return diffInMinutes < 1 ? "Vừa xong" : `${diffInMinutes} phút trước`
+        } else if (diffInHours < 24) {
+            return date.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
+        } else if (diffInHours < 48) {
+            return "Yesterday"
+        } else {
+            return date.toLocaleDateString("vi-VN")
+        }
+    }
 
     return (
         <div className="space-y-6">
-            {/* Communication Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                                <MessageSquare className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">24</p>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">Tin nhắn chưa đọc</p>
-                            </div>
-                        </div>
+            {/* Statistics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-slate-200 dark:border-slate-700/50">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Tin nhắn chưa đọc</CardTitle>
+                        <MessageSquare className="h-4 w-4 text-blue-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{totalUnread}</div>
                     </CardContent>
                 </Card>
 
-                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                                <Mail className="w-5 h-5 text-green-600 dark:text-green-400" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">8</p>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">Email mới</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-red-100 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
-                                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">3</p>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">Tin nhắn khẩn cấp</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                                <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">12</p>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">Cuộc trò chuyện</p>
-                            </div>
-                        </div>
+                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-slate-200 dark:border-slate-700/50">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">Cuộc trò chuyện</CardTitle>
+                        <Users className="h-4 w-4 text-purple-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{totalConversations}</div>
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Communication Tabs */}
-            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-slate-200 dark:border-slate-700/50">
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <CardTitle className="text-slate-900 dark:text-white">Trung Tâm Giao Tiếp</CardTitle>
-                        <div className="flex items-center space-x-2">
+            {/* Main Chat Interface */}
+            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-slate-200 dark:border-slate-700/50 h-[600px]">
+                <div className="flex h-full">
+                    {/* Left Sidebar - Conversations List */}
+                    <div className="w-1/3 border-r border-slate-200 dark:border-slate-700/50 flex flex-col">
+                        {/* Header */}
+                        <div className="p-4 border-b border-slate-200 dark:border-slate-700/50">
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Trung Tâm Giao Tiếp</h3>
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
                                 <Input
                                     placeholder="Tìm kiếm..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-10 w-64"
+                                    className="pl-10"
                                 />
                             </div>
                         </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <Tabs defaultValue="chat" className="w-full">
-                        <TabsList className="grid w-full grid-cols-1">
-                            <TabsTrigger value="chat">Trò Chuyện</TabsTrigger>
-                        </TabsList>
 
-                        <TabsContent value="chat" className="space-y-4">
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-96">
-                                {/* Chat List */}
-                                <div className="space-y-2 overflow-y-auto">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h4 className="font-semibold">Cuộc Trò Chuyện</h4>
-                                        <Button size="sm" variant="outline">
-                                            <Plus className="w-4 h-4" />
-                                        </Button>
+                        {/* Conversations Header */}
+                        <div className="p-4 border-b border-slate-200 dark:border-slate-700/50">
+                            <div className="flex items-center justify-between">
+                                <h4 className="font-medium text-slate-900 dark:text-white">Cuộc Trò Chuyện</h4>
+                                <Button size="sm" variant="ghost">
+                                    <Plus className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Conversations List */}
+                        <div className="flex-1 overflow-y-auto">
+                            {filteredConversations.map((conversation) => (
+                                <div
+                                    key={conversation.id}
+                                    onClick={() => selectConversation(conversation.id)}
+                                    className={`p-4 border-b border-slate-100 dark:border-slate-700/30 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors ${selectedConversation === conversation.id
+                                        ? "bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-500"
+                                        : ""
+                                        }`}
+                                >
+                                    <div className="flex items-center space-x-3">
+                                        <div className="relative">
+                                            <Avatar className="h-10 w-10">
+                                                <AvatarImage src={conversation.participantAvatar || "/placeholder.svg"} />
+                                                <AvatarFallback className="bg-blue-500 text-white">
+                                                    {conversation.participantName.charAt(0)}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            {conversation.unreadCount > 0 && (
+                                                <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center p-0">
+                                                    {conversation.unreadCount}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between">
+                                                <p className="font-medium text-slate-900 dark:text-white truncate">
+                                                    {conversation.participantName}
+                                                </p>
+                                                <span className="text-xs text-slate-500">{formatTime(conversation.lastMessageTime)}</span>
+                                            </div>
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 truncate">{conversation.lastMessage}</p>
+                                        </div>
                                     </div>
-                                    {filteredChatRooms.map((room) => (
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Right Side - Chat Area */}
+                    <div className="flex-1 flex flex-col">
+                        {selectedConversation ? (
+                            <>
+                                {/* Chat Header */}
+                                <div className="p-4 border-b border-slate-200 dark:border-slate-700/50">
+                                    <div className="flex items-center space-x-3">
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarImage
+                                                src={
+                                                    conversations.find((c) => c.id === selectedConversation)?.participantAvatar ||
+                                                    "/placeholder.svg" ||
+                                                    "/placeholder.svg"
+                                                }
+                                            />
+                                            <AvatarFallback className="bg-blue-500 text-white">
+                                                {conversations.find((c) => c.id === selectedConversation)?.participantName.charAt(0)}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <h3 className="font-semibold text-slate-900 dark:text-white">Trò Chuyện</h3>
+                                            <p className="text-sm text-slate-600 dark:text-slate-400">
+                                                {conversations.find((c) => c.id === selectedConversation)?.participantName}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Messages Area */}
+                                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                    {messages[selectedConversation]?.map((message) => (
                                         <div
-                                            key={room.id}
-                                            onClick={() => setActiveChat(room.id)}
-                                            className={`p-3 rounded-lg cursor-pointer transition-colors ${activeChat === room.id
-                                                ? "bg-blue-100 dark:bg-blue-900/20"
-                                                : "hover:bg-slate-100 dark:hover:bg-slate-700/50"
-                                                }`}
+                                            key={message.id}
+                                            className={`flex ${message.senderType === "coach" ? "justify-end" : "justify-start"}`}
                                         >
-                                            <div className="flex items-center space-x-3">
-                                                <div className="relative">
-                                                    <Avatar className="h-10 w-10">
-                                                        <AvatarImage src={room.avatar || "/placeholder.svg"} />
-                                                        <AvatarFallback>{room.name.charAt(0)}</AvatarFallback>
-                                                    </Avatar>
-                                                    {room.unreadCount > 0 && (
-                                                        <Badge className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                                                            {room.unreadCount}
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center justify-between">
-                                                        <p className="font-medium text-sm truncate">{room.name}</p>
-                                                        <span className="text-xs text-slate-500">{room.lastMessageTime}</span>
-                                                    </div>
-                                                    <p className="text-xs text-slate-600 dark:text-slate-400 truncate">{room.lastMessage}</p>
+                                            <div
+                                                className={`max-w-[70%] rounded-lg p-3 ${message.senderType === "coach"
+                                                    ? "bg-blue-500 text-white"
+                                                    : "bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white"
+                                                    }`}
+                                            >
+                                                <p className="text-sm">{message.content}</p>
+                                                <div className="flex items-center justify-between mt-1">
+                                                    <span
+                                                        className={`text-xs ${message.senderType === "coach" ? "text-blue-100" : "text-slate-500 dark:text-slate-400"
+                                                            }`}
+                                                    >
+                                                        {formatTime(message.timestamp)}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
                                     ))}
+                                    <div ref={messagesEndRef} />
                                 </div>
 
-                                {/* Chat Window */}
-                                <div className="lg:col-span-2 flex flex-col">
-                                    {activeChat ? (
-                                        <>
-                                            <div className="flex-1 p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg mb-4 overflow-y-auto">
-                                                <div className="space-y-4">
-                                                    <div className="flex justify-start">
-                                                        <div className="bg-white dark:bg-slate-700 p-3 rounded-lg max-w-xs">
-                                                            <p className="text-sm">
-                                                                Chào coach, em đang gặp khó khăn trong việc kiểm soát cơn thèm thuốc vào buổi tối.
-                                                            </p>
-                                                            <span className="text-xs text-slate-500">10:30 AM</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex justify-end">
-                                                        <div className="bg-blue-500 text-white p-3 rounded-lg max-w-xs">
-                                                            <p className="text-sm">
-                                                                Chào An! Coach hiểu cảm giác của em. Hãy thử áp dụng kỹ thuật thở sâu khi có cơn thèm
-                                                                nhé.
-                                                            </p>
-                                                            <span className="text-xs text-blue-100">10:35 AM</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="flex space-x-2">
-                                                <Input
-                                                    placeholder="Nhập tin nhắn..."
-                                                    value={newMessage}
-                                                    onChange={(e) => setNewMessage(e.target.value)}
-                                                    onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                                                    className="flex-1"
-                                                />
-                                                <Button onClick={handleSendMessage}>
-                                                    <Send className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <div className="flex-1 flex items-center justify-center text-slate-500">
-                                            Chọn một cuộc trò chuyện để bắt đầu
-                                        </div>
-                                    )}
+                                {/* Message Input */}
+                                <div className="p-4 border-t border-slate-200 dark:border-slate-700/50">
+                                    <div className="flex space-x-2">
+                                        <Input
+                                            placeholder="Nhập tin nhắn..."
+                                            value={newMessage}
+                                            onChange={(e) => setNewMessage(e.target.value)}
+                                            onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+                                            className="flex-1"
+                                        />
+                                        <Button onClick={sendMessage} className="bg-black hover:bg-gray-800">
+                                            <Send className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex-1 flex items-center justify-center">
+                                <div className="text-center">
+                                    <MessageSquare className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                                    <p className="text-slate-600 dark:text-slate-400">Chọn một cuộc trò chuyện để bắt đầu nhắn tin</p>
                                 </div>
                             </div>
-                        </TabsContent>
-
-
-                    </Tabs>
-                </CardContent>
+                        )}
+                    </div>
+                </div>
             </Card>
         </div>
     )

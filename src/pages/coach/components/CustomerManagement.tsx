@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Search, Plus, Eye, Calendar, Crown, Sparkles } from "lucide-react"
+import { MessageSquare, Plus, Eye, Calendar, Crown, Sparkles } from "lucide-react"
 import { useAppointments } from "../AppointmentContext"
+import { Search } from "lucide-react" // Declare the Search variable
 
 interface Customer {
     id: number
@@ -30,7 +31,11 @@ interface Customer {
     avatar: string
 }
 
-export function CustomerManagement() {
+interface CustomerManagementProps {
+    onStartChat?: (customer: Customer) => void
+}
+
+export function CustomerManagement({ onStartChat }: CustomerManagementProps) {
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
     const [newNote, setNewNote] = useState("")
@@ -49,7 +54,21 @@ export function CustomerManagement() {
         location: "",
     })
 
-    const customers: Customer[] = [
+    const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false)
+    const [newMemberForm, setNewMemberForm] = useState({
+        name: "",
+        email: "",
+        phone: "",
+        smokingHistory: {
+            cigarettesPerDay: 0,
+            yearsOfSmoking: 0,
+            quitAttempts: 0,
+        },
+        currentPlan: "",
+        notes: "",
+    })
+
+    const [customers, setCustomers] = useState<Customer[]>([
         {
             id: 1,
             name: "Nguyễn Văn An",
@@ -126,7 +145,7 @@ export function CustomerManagement() {
             notes: ["Mất liên lạc sau tuần thứ 2", "Cần liên hệ lại để hỗ trợ", "Có thể cần thay đổi phương pháp tiếp cận"],
             avatar: "/placeholder.svg?height=40&width=40",
         },
-    ]
+    ])
 
     const filteredCustomers = customers.filter((customer) => {
         const matchesSearch =
@@ -200,6 +219,62 @@ export function CustomerManagement() {
         alert("Đã đặt lịch thành công!")
     }
 
+    const handleAddNewMember = () => {
+        if (!newMemberForm.name || !newMemberForm.email || !newMemberForm.phone) {
+            alert("Vui lòng điền đầy đủ thông tin bắt buộc")
+            return
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(newMemberForm.email)) {
+            alert("Vui lòng nhập email hợp lệ")
+            return
+        }
+
+        // Phone validation (Vietnamese phone number format)
+        const phoneRegex = /^(\+84|0)[0-9]{9,10}$/
+        if (!phoneRegex.test(newMemberForm.phone)) {
+            alert("Vui lòng nhập số điện thoại hợp lệ")
+            return
+        }
+
+        const newCustomer: Customer = {
+            id: Math.max(...customers.map((c) => c.id), 0) + 1,
+            name: newMemberForm.name,
+            email: newMemberForm.email,
+            phone: newMemberForm.phone,
+            joinDate: new Date().toLocaleDateString("vi-VN"),
+            status: "active",
+            progress: 0,
+            lastContact: "Vừa tham gia",
+            smokingHistory: newMemberForm.smokingHistory,
+            currentPlan: newMemberForm.currentPlan || "Chưa chọn kế hoạch",
+            notes: newMemberForm.notes ? [newMemberForm.notes] : ["Thành viên mới tham gia"],
+            avatar: "/placeholder.svg?height=40&width=40",
+        }
+
+        // Add the new customer to the state
+        setCustomers((prevCustomers) => [...prevCustomers, newCustomer])
+
+        // Reset form
+        setNewMemberForm({
+            name: "",
+            email: "",
+            phone: "",
+            smokingHistory: {
+                cigarettesPerDay: 0,
+                yearsOfSmoking: 0,
+                quitAttempts: 0,
+            },
+            currentPlan: "",
+            notes: "",
+        })
+
+        setIsAddMemberDialogOpen(false)
+        alert("Đã thêm thành viên mới thành công!")
+    }
+
     const handleAddNote = () => {
         if (newNote.trim() && selectedCustomer) {
             // In a real app, this would update the database
@@ -263,13 +338,6 @@ export function CustomerManagement() {
                                 Hoạt động
                             </Button>
                             <Button
-                                variant={filterStatus === "at-risk" ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setFilterStatus("at-risk")}
-                            >
-                                Có nguy cơ
-                            </Button>
-                            <Button
                                 variant={filterStatus === "completed" ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setFilterStatus("completed")}
@@ -286,7 +354,7 @@ export function CustomerManagement() {
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between text-slate-900 dark:text-white">
                         <span>Danh Sách Thành Viên ({filteredCustomers.length})</span>
-                        <Button size="sm">
+                        <Button size="sm" onClick={() => setIsAddMemberDialogOpen(true)}>
                             <Plus className="w-4 h-4 mr-2" />
                             Thêm Thành Viên
                         </Button>
@@ -319,6 +387,17 @@ export function CustomerManagement() {
                                     </div>
                                 </div>
                                 <div className="flex items-center space-x-2">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            // This will be handled by the parent component
+                                            onStartChat?.(customer)
+                                        }}
+                                    >
+                                        <MessageSquare className="w-4 h-4" />
+                                    </Button>
                                     <Button size="sm" variant="outline">
                                         <Calendar className="w-4 h-4" />
                                     </Button>
@@ -542,6 +621,157 @@ export function CustomerManagement() {
                             </Button>
                             <Button onClick={handleBookSchedule} className="flex-1">
                                 Đặt Lịch
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Add New Member Dialog */}
+            <Dialog open={isAddMemberDialogOpen} onOpenChange={setIsAddMemberDialogOpen}>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Thêm Thành Viên Mới</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                        {/* Basic Information */}
+                        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-4 text-slate-900 dark:text-white">Thông Tin Cơ Bản</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Họ và tên *
+                                    </label>
+                                    <Input
+                                        placeholder="Nhập họ và tên"
+                                        value={newMemberForm.name}
+                                        onChange={(e) => setNewMemberForm({ ...newMemberForm, name: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email *</label>
+                                    <Input
+                                        type="email"
+                                        placeholder="example@email.com"
+                                        value={newMemberForm.email}
+                                        onChange={(e) => setNewMemberForm({ ...newMemberForm, email: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Số điện thoại *
+                                    </label>
+                                    <Input
+                                        placeholder="+84 901 234 567"
+                                        value={newMemberForm.phone}
+                                        onChange={(e) => setNewMemberForm({ ...newMemberForm, phone: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Kế hoạch ban đầu
+                                    </label>
+                                    <select
+                                        className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                        value={newMemberForm.currentPlan}
+                                        onChange={(e) => setNewMemberForm({ ...newMemberForm, currentPlan: e.target.value })}
+                                    >
+                                        <option value="">Chọn kế hoạch</option>
+                                        <option value="Kế hoạch giảm dần 30 ngày">Kế hoạch giảm dần 30 ngày</option>
+                                        <option value="Kế hoạch cai ngay lập tức">Kế hoạch cai ngay lập tức</option>
+                                        <option value="Kế hoạch linh hoạt">Kế hoạch linh hoạt</option>
+                                        <option value="Kế hoạch nhóm">Kế hoạch nhóm</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Smoking History */}
+                        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-4 text-slate-900 dark:text-white">Lịch Sử Hút Thuốc</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Số điếu/ngày
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        placeholder="20"
+                                        value={newMemberForm.smokingHistory.cigarettesPerDay}
+                                        onChange={(e) =>
+                                            setNewMemberForm({
+                                                ...newMemberForm,
+                                                smokingHistory: {
+                                                    ...newMemberForm.smokingHistory,
+                                                    cigarettesPerDay: Number.parseInt(e.target.value) || 0,
+                                                },
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Số năm hút thuốc
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        placeholder="10"
+                                        value={newMemberForm.smokingHistory.yearsOfSmoking}
+                                        onChange={(e) =>
+                                            setNewMemberForm({
+                                                ...newMemberForm,
+                                                smokingHistory: {
+                                                    ...newMemberForm.smokingHistory,
+                                                    yearsOfSmoking: Number.parseInt(e.target.value) || 0,
+                                                },
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Số lần cai trước đây
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        placeholder="3"
+                                        value={newMemberForm.smokingHistory.quitAttempts}
+                                        onChange={(e) =>
+                                            setNewMemberForm({
+                                                ...newMemberForm,
+                                                smokingHistory: {
+                                                    ...newMemberForm.smokingHistory,
+                                                    quitAttempts: Number.parseInt(e.target.value) || 0,
+                                                },
+                                            })
+                                        }
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Initial Notes */}
+                        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
+                            <h4 className="font-semibold mb-4 text-slate-900 dark:text-white">Ghi Chú Ban Đầu</h4>
+                            <Textarea
+                                placeholder="Thêm ghi chú về tình trạng, mục tiêu hoặc thông tin quan trọng khác..."
+                                value={newMemberForm.notes}
+                                onChange={(e) => setNewMemberForm({ ...newMemberForm, notes: e.target.value })}
+                                rows={4}
+                            />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <Button variant="outline" onClick={() => setIsAddMemberDialogOpen(false)}>
+                                Hủy
+                            </Button>
+                            <Button onClick={handleAddNewMember}>
+                                <Plus className="w-4 h-4 mr-2" />
+                                Thêm Thành Viên
                             </Button>
                         </div>
                     </div>

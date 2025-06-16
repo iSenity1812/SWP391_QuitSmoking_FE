@@ -1,14 +1,12 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Link } from "react-router-dom"
-import "../styles/style.css";
-import { AnimatedSection } from "@/components/ui/AnimatedSection";
-
+import "../styles/style.css"
+import { AnimatedSection } from "@/components/ui/AnimatedSection"
 
 export function HeroSection() {
   return (
-
     <section
       id="hero"
       className="py-40 mt-16 bg-gradient-to-br from-emerald-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden"
@@ -20,21 +18,18 @@ export function HeroSection() {
         <div className="container mx-auto relative z-10 grid gap-8 md:grid-cols-2 md:gap-12">
           <div className="flex flex-col justify-center space-y-4">
             <Badge className="inline-block px-3 py-2 rounded-full text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-500/25 mb-2">
-              ✨ Start Your Journey
+              ✨ Bắt Đầu Hành Trình
             </Badge>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-              <span className="text-slate-800 dark:text-white">
-                Quit Smoking,
-              </span>
+              <span className="text-slate-800 dark:text-white">Bỏ Thuốc Lá,</span>
               <br />
               <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 bg-clip-text text-transparent">
-                Start Living
+                Bắt Đầu Sống
               </span>
             </h1>
             <p className="text-xl text-slate-600 dark:text-slate-300 mb-10 leading-relaxed font-medium">
-              Join thousands who have successfully quit smoking with our fun,
-              engaging approach. Save money, improve health, and earn rewards
-              along the way.
+              Tham gia cùng hàng nghìn người đã thành công bỏ thuốc lá với phương pháp thú vị và hiệu quả của chúng tôi.
+              Tiết kiệm tiền, cải thiện sức khỏe và nhận phần thưởng trong suốt hành trình.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link to="/plan">
@@ -42,7 +37,7 @@ export function HeroSection() {
                   size="lg"
                   className="px-8 py-4 rounded-xl font-bold text-lg text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-emerald-200/50 dark:shadow-emerald-500/25"
                 >
-                  Get Started Free
+                  Bắt Đầu Miễn Phí
                 </Button>
               </Link>
             </div>
@@ -60,8 +55,7 @@ export function HeroSection() {
                 ))}
               </div>
               <div className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">250+</span> people
-                joined this week
+                <span className="font-medium text-foreground">250+</span> người đã tham gia tuần này
               </div>
             </div>
           </div>
@@ -83,9 +77,7 @@ export function HeroSection() {
         {/* Decorative elements */}
         <div className="absolute -right-20 -top-20 h-[300px] w-[300px] rounded-full bg-emerald-100 opacity-50 blur-3xl"></div>
         <div className="absolute -bottom-32 -left-20 h-[300px] w-[300px] rounded-full bg-teal-100 opacity-50 blur-3xl"></div>
-      </AnimatedSection >
+      </AnimatedSection>
     </section>
-
-
-  );
+  )
 }

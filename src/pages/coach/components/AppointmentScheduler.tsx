@@ -12,7 +12,13 @@ import { CalendarIcon, Clock, Plus, Edit, Trash2, Users, Phone, MapPin, CheckCir
 import { useAppointments, type Appointment } from "../AppointmentContext"
 
 export function AppointmentScheduler() {
-    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split("T")[0])
+    const [selectedDate, setSelectedDate] = useState<string>(() => {
+        const today = new Date()
+        const year = today.getFullYear()
+        const month = String(today.getMonth() + 1).padStart(2, "0")
+        const day = String(today.getDate()).padStart(2, "0")
+        return `${year}-${month}-${day}`
+    })
     const [searchTerm, setSearchTerm] = useState("")
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [newAppointment, setNewAppointment] = useState<{
@@ -35,7 +41,19 @@ export function AppointmentScheduler() {
         location: "",
     })
 
-    const { appointments, addAppointment, getTodayAppointments, getUpcomingAppointments } = useAppointments()
+    const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null)
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+    const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null)
+
+    const {
+        appointments,
+        addAppointment,
+        updateAppointment,
+        deleteAppointment,
+        getTodayAppointments,
+        getUpcomingAppointments,
+    } = useAppointments()
     const todayAppointments = getTodayAppointments()
     const upcomingAppointments = getUpcomingAppointments()
 
@@ -119,6 +137,73 @@ export function AppointmentScheduler() {
         alert("Đã tạo lịch hẹn thành công!")
     }
 
+    const handleEditAppointment = (appointment: Appointment) => {
+        setEditingAppointment(appointment)
+        setNewAppointment({
+            clientName: appointment.clientName,
+            date: appointment.date,
+            time: appointment.time,
+            duration: appointment.duration,
+            type: appointment.type,
+            method: appointment.method,
+            notes: appointment.notes,
+            location: appointment.location || "",
+        })
+        setIsEditDialogOpen(true)
+    }
+
+    const handleUpdateAppointment = () => {
+        if (!editingAppointment || !newAppointment.clientName || !newAppointment.date || !newAppointment.time) {
+            alert("Vui lòng điền đầy đủ thông tin bắt buộc")
+            return
+        }
+
+        updateAppointment(editingAppointment.id, {
+            clientName: newAppointment.clientName,
+            date: newAppointment.date,
+            time: newAppointment.time,
+            duration: newAppointment.duration,
+            type: newAppointment.type,
+            method: newAppointment.method,
+            notes: newAppointment.notes,
+            location: newAppointment.location,
+        })
+
+        // Reset form
+        setNewAppointment({
+            clientName: "",
+            date: "",
+            time: "",
+            duration: 60,
+            type: "individual",
+            method: "phone",
+            notes: "",
+            location: "",
+        })
+        setEditingAppointment(null)
+        setIsEditDialogOpen(false)
+        alert("Đã cập nhật lịch hẹn thành công!")
+    }
+
+    const handleCancelAppointment = (appointmentId: number) => {
+        updateAppointment(appointmentId, { status: "cancelled" })
+        alert("Đã hủy lịch hẹn!")
+    }
+
+    const handleDeleteAppointment = () => {
+        if (appointmentToDelete) {
+            deleteAppointment(appointmentToDelete.id)
+            setAppointmentToDelete(null)
+            setIsDeleteDialogOpen(false)
+            alert("Đã xóa lịch hẹn!")
+        }
+    }
+
+    const openDeleteDialog = (appointment: Appointment) => {
+        setAppointmentToDelete(appointment)
+        setIsDeleteDialogOpen(true)
+    }
+
     // Generate calendar days for current month
     const generateCalendarDays = () => {
         const today = new Date()
@@ -131,10 +216,18 @@ export function AppointmentScheduler() {
         const days = []
         for (let i = 1; i <= daysInMonth; i++) {
             const date = new Date(currentYear, currentMonth, i)
-            const dateString = date.toISOString().split("T")[0]
+            // Use local date format instead of ISO to avoid timezone issues
+            const year = date.getFullYear()
+            const month = String(date.getMonth() + 1).padStart(2, "0")
+            const day = String(date.getDate()).padStart(2, "0")
+            const dateString = `${year}-${month}-${day}`
+
             const hasAppointments = appointments.some((apt: Appointment) => apt.date === dateString)
             const isSelected = selectedDate === dateString
-            const isToday = dateString === new Date().toISOString().split("T")[0]
+
+            // Fix today comparison using local date
+            const todayString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`
+            const isToday = dateString === todayString
 
             days.push({
                 day: i,
@@ -364,16 +457,15 @@ export function AppointmentScheduler() {
                                         <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">{appointment.notes}</p>
                                     )}
                                     <div className="flex space-x-2 mt-3">
-                                        <Button size="sm" variant="outline">
+                                        <Button size="sm" variant="outline" onClick={() => handleEditAppointment(appointment)}>
                                             <Edit className="w-3 h-3" />
                                         </Button>
-                                        <Button size="sm" variant="outline">
+                                        <Button size="sm" variant="outline" onClick={() => openDeleteDialog(appointment)}>
                                             <Trash2 className="w-3 h-3" />
                                         </Button>
-                                        {appointment.method === "phone" && (
-                                            <Button size="sm">
-                                                <Phone className="w-3 h-3 mr-1" />
-                                                Gọi
+                                        {appointment.status !== "cancelled" && appointment.status !== "completed" && (
+                                            <Button size="sm" variant="outline" onClick={() => handleCancelAppointment(appointment.id)}>
+                                                Hủy
                                             </Button>
                                         )}
                                     </div>
@@ -426,6 +518,104 @@ export function AppointmentScheduler() {
                     </CardContent>
                 </Card>
             </div>
+            {/* Edit Appointment Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Chỉnh Sửa Lịch Hẹn</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <Input
+                            placeholder="Tên thành viên *"
+                            value={newAppointment.clientName}
+                            onChange={(e) => setNewAppointment({ ...newAppointment, clientName: e.target.value })}
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input
+                                type="date"
+                                value={newAppointment.date}
+                                onChange={(e) => setNewAppointment({ ...newAppointment, date: e.target.value })}
+                            />
+                            <Input
+                                type="time"
+                                value={newAppointment.time}
+                                onChange={(e) => setNewAppointment({ ...newAppointment, time: e.target.value })}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <select
+                                className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                value={newAppointment.type}
+                                onChange={(e) =>
+                                    setNewAppointment({
+                                        ...newAppointment,
+                                        type: e.target.value as "individual" | "group" | "emergency",
+                                    })
+                                }
+                            >
+                                <option value="individual">Cá nhân</option>
+                                <option value="group">Nhóm</option>
+                                <option value="emergency">Khẩn cấp</option>
+                            </select>
+                            <select
+                                className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                value={newAppointment.method}
+                                onChange={(e) =>
+                                    setNewAppointment({
+                                        ...newAppointment,
+                                        method: e.target.value as "in-person" | "phone",
+                                    })
+                                }
+                            >
+                                <option value="phone">Điện thoại</option>
+                                <option value="in-person">Trực tiếp</option>
+                            </select>
+                        </div>
+                        {newAppointment.method === ("in-person" as const) && (
+                            <Input
+                                placeholder="Địa điểm"
+                                value={newAppointment.location}
+                                onChange={(e) => setNewAppointment({ ...newAppointment, location: e.target.value })}
+                            />
+                        )}
+                        <Textarea
+                            placeholder="Ghi chú"
+                            value={newAppointment.notes}
+                            onChange={(e) => setNewAppointment({ ...newAppointment, notes: e.target.value })}
+                        />
+                        <div className="flex space-x-2">
+                            <Button onClick={handleUpdateAppointment} className="flex-1">
+                                Cập Nhật
+                            </Button>
+                            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="flex-1">
+                                Hủy
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Xác Nhận Xóa</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <p className="text-slate-600 dark:text-slate-400">
+                            Bạn có chắc chắn muốn xóa lịch hẹn với {appointmentToDelete?.clientName}?
+                        </p>
+                        <div className="flex space-x-2">
+                            <Button variant="destructive" onClick={handleDeleteAppointment} className="flex-1">
+                                Xóa
+                            </Button>
+                            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} className="flex-1">
+                                Hủy
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

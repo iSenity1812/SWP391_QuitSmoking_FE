@@ -107,13 +107,23 @@ export function AppointmentProvider({ children }: { children: ReactNode }) {
     }
 
     const getTodayAppointments = () => {
-        const today = new Date().toISOString().split("T")[0]
-        return appointments.filter((appointment) => appointment.date === today)
+        const today = new Date()
+        const year = today.getFullYear()
+        const month = String(today.getMonth() + 1).padStart(2, "0")
+        const day = String(today.getDate()).padStart(2, "0")
+        const todayString = `${year}-${month}-${day}`
+
+        return appointments.filter((appointment) => appointment.date === todayString)
     }
 
     const getUpcomingAppointments = () => {
-        const today = new Date().toISOString().split("T")[0]
-        return appointments.filter((appointment) => appointment.date > today)
+        const today = new Date()
+        const year = today.getFullYear()
+        const month = String(today.getMonth() + 1).padStart(2, "0")
+        const day = String(today.getDate()).padStart(2, "0")
+        const todayString = `${year}-${month}-${day}`
+
+        return appointments.filter((appointment) => appointment.date > todayString)
     }
 
     return (

@@ -14,6 +14,7 @@ import { PlanSelectionDirectPage } from "./pages/plan-selection/PlanDirectPage"
 import AdminPage from "./pages/admin/AdminPage"
 import UserProfilePage from "./pages/user/userProfilePage"
 import CoachPage from "./pages/coach/CoachPage"
+import ContentAdminPage from "./pages/admin/content/ContentAdminPage"
 import { useEffect, useState } from "react"
 
 function shouldHideNavbar(pathname: string) {
@@ -110,6 +111,7 @@ export default function App() {
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/profile" element={<UserProfilePage />} />
             <Route path="/coach" element={< CoachPage />} />
+            <Route path="/contentadmin" element={< ContentAdminPage />} />
           </Routes>
         </AnimatePresence>
       </main>

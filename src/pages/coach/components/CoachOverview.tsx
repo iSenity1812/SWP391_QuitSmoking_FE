@@ -1,10 +1,8 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Calendar, MessageSquare, Users, TrendingUp, Activity, BookOpen, Mail, Phone } from "lucide-react"
+import { TrendingUp, Activity } from "lucide-react"
 
 export function CoachOverview() {
     const upcomingAppointments = [
@@ -65,52 +63,9 @@ export function CoachOverview() {
         },
     ]
 
-
-
     return (
         <div className="space-y-6">
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Upcoming Appointments */}
-                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-slate-200 dark:border-slate-700/50">
-                    <CardHeader>
-                        <CardTitle className="flex items-center space-x-2 text-slate-900 dark:text-white">
-                            <Calendar className="w-5 h-5 text-blue-500" />
-                            <span>Lịch Hẹn Sắp Tới</span>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {upcomingAppointments.map((appointment) => (
-                                <div
-                                    key={appointment.id}
-                                    className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50"
-                                >
-                                    <div className="flex items-center space-x-3">
-                                        <Avatar className="h-10 w-10">
-                                            <AvatarImage src={appointment.avatar || "/placeholder.svg"} />
-                                            <AvatarFallback>{appointment.client.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p className="font-medium text-slate-900 dark:text-white">{appointment.client}</p>
-                                            <p className="text-sm text-slate-600 dark:text-slate-400">{appointment.type}</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="font-medium text-slate-900 dark:text-white">{appointment.time}</p>
-                                        <Badge variant={appointment.status === "confirmed" ? "default" : "secondary"} className="text-xs">
-                                            {appointment.status === "confirmed" ? "Đã xác nhận" : "Chờ xác nhận"}
-                                        </Badge>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <Button className="w-full mt-4" variant="outline">
-                            Xem Tất Cả Lịch Hẹn
-                        </Button>
-                    </CardContent>
-                </Card>
-
+            <div className="max-w-2xl mx-auto">
                 {/* Recent Activities */}
                 <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-slate-200 dark:border-slate-700/50">
                     <CardHeader>
