@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 interface PrivateRouteProps {
   // Chỉ định role được phép
   allowedRoles?: Role[]; // Có thể để trống nếu không cần kiểm tra role
+  children?: React.ReactNode; // Có thể để trống nếu không cần render children
 }
 
 export const PrivateRoute: React.FC<PrivateRouteProps> = ({ allowedRoles }) => {

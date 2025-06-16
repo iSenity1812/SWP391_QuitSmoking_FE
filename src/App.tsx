@@ -1,67 +1,69 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { LandingPage } from "./pages/landing/LandingPage";
 import { Navbar } from "./components/ui/Navbar";
-import BlogPage from "./pages/blog/BlogPage";
-import AboutPage from "./pages/about/AboutPage";
-import PlanPage from "./pages/plan/PlanPage";
-import LoginPage from './pages/auth/LoginPage';
 import { AnimatePresence } from 'framer-motion';
-import RegisterPage from './pages/auth/RegisterPage';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
-import { PrivateRoute } from './pages/auth/PrivateRoute';
-import { PublicRoute } from './pages/auth/PublicRoute';
-import { PlanSelectionDirectPage } from './pages/plan-selection/PlanDirectPage';
-
+// import { PrivateRoute } from './pages/auth/PrivateRoute';
+// import { PublicRoute } from './pages/auth/PublicRoute';
+import { appRoutes, type AppRoute } from './routes/routes';
 
 export default function App() {
   const location = useLocation();
+
+  // Hàm này sẽ phức tạp hơn một chút để xử lý nested routes
+  const renderRoutesRecursive = (routesConfig: AppRoute[]) => {
+    return routesConfig.map((route) => {
+      let element = route.element;
+
+      if (route.layout) {
+        const LayoutComponent = route.layout;
+        element = <LayoutComponent>{element}</LayoutComponent>;
+      }
+
+      // Lưu ý: Với cách này, PrivateRoute/PublicRoute được dùng làm element của Route cha
+      // và sẽ render Outlet, không render children trực tiếp.
+      // Do đó, logic if (route.isPrivate) / if (route.isPublic) KHÔNG CẦN NỮA ở đây
+      // Thay vào đó, bạn sẽ định nghĩa PrivateRoute/PublicRoute làm element cho Route cha trong appRoutes
+
+      return (
+        <Route
+          key={route.path}
+          path={route.path}
+          element={element} // element ở đây là LandingPage, LoginPage, v.v.
+        >
+          {/* Render children routes */}
+          {route.children && renderRoutesRecursive(route.children)}
+        </Route>
+      );
+    });
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-1">
         <ToastContainer
-          position="top-right" // Vị trí hiển thị toast
-          autoClose={3000}    // Tự động đóng sau 3 giây
-          hideProgressBar={false} // Hiển thị thanh tiến trình đóng
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
           newestOnTop={false}
           closeOnClick
           rtl={false}
           pauseOnFocusLoss
           draggable
           pauseOnHover
-          theme="colored" // Hoặc "light", "dark", "colored"
+          theme="colored"
         />
         <AuthProvider>
-          <Navbar />
+          {location.pathname !== '/' && <Navbar />}
+
           <AnimatePresence mode="wait" initial={false}>
-
             <Routes location={location} key={location.pathname}>
-              <Route path='/' element={<LandingPage />} />
-              <Route element={<PublicRoute />}>
-                <Route path='/login' element={<LoginPage />} />
-                <Route path='/register' element={<RegisterPage />} />
-              </Route>
-              <Route path='/blog' element={<BlogPage />} />
-              <Route path='/about' element={<AboutPage />} />
-              {/* <Route path='/plan' element={} /> */}
-
-              <Route element={<PrivateRoute allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']} />}>
-                <Route path='/plan' element={<PlanPage />} />
-                {/* <Route path='/profile' element={<PrrofilePage />} /> */}
-                <Route path="/plan-selection" element={<PlanSelectionDirectPage />} />
-              </Route>
-
-              {/* route chỉ dành cho admin */}
-              <Route element={<PrivateRoute allowedRoles={['SUPER_ADMIN', 'CONTENT_ADMIN']} />}>
-                <Route path='/admin/*' element={<div>Admin Dashboard</div>} />
-
-              </Route>
+              {renderRoutesRecursive(appRoutes)}
             </Routes>
-
           </AnimatePresence>
         </AuthProvider>
       </main>
     </div>
-  )
+  );
 }

@@ -1,7 +1,11 @@
 import { useAuth } from "@/context/AuthContext";
 import { Navigate, Outlet } from "react-router-dom";
 
-export const PublicRoute: React.FC = () => {
+interface PublicRouteProps {
+  children?: React.ReactNode; // Có thể để trống nếu không cần render children
+}
+
+export const PublicRoute: React.FC<PublicRouteProps> = () => {
   const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {

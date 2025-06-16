@@ -98,6 +98,14 @@ export const OnboardingFlow: React.FC = () => {
 
     // Xử lý quay lại trang chủ
     const handleBackToHome = () => {
+        // Set onboarding as completed when skipping to home
+        localStorage.setItem("onboarding_completed", "true")
+        navigate("/")
+    }
+
+    // Xử lý bỏ qua onboarding (cho mục đích phát triển)
+    const handleSkipOnboarding = () => {
+        localStorage.setItem("onboarding_completed", "true")
         navigate("/")
     }
 
@@ -105,7 +113,17 @@ export const OnboardingFlow: React.FC = () => {
     const renderCurrentStep = () => {
         switch (currentStep) {
             case "intro":
-                return <IntroSlide onComplete={handleIntroComplete} />
+                return (
+                    <div className="relative">
+                        <IntroSlide onComplete={handleIntroComplete} />
+                        <button
+                            onClick={handleSkipOnboarding}
+                            className="absolute top-4 right-4 bg-slate-800/50 hover:bg-slate-700 text-white px-3 py-1 rounded-md text-xs backdrop-blur-sm"
+                        >
+                            Bỏ qua (Dev)
+                        </button>
+                    </div>
+                )
 
             case "auth-choice":
                 return (

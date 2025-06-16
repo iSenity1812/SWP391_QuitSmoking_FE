@@ -19,7 +19,7 @@ import { UserDropdown } from "@/pages/auth/components/UserDropdown";
 const navLinks = [
   { href: "/", label: "Home", icon: Home, isActive: true },
   { href: "/blog", label: "Blog", icon: BookOpen },
-  { href: "plan/", label: "Check", icon: Gem },
+  { href: "plan/", label: "Plan", icon: Gem },
   { href: "/about", label: "About", icon: Info },
 ];
 

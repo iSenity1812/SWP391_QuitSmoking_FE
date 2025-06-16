@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, Check, X, Eye, EyeOff } from "lucide-react";
+import { Lock, Eye, EyeOff } from "lucide-react";
 
 interface PasswordInputProps {
   password: string;
@@ -81,11 +81,11 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
               exit={{ scale: 0, opacity: 0 }}
               className="absolute right-10 top-1/2 -translate-y-1/2 input-validation-icon" // Điều chỉnh vị trí
             >
-              {isPasswordValid ? (
+              {/* {isPasswordValid ? (
                 <Check className="text-emerald-500" size={18} />
               ) : (
                 <X className="text-destructive" size={18} />
-              )}
+              )} */}
             </motion.span>
           )}
         </AnimatePresence>

@@ -26,16 +26,6 @@ export const LoginForm: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null); // State để lưu thông báo thành công
   const { login: authContextLogin } = useAuth(); // Lấy hàm login từ AuthContext
 
-  // console.log("LoginForm rendered. Current email:", email, "Current password:", password);
-
-  // // Thêm useEffect để theo dõi mount/unmount
-  // useEffect(() => {
-  //   console.log("LoginForm mounted!");
-  //   return () => {
-  //     console.log("LoginForm unmounted!");
-  //   };
-  // }, []);
-
   const validateEmail = (value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setIsEmailValid(emailRegex.test(value));
@@ -62,7 +52,7 @@ export const LoginForm: React.FC = () => {
 
     if (!currentEmailValid || !currentPasswordValid) {
       setIsSubmitting(false);
-      toast.error("Vui lòng nhập đúng định dạng Email và Mật khẩu (từ 6 đến 20 ký tự).");
+      toast.error("Vui lòng nhập đúng định dạng Email và Mật khẩu (từ 8 đến 20 ký tự).");
       return;
     }
 
