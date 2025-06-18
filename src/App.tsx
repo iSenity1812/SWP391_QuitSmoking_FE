@@ -15,6 +15,7 @@ import AdminPage from "./pages/admin/AdminPage"
 import UserProfilePage from "./pages/user/userProfilePage"
 import CoachPage from "./pages/coach/CoachPage"
 import ContentAdminPage from "./pages/admin/content/ContentAdminPage"
+import SubscriptionPage from "./pages/plan/subscription/SubscriptionPage"
 import { useEffect, useState } from "react"
 
 function shouldHideNavbar(pathname: string) {
@@ -27,6 +28,7 @@ function shouldHideNavbar(pathname: string) {
     "/onboarding",
     "/plan-selection",
     "/profile", // Hide navbar on profile page too
+    "/subscription", // Hide navbar on subscription page
   ]
 
   // Dùng startsWith để hỗ trợ cả các route như /admin/dashboard
@@ -110,8 +112,9 @@ export default function App() {
             <Route path="/plan" element={<PlanPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/profile" element={<UserProfilePage />} />
-            <Route path="/coach" element={< CoachPage />} />
-            <Route path="/contentadmin" element={< ContentAdminPage />} />
+            <Route path="/coach" element={<CoachPage />} />
+            <Route path="/contentadmin" element={<ContentAdminPage />} />
+            <Route path="/subscription" element={<SubscriptionPage />} />
           </Routes>
         </AnimatePresence>
       </main>

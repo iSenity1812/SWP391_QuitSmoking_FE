@@ -7,13 +7,10 @@ import { Dialog } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { AnimatedSection } from "@/components/ui/AnimatedSection"
-import { PaymentFlow } from "@/pages/plan/styles/Payment"
 import { PlanStats } from "@/pages/plan/styles/PlanStats"
-import { PlanMilestones } from "@/pages/plan/styles/PlanMilestone"
 import { PlanDetails } from "@/pages/plan/styles/PlanDetail"
 import { PlanProgress } from "@/pages/plan/styles/PlanProgress"
 import { PlanFormDialog } from "@/pages/plan/styles/PlanFormDialog"
-import { ProgressDetails } from "@/pages/plan/styles/ProgressDetail"
 import { ReductionSchedule } from "@/pages/plan/styles/ReductionSchedule"
 import { StreakTracker } from "@/pages/plan/styles/StreakTracker"
 import { StreakCalendar } from "@/pages/plan/styles/StreakCalendar"
@@ -23,18 +20,7 @@ import { usePlanStorage } from "@/hooks/usePlanStorage"
 import { usePlanForm } from "@/hooks/usePlanForm"
 import { useStreakTracking } from "@/hooks/useStreakTracking"
 import { CIGARETTE_PRICES } from "@/pages/plan/styles/ui/types/cigarette"
-import {
-    Target,
-    AlertTriangle,
-    CreditCard,
-    CalendarIcon,
-    Plus,
-    Sparkles,
-    TrendingUp,
-    TrendingDown,
-    Zap,
-    Flame,
-} from "lucide-react"
+import { Target, AlertTriangle, CalendarIcon, Plus, Sparkles, TrendingDown, Zap, Flame } from "lucide-react"
 
 export default function PlanPage() {
     const [date, setDate] = useState<Date | undefined>(new Date())
@@ -92,22 +78,6 @@ export default function PlanPage() {
     const isPremiumUser = userSubscription.type === "premium"
     const isSubscriptionActive =
         isPremiumUser && (!userSubscription.expiryDate || userSubscription.expiryDate > new Date())
-
-    const handleSelectPlan = (planType: "free" | "premium", duration?: string) => {
-        if (planType === "free") {
-            setUserSubscription({ type: "free" })
-            alert("Bạn đã chuyển về gói miễn phí!")
-        } else {
-            const expiryDate = new Date()
-            if (duration === "14 ngày") expiryDate.setDate(expiryDate.getDate() + 14)
-            else if (duration === "30 ngày") expiryDate.setDate(expiryDate.getDate() + 30)
-            else if (duration === "90 ngày") expiryDate.setDate(expiryDate.getDate() + 90)
-
-            setUserSubscription({ type: "premium", duration, expiryDate })
-            alert(`Chúc mừng! Bạn đã nâng cấp thành công lên gói Premium ${duration}!`)
-            setActiveTab("plan")
-        }
-    }
 
     const handleDeletePlan = () => {
         setCurrentPlan(null)
@@ -230,7 +200,7 @@ export default function PlanPage() {
 
                 {/* Main Content */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-                    <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full max-w-2xl mx-auto h-auto sm:h-12 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <TabsList className="grid grid-cols-2 w-full max-w-2xl mx-auto h-auto sm:h-12 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-sm">
                         <TabsTrigger
                             value="plan"
                             className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
@@ -246,22 +216,6 @@ export default function PlanPage() {
                             <Flame className="w-3 h-3 sm:w-4 sm:h-4" />
                             <span className="hidden sm:inline">Streak</span>
                             <span className="sm:hidden">Streak</span>
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="details"
-                            className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
-                        >
-                            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span className="hidden sm:inline">Chi Tiết</span>
-                            <span className="sm:hidden">Detail</span>
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="payment"
-                            className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm font-medium px-2 sm:px-3 py-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
-                        >
-                            <CreditCard className="w-3 h-3 sm:w-4 sm:h-4" />
-                            <span className="hidden sm:inline">{isSubscriptionActive ? "Quản Lý" : "Nâng Cấp"}</span>
-                            <span className="sm:hidden">Pay</span>
                         </TabsTrigger>
                     </TabsList>
 
@@ -431,10 +385,6 @@ export default function PlanPage() {
                                                     </div>
                                                 </AnimatedSection>
                                             )}
-
-                                            <AnimatedSection animation="fadeUp" delay={500}>
-                                                <PlanMilestones smokeFreeDays={smokeFreeDays} />
-                                            </AnimatedSection>
                                         </div>
 
                                         {/* Right Column */}
@@ -507,28 +457,6 @@ export default function PlanPage() {
                                 <Button onClick={() => setActiveTab("plan")}>Tạo Kế Hoạch</Button>
                             </div>
                         )}
-                    </TabsContent>
-
-                    <TabsContent value="details">
-                        {currentPlan ? (
-                            <ProgressDetails
-                                smokeFreeDays={smokeFreeDays}
-                                moneySaved={moneySaved}
-                                cigarettesNotSmoked={cigarettesNotSmoked}
-                            />
-                        ) : (
-                            <div className="text-center py-12">
-                                <h3 className="text-xl font-medium mb-2 text-slate-900 dark:text-white">Chưa có kế hoạch cai thuốc</h3>
-                                <p className="text-slate-600 dark:text-slate-300 mb-6">
-                                    Bạn cần tạo kế hoạch cai thuốc trước khi xem chi tiết tiến trình
-                                </p>
-                                <Button onClick={() => setActiveTab("plan")}>Tạo Kế Hoạch</Button>
-                            </div>
-                        )}
-                    </TabsContent>
-
-                    <TabsContent value="payment">
-                        <PaymentFlow onSelectPlan={handleSelectPlan} onBack={() => setActiveTab("plan")} />
                     </TabsContent>
                 </Tabs>
             </div>
