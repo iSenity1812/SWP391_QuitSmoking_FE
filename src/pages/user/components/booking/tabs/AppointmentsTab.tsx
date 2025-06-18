@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { Appointment } from "../types/booking.types"
-import { AppointmentCard } from "../components/AppointmentCard"
+import { AppointmentCard   } from "../components/AppointmentCard"
 
 interface AppointmentsTabProps {
   appointments: Appointment[]
