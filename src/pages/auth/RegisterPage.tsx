@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { AuthHeader } from "@/pages/auth/components/AuthHeader";
 
 import { RegisterForm } from "@/pages/auth/components/RegisterForm"; // Component chính
+import { Wind } from "lucide-react";
 
 export default function RegisterPage() {
   return (
@@ -16,8 +17,17 @@ export default function RegisterPage() {
       transition={{ duration: 0.5 }}
     >
       {/* Nút chuyển đổi chủ đề (light/dark mode) */}
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
+      <div className="absolute top-4 left-4 right-4">
+        <div className="flex items-center justify-between w-full">
+          {/* Phần QuitTogether nằm bên trái */}
+          <a href="/" className="flex items-center gap-3 text-2xl font-black text-slate-800 dark:text-white">
+            <Wind className="h-8 w-8 text-emerald-500" />
+            <span className="text-xl font-bold">QuitTogether</span>
+          </a>
+
+          {/* Phần ThemeToggle nằm bên phải */}
+          <ThemeToggle />
+        </div>
       </div>
 
       <div className="w-full max-w-md">

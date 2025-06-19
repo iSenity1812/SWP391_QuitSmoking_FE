@@ -16,7 +16,7 @@ export function MotivationMessages() {
 
   return (
 
-    <section className="w-full bg-emerald-500 py-6" >
+    <section className="relative w-full bg-emerald-500 py-6" >
       <AnimatedSection animation="fadeUp" delay={400}>
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse">
         </div>

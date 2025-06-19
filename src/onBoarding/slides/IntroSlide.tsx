@@ -163,7 +163,7 @@ export const IntroSlide: React.FC<IntroSlideProps> = ({ onComplete }) => {
     const colorClasses = getColorClasses(currentSlide.color)
 
     return (
-        <div className="h-full w-full flex items-center justify-center relative overflow-hidden">
+        <div className="min-h-screen w-full flex items-center justify-center relative">
             {/* Background Elements */}
             <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"></div>
 
@@ -176,7 +176,7 @@ export const IntroSlide: React.FC<IntroSlideProps> = ({ onComplete }) => {
             ></div>
 
             {/* Main Content */}
-            <div className="relative z-10 max-w-6xl mx-auto px-8 py-12">
+            <div className="relative z-10 max-w-6xl mx-auto px-8 py-12 ">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={currentSlide.id}
@@ -207,7 +207,7 @@ export const IntroSlide: React.FC<IntroSlideProps> = ({ onComplete }) => {
                         )}
 
                         {/* Main Content Area */}
-                        <div className="grid lg:grid-cols-2 gap-16 items-center min-h-[500px]">
+                        <div className="grid lg:grid-cols-2 gap-16 items-center min-h-[700px]">
                             {/* Left Side - Text Content */}
                             <div className="text-left space-y-8">
                                 <div>

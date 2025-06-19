@@ -1,34 +1,26 @@
 "use client"
 
-import { Routes, Route, useLocation } from "react-router-dom"
-import { LandingPage } from "./pages/Landing/components/LandingPage"
+import { useLocation } from "react-router-dom"
 import { Navbar } from "./components/ui/Navbar"
-import BlogPage from "./pages/blog/BlogPage"
-import AboutPage from "./pages/about/AboutPage"
-import PlanPage from "./pages/plan/PlanPage"
-import LoginPage from "./pages/auth/LoginPage"
 import { AnimatePresence } from "framer-motion"
-import RegisterPage from "./pages/auth/RegisterPage"
-import { OnboardingPage } from "./pages/onboarding/onBoardingPage"
-import { PlanSelectionDirectPage } from "./pages/plan-selection/PlanDirectPage"
-import AdminPage from "./pages/admin/AdminPage"
-import UserProfilePage from "./pages/user/userProfilePage"
-import CoachPage from "./pages/coach/CoachPage"
-import ContentAdminPage from "./pages/admin/content/ContentAdminPage"
-import SubscriptionPage from "./pages/plan/subscription/SubscriptionPage"
 import { useEffect, useState } from "react"
+import { OnboardingPage } from "./pages/onboarding/onBoardingPage"
+import { AppRoutes } from "./routes/route"
+import { useTokenRefresh } from "./hooks/useTokenRefresh"
 
 function shouldHideNavbar(pathname: string) {
   const hiddenPaths = [
     "/login",
     "/register",
     "/admin",
+    "/coach",
+    "/contentadmin",
     "/reset-password",
     "/forgot-password",
     "/onboarding",
     "/plan-selection",
-    "/profile", // Hide navbar on profile page too
-    "/subscription", // Hide navbar on subscription page
+    "/profile",
+    "/subscription",
   ]
 
   // Dùng startsWith để hỗ trợ cả các route như /admin/dashboard
@@ -37,11 +29,13 @@ function shouldHideNavbar(pathname: string) {
 
 export default function App() {
   const location = useLocation()
+  // Auto-refresh token check
+  useTokenRefresh()
+
   const shouldShowNavbar = !shouldHideNavbar(location.pathname)
 
   // Use state to track onboarding status with a default of true (completed)
   const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(true)
-
   useEffect(() => {
     // Check localStorage only once on initial load
     const storedOnboardingStatus = localStorage.getItem("onboarding_completed")
@@ -52,7 +46,7 @@ export default function App() {
     }
 
     // For debugging - log the current status
-    console.log("Onboarding completed status:", isOnboardingCompleted)
+    console.log("Onboarding completed status:", storedOnboardingStatus !== "false")
   }, [])
 
   // Force complete onboarding (for development/testing)
@@ -101,21 +95,7 @@ export default function App() {
         )}
 
         <AnimatePresence mode="wait" initial={false}>
-          <Routes location={location} key={location.pathname}>
-            <Route path="/onboarding" element={<OnboardingPage />} />
-            <Route path="/plan-selection" element={<PlanSelectionDirectPage />} />
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/plan" element={<PlanPage />} />
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/profile" element={<UserProfilePage />} />
-            <Route path="/coach" element={<CoachPage />} />
-            <Route path="/contentadmin" element={<ContentAdminPage />} />
-            <Route path="/subscription" element={<SubscriptionPage />} />
-          </Routes>
+          <AppRoutes />
         </AnimatePresence>
       </main>
     </div>

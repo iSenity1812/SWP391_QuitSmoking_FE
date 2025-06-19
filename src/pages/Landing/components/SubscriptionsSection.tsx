@@ -20,7 +20,7 @@ export const SubscriptionsSection = () => {
                         {[
                             {
                                 name: "Miễn Phí",
-                                price: "$0",
+                                price: "0đ",
                                 period: "mỗi tháng",
                                 description: "Công cụ cơ bản để bắt đầu hành trình",
                                 features: [
@@ -34,7 +34,7 @@ export const SubscriptionsSection = () => {
                             },
                             {
                                 name: "Cao Cấp",
-                                price: "$4.99",
+                                price: "119.000đ",
                                 period: "mỗi tháng",
                                 description: "Mọi thứ bạn cần để bỏ thuốc vĩnh viễn!",
                                 features: [
@@ -52,14 +52,14 @@ export const SubscriptionsSection = () => {
                                     {
                                         id: "prem_14d",
                                         label: "14 Ngày",
-                                        price: "$4.99",
+                                        price: "119.000đ",
                                         subLabel: "thanh toán mỗi 14 ngày",
                                         cta: "Choose 14 Days",
                                     },
                                     {
                                         id: "prem_1m",
                                         label: "1 Tháng",
-                                        price: "$8.99",
+                                        price: "209.000đ",
                                         subLabel: "thanh toán mỗi tháng, tiết kiệm 10%",
                                         cta: "Choose 1 Month",
                                         highlight: "Phổ Biến",
@@ -67,7 +67,7 @@ export const SubscriptionsSection = () => {
                                     {
                                         id: "prem_3m",
                                         label: "3 Tháng",
-                                        price: "$21.99",
+                                        price: "499.000đ",
                                         subLabel: "thanh toán mỗi 3 tháng, tiết kiệm 20%",
                                         cta: "Choose 3 Months",
                                         highlight: "Giá Trị Tốt Nhất",
@@ -83,8 +83,8 @@ export const SubscriptionsSection = () => {
                             >
                                 <div
                                     className={`relative bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-xl border-2 transition-all duration-500 hover:scale-105 hover:-translate-y-2 flex flex-col ${plan.popular
-                                            ? " border-emerald-300 dark:border-emerald-500 shadow-2xl shadow-emerald-200/50 dark:shadow-emerald-500/25"
-                                            : " border-emerald-100 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500"
+                                        ? " border-emerald-300 dark:border-emerald-500 shadow-2xl shadow-emerald-200/50 dark:shadow-emerald-500/25"
+                                        : " border-emerald-100 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500"
                                         }`}
                                 >
                                     {plan.popular && (
@@ -105,7 +105,7 @@ export const SubscriptionsSection = () => {
                                         </div>
                                         <p className="text-slate-600 dark:text-slate-300 font-medium">{plan.description}</p>
                                     </div>
-                                    <div className="flex-1">
+                                    <div className="flex-1 mb-2">
                                         <ul className="space-y-3">
                                             {plan.features.map((feature, j) => (
                                                 <li key={j} className="text-slate-600 dark:text-slate-300 font-medium">
@@ -116,7 +116,7 @@ export const SubscriptionsSection = () => {
 
                                         {/* Variants Section for Premium Plan */}
                                         {plan.name === "Cao Cấp" && plan.variants && (
-                                            <div className="mb-8 mt-4">
+                                            <div className="mb-2 mt-4">
                                                 {/* <h4 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4 text-center">Choose your duration:</h4> */}
                                                 <div className="space-y-3">
                                                     {plan.variants.map((variant) => (
@@ -164,8 +164,8 @@ export const SubscriptionsSection = () => {
 
                                     <button
                                         className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 shadow-lg ${plan.popular
-                                                ? "text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-emerald-200/50 dark:shadow-emerald-500/25"
-                                                : "text-slate-700 dark:text-slate-300 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-slate-700 dark:to-slate-600 border-2 border-emerald-200 dark:border-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500"
+                                            ? "text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-emerald-200/50 dark:shadow-emerald-500/25"
+                                            : "text-slate-700 dark:text-slate-300 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-slate-700 dark:to-slate-600 border-2 border-emerald-200 dark:border-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500"
                                             }`}
                                     >
                                         {plan.cta}
