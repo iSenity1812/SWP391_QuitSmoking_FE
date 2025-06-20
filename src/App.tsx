@@ -110,8 +110,8 @@ export default function App() {
             <Route path="/plan" element={<PlanPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/profile" element={<UserProfilePage />} />
-            <Route path="/coach" element={< CoachPage />} />
-            <Route path="/contentadmin" element={< ContentAdminPage />} />
+            <Route path="/coach" element={<CoachPage />} />
+            <Route path="/contentadmin" element={<ContentAdminPage />} />
           </Routes>
         </AnimatePresence>
       </main>
