@@ -10,14 +10,56 @@ import type {
 export class CommentService {
     // --- PUBLIC ENDPOINTS ---
 
-    // Get all root comments for a blog (with pagination)
-    // Backend uses findByBlog_BlogIdAndParentCommentIsNull to get only root comments
+    // Get all comments for a blog (public access)
+    async getCommentsByBlog(blogId: number): Promise<CommentResponseDTO[]> {
+        try {
+            console.log(`Fetching comments for blog ${blogId}...`)
+
+            const response = await axiosConfig.get(`/comments/blog/${blogId}`)
+            console.log("Comments API Response:", response.data)
+
+            // Handle different response formats
+            if (response.data.success !== undefined) {
+                // Backend returns ApiResponse<Page<CommentResponseDTO>>
+                if (response.data.success === false) {
+                    throw new Error(response.data.message || "Failed to fetch comments")
+                }
+
+                const pageData = response.data.data
+                if (pageData && pageData.content && Array.isArray(pageData.content)) {
+                    console.log("Comments found:", pageData.content.length)
+                    return pageData.content
+                }
+
+                console.log("No comments content found in page data")
+                return []
+            } else if (Array.isArray(response.data)) {
+                // Direct array response
+                console.log("Direct array response:", response.data.length)
+                return response.data
+            } else {
+                console.log("Unexpected response format:", response.data)
+                return []
+            }
+        } catch (error: any) {
+            console.error("Error fetching comments:", error)
+
+            if (error.response) {
+                console.error("Response status:", error.response.status)
+                console.error("Response data:", error.response.data)
+            }
+
+            // Return empty array instead of throwing error for guest users
+            return []
+        }
+    }
+
+    // Get comments with pagination
     async getCommentsByBlogId(
         blogId: number,
         params?: CommentListParams,
     ): Promise<CommentApiResponse<CommentPageResponse>> {
         const queryParams = this.buildQueryParams(params)
-
         const endpoint = `/comments/blog/${blogId}${queryParams.toString() ? `?${queryParams.toString()}` : ""}`
 
         try {
@@ -41,7 +83,6 @@ export class CommentService {
     // --- MEMBER ENDPOINTS (Authentication required) ---
 
     // Add new comment (or reply to existing comment)
-    // Backend validates: blog must be PUBLISHED, user must be authenticated
     async addComment(commentData: CommentRequestDTO): Promise<CommentApiResponse<CommentResponseDTO>> {
         try {
             const response = await axiosConfig.post("/comments", commentData)
@@ -52,7 +93,6 @@ export class CommentService {
     }
 
     // Delete comment (soft delete)
-    // Backend checks: user is owner OR blog author OR CONTENT_ADMIN
     async deleteComment(commentId: number): Promise<CommentApiResponse<void>> {
         try {
             const response = await axiosConfig.delete(`/comments/${commentId}`)
@@ -80,4 +120,4 @@ export class CommentService {
 export const commentService = new CommentService()
 
 // Export specific methods for easier imports
-export const { getCommentsByBlogId, getCommentById, addComment, deleteComment } = commentService
+export const { getCommentsByBlog, getCommentsByBlogId, getCommentById, addComment, deleteComment } = commentService

@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { Calendar, Clock, CheckCircle, MoreVertical, Edit, Trash2, Flag } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
@@ -10,16 +12,16 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { BlogPost } from "@/types/blog"
-import type { Comment } from "@/types/comment"
+import type { CommentResponseDTO } from "@/types/comment"
 import { formatDate } from "../utils/blog-utils"
-import { getStatusBadge, getRoleBadge, getRoleIcon } from "./UserBadges"
+import { getStatusBadge } from "./UserBadges"
 import CommentSection from "./CommentSection"
 import type { BlogUser } from "@/types/blog"
 
 interface BlogPostDetailProps {
     post: BlogPost
     currentUser: BlogUser | null
-    comments: Comment[]
+    comments: CommentResponseDTO[]
     handleBackToList: () => void
     handleEditPost: (post: BlogPost) => void
     handleDeletePost: (post: BlogPost) => void
@@ -45,6 +47,13 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
     handleAddComment,
     setIsLoginPromptOpen,
 }) => {
+    // Get the correct blog ID
+    const blogId = post.blogId || post.blogId || 0
+
+    console.log("BlogPostDetail - Post:", post)
+    console.log("BlogPostDetail - BlogId:", blogId)
+    console.log("BlogPostDetail - Comments:", comments)
+
     return (
         <>
             <Button variant="outline" className="mb-6" onClick={handleBackToList}>
@@ -53,9 +62,7 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
             <Card className="border-2 border-emerald-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
                 <CardHeader>
                     <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            {getStatusBadge(post.status)}
-                        </div>
+                        <div className="flex items-center gap-2">{getStatusBadge(post.status)}</div>
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-slate-500 dark:text-slate-400">Tác giả: {post.authorId}</span>
 
@@ -129,7 +136,7 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
                 {/* Phần bình luận */}
                 <CardFooter>
                     <CommentSection
-                        blogId={post.blogId || 0}
+                        blogId={blogId}
                         comments={comments}
                         currentUser={currentUser}
                         handleAddComment={handleAddComment}

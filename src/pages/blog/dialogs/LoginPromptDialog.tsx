@@ -10,10 +10,9 @@ import type { Role } from "@/types/auth"
 interface LoginPromptDialogProps {
     isOpen: boolean
     onClose: () => void
-    handleDemoLogin: (role: Role) => void
 }
 
-const LoginPromptDialog: React.FC<LoginPromptDialogProps> = ({ isOpen, onClose, handleDemoLogin }) => {
+const LoginPromptDialog: React.FC<LoginPromptDialogProps> = ({ isOpen, onClose }) => {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[400px]">
@@ -49,14 +48,12 @@ const LoginPromptDialog: React.FC<LoginPromptDialogProps> = ({ isOpen, onClose, 
                             <Button
                                 variant="ghost"
                                 className="text-blue-600 hover:text-blue-700"
-                                onClick={() => handleDemoLogin("PREMIUM_MEMBER")}
                             >
                                 Premium Member
                             </Button>
                             <Button
                                 variant="ghost"
                                 className="text-purple-600 hover:text-purple-700"
-                                onClick={() => handleDemoLogin("COACH")}
                             >
                                 Coach
                             </Button>
@@ -64,7 +61,6 @@ const LoginPromptDialog: React.FC<LoginPromptDialogProps> = ({ isOpen, onClose, 
                         <Button
                             variant="ghost"
                             className="text-red-600 hover:text-red-700"
-                            onClick={() => handleDemoLogin("CONTENT_ADMIN")}
                         >
                             Content Admin (để test)
                         </Button>

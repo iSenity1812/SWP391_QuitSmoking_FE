@@ -15,6 +15,36 @@ const axiosConfig = axios.create({
     },
 });
 
+axiosConfig.interceptors.request.use(
+    (config) => {
+        console.log(`Making request to: ${config.baseURL}${config.url}`)
+
+        const publicEndpoints = [
+            "/blogs", // GET blogs - public
+            "/auth/login",
+            "/auth/register",
+        ]
+
+        // Kiểm tra xem có phải endpoint public không
+        const isPublicEndpoint = publicEndpoints.some((endpoint) => config.url?.includes(endpoint))
+        const isGetRequest = config.method?.toLowerCase() === "get"
+
+        // Chỉ thêm token cho các endpoint private hoặc non-GET requests
+        if (!isPublicEndpoint || !isGetRequest) {
+            const token = localStorage.getItem("jwtToken")
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`
+            }
+        }
+
+        return config
+    },
+    (error) => {
+        console.error("Request interceptor error:", error)
+        return Promise.reject(error)
+    },
+)
+
 // Thêm Request Interceptor: Thêm JWT token vào header cho mỗi request
 axiosConfig.interceptors.request.use(
     (config) => {

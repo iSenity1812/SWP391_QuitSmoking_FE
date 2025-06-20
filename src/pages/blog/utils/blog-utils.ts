@@ -100,27 +100,30 @@ export const getRoleText = (role: string) => {
 
 export const getPublishingStatus = (userRole: string) => {
     switch (userRole) {
-        case "Coach":
-            return "Pending" // Coach posts need approval
-        case "Content Admin":
-        case "Super Admin":
-            return "Published" // Admin posts are auto-published
+        case "COACH":
+            return "PENDING" // Coach posts need approval
+        case "CONTENT_ADMIN":
+        case "SUPER_ADMIN":
+            return "PUBLISHED" // Admin posts are auto-published
         default:
-            return "Published" // Regular members auto-publish
+            return "PUBLISHED" // Regular members auto-publish
     }
 }
 
 export const getPublishingMessage = (userRole: string) => {
     switch (userRole) {
-        case "Coach":
-            return "Bài viết của bạn đã được gửi và đang chờ phê duyệt từ Content Admin."
-        case "Content Admin":
-        case "Super Admin":
+        case "COACH":
+            return "Bài viết của bạn đã được gửi và đang chờ phê duyệt từ CONTENT_ADMIN."
+        case "CONTENT_ADMIN":
+        case "SUPER_ADMIN":
             return "Bài viết đã được xuất bản thành công!"
         default:
             return "Bài viết đã được xuất bản thành công!"
     }
 }
+
+
+
 
 export const canEditBlog = (blog: any, currentUser: any) => {
     if (!currentUser) return false
@@ -197,6 +200,7 @@ export const buildCommentTree = (comments: any[]) => {
             rootComments.push(commentMap.get(commentId))
         }
     })
+
 
     return rootComments
 }

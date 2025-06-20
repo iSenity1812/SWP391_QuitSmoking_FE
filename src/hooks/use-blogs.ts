@@ -22,26 +22,44 @@ export const useBlogPosts = (params?: BlogListParams) => {
     setLoading(true)
     setError(null)
     try {
+      console.log("Fetching blogs for guest/public access...")
       const blogs = await BlogService.getAllBlogs()
-      // Filter for published blogs only
+      console.log("Blogs received:", blogs)
+
+      // Ensure blogs is an array
+      if (!Array.isArray(blogs)) {
+        console.error("Expected array but got:", typeof blogs, blogs)
+        throw new Error("Invalid response format: expected array of blogs")
+      }
+
+      // Filter for published/approved blogs only for public access
       const publishedBlogs = blogs.filter((blog) => blog.status === "PUBLISHED")
+
+      // Apply search filter if provided
+      const filteredBlogs = params?.keyword
+        ? publishedBlogs.filter(
+          (blog) =>
+            blog.title.toLowerCase().includes(params.keyword!.toLowerCase()) ||
+            blog.content.toLowerCase().includes(params.keyword!.toLowerCase()),
+        )
+        : publishedBlogs
 
       // Create a mock SpringPageResponse structure
       const mockResponse: SpringPageResponse<BlogPost> = {
-        content: publishedBlogs,
-        totalElements: publishedBlogs.length,
-        totalPages: Math.ceil(publishedBlogs.length / 10),
-        size: 10,
-        number: 0,
-        first: true,
-        last: true,
-        numberOfElements: publishedBlogs.length,
-        empty: publishedBlogs.length === 0,
+        content: filteredBlogs,
+        totalElements: filteredBlogs.length,
+        totalPages: Math.ceil(filteredBlogs.length / (params?.size || 10)),
+        size: params?.size || 10,
+        number: params?.page || 0,
+        first: (params?.page || 0) === 0,
+        last: (params?.page || 0) >= Math.ceil(filteredBlogs.length / (params?.size || 10)) - 1,
+        numberOfElements: filteredBlogs.length,
+        empty: filteredBlogs.length === 0,
         pageable: {
           sort: { empty: true, sorted: false, unsorted: true },
-          offset: 0,
-          pageSize: 10,
-          pageNumber: 0,
+          offset: (params?.page || 0) * (params?.size || 10),
+          pageSize: params?.size || 10,
+          pageNumber: params?.page || 0,
           paged: true,
           unpaged: false,
         },
@@ -50,6 +68,7 @@ export const useBlogPosts = (params?: BlogListParams) => {
 
       setData(mockResponse)
     } catch (err: any) {
+      console.error("Error fetching blogs:", err)
       setError(err.message || "Có lỗi xảy ra khi tải blog")
     } finally {
       setLoading(false)

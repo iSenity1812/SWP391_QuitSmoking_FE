@@ -20,14 +20,14 @@ const UserAuthSection: React.FC<UserAuthSectionProps> = ({ currentUser, handleCr
                     <>
                         <Avatar className="w-10 h-10">
                             <AvatarFallback>
-                                {currentUser.username
+                                {currentUser.name
                                     .split(" ")
                                     .map((n) => n[0])
                                     .join("")}
                             </AvatarFallback>
                         </Avatar>
                         <div>
-                            <p className="font-semibold text-slate-800 dark:text-white">{currentUser.username}</p>
+                            <p className="font-semibold text-slate-800 dark:text-white">{currentUser.name}</p>
                             <div className="flex items-center gap-1">
                                 {getRoleIcon(currentUser.role)}
                                 <span className="text-sm text-slate-500 dark:text-slate-400">{currentUser.role}</span>

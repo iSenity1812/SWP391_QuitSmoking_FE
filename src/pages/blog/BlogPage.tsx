@@ -1,13 +1,12 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AnimatedSection } from "@/components/ui/AnimatedSection"
-import { useBlogPosts, useBlogActions, useAdminBlogActions } from "@/hooks/use-blogs"
-import { useCommentsByBlog } from "@/hooks/use-comments"
+import { useBlogPosts, useBlogActions } from "@/hooks/use-blogs"
 import { commentService } from "@/services/commentService"
 import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser } from "@/types/blog"
-import type { CommentRequestDTO, Comment as BackendComment } from "@/types/comment"
+import type { CommentRequestDTO, CommentResponseDTO, CommentApiResponse } from "@/types/comment"
 
 // Components
 import BlogHeader from "./components/BlogHeader"
@@ -37,9 +36,29 @@ const BlogPage: React.FC = () => {
     // State
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedPost, setSelectedPost] = useState<BackendBlogPost | null>(null)
+    const [selectedPostComments, setSelectedPostComments] = useState<CommentResponseDTO[]>([])
 
     // User state (null for guest) - In real app, get from AuthContext
     const [currentUser, setCurrentUser] = useState<BlogUser | null>(null)
+
+    // Mock login function for testing - replace with real auth logic
+    const handleMockLogin = (role: "NORMAL_MEMBER" | "PREMIUM_MEMBER" | "COACH" | "CONTENT_ADMIN") => {
+        setCurrentUser({
+            blogId: "user123",
+            name: "Test User",
+            role: role,
+        })
+    }
+
+    // Set mock user on component mount
+    useEffect(() => {
+        // Mock user for testing - replace with real auth
+        setCurrentUser({
+            blogId: "11111111-1111-1111-1111-111111111111",
+            name: "John Doe",
+            role: "NORMAL_MEMBER",
+        })
+    }, [])
 
     // Dialog states
     const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false)
@@ -66,14 +85,7 @@ const BlogPage: React.FC = () => {
     })
 
     const { createBlog, updateBlog, deleteBlog, loading: actionLoading } = useBlogActions()
-    const { approveBlog, rejectBlog } = useAdminBlogActions()
-
-    // Comments for selected post
-    const {
-        comments: selectedPostComments,
-        loading: commentsLoading,
-        refetch: refetchComments,
-    } = useCommentsByBlog(selectedPost?.blogId || 0)
+    // const { approveBlog, rejectBlog } = useAdminBlogActions()
 
     // Get blog posts from API response
     const blogPosts = blogsData?.content || []
@@ -88,18 +100,34 @@ const BlogPage: React.FC = () => {
     })
 
     // Helper function to get root comments for a blog
-    const getRootComments = (blogId: number): BackendComment[] => {
-        return selectedPostComments.filter((comment) => comment.blogId === blogId && !comment.parentCommentId)
+    const getRootComments = (blogId: number): CommentResponseDTO[] => {
+        if (!selectedPost || !selectedPost.comments) return []
+        return selectedPost.comments.filter((comment) => comment.blogId === blogId && !comment.parentCommentId)
     }
 
     // Handlers
     const handleViewPost = (post: BackendBlogPost) => {
+        console.log("Viewing post:", post)
+        console.log("Post blogId:", post.blogId)
+        console.log("Post comments:", post.comments)
+
         setSelectedPost(post)
+
+        // Use comments from the blog response
+        if (post.comments && Array.isArray(post.comments)) {
+            console.log(`Found ${post.comments.length} comments in blog response`)
+            setSelectedPostComments(post.comments)
+        } else {
+            console.log("No comments found in blog response")
+            setSelectedPostComments([])
+        }
+
         window.scrollTo(0, 0)
     }
 
     const handleBackToList = () => {
         setSelectedPost(null)
+        setSelectedPostComments([])
         window.scrollTo(0, 0)
     }
 
@@ -129,7 +157,7 @@ const BlogPage: React.FC = () => {
                 content: formData.content,
             }
 
-            await createBlog(blogData)
+            await createBlog(blogData, currentUser.blogId)
             setIsCreateDialogOpen(false)
             refetchBlogs()
 
@@ -159,7 +187,13 @@ const BlogPage: React.FC = () => {
                 content: formData.content,
             }
 
-            await updateBlog(editingPost.blogId!, blogData)
+            const blogIdToUpdate = editingPost.blogId
+            if (!blogIdToUpdate) {
+                alert("Không thể xác định ID của bài viết")
+                return
+            }
+
+            await updateBlog(blogIdToUpdate, blogData)
 
             // Update selected post if it's the one being edited
             if (selectedPost?.blogId === editingPost.blogId) {
@@ -190,11 +224,18 @@ const BlogPage: React.FC = () => {
         if (!deletingPost) return
 
         try {
-            await deleteBlog(deletingPost.blogId!)
+            const blogIdToDelete = deletingPost.blogId
+            if (!blogIdToDelete) {
+                alert("Không thể xác định ID của bài viết")
+                return
+            }
+
+            await deleteBlog(blogIdToDelete)
 
             // If we're viewing the post that's being deleted, go back to the list
             if (selectedPost?.blogId === deletingPost.blogId) {
                 setSelectedPost(null)
+                setSelectedPostComments([])
             }
 
             setDeletingPost(null)
@@ -243,13 +284,39 @@ const BlogPage: React.FC = () => {
                 parentCommentId,
             }
 
-            await commentService.addComment(commentData)
-            refetchComments()
+            console.log("Adding comment:", commentData)
+            const response: CommentApiResponse<CommentResponseDTO> = await commentService.addComment(commentData)
+            console.log("Comment API response:", response)
+
+            if (response.success && response.data) {
+                const newComment = response.data
+                console.log("New comment:", newComment)
+
+                // Refresh the blog data to get updated comments
+                refetchBlogs()
+
+                // For immediate UI update, add the new comment to current state
+                if (selectedPost?.blogId === blogId) {
+                    const updatedComments: CommentResponseDTO[] = [...selectedPostComments, newComment]
+                    setSelectedPostComments(updatedComments)
+
+                    // Also update the selected post's comment count
+                    setSelectedPost({
+                        ...selectedPost,
+                        commentCount: (selectedPost.commentCount || 0) + 1,
+                        comments: updatedComments,
+                    })
+                }
+
+                alert("Bình luận đã được thêm thành công!")
+            } else {
+                throw new Error(response.message || "Failed to add comment")
+            }
         } catch (error: any) {
+            console.error("Error adding comment:", error)
             alert(`Lỗi khi thêm bình luận: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
-
 
     // Permission checks
     const canEditPost = (post: BackendBlogPost) => {
@@ -272,6 +339,13 @@ const BlogPage: React.FC = () => {
         if (!currentUser) return false
         return currentUser.blogId !== post.authorId // Users can't report their own posts
     }
+
+    // Debug logging
+    const selectedBlogId = selectedPost?.blogId || 0
+    console.log("Debug: BlogId =", selectedBlogId)
+    console.log("Total comments:", selectedPostComments.length)
+    console.log("Root comments:", getRootComments(selectedBlogId).length)
+    console.log("Comments for this blog:", selectedPostComments.filter((c) => c.blogId === selectedBlogId).length)
 
     // Error handling
     if (blogsError) {
@@ -338,16 +412,13 @@ const BlogPage: React.FC = () => {
             </main>
 
             {/* Dialogs */}
-            <LoginPromptDialog
-                isOpen={isLoginPromptOpen}
-                onClose={() => setIsLoginPromptOpen(false)}
-            />
+            <LoginPromptDialog isOpen={isLoginPromptOpen} onClose={() => setIsLoginPromptOpen(false)} />
 
             <BlogFormDialog
                 isOpen={isCreateDialogOpen}
                 onClose={() => setIsCreateDialogOpen(false)}
                 onSubmit={handleCreateBlog}
-                currentUserRole={UserRole?.role}
+                currentUserRole={currentUser?.role}
                 loading={actionLoading}
             />
 

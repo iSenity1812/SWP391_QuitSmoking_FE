@@ -2,12 +2,12 @@ import type React from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import BlogPostCard from "./BlogPostCard"
 import type { BlogPost, BlogUser } from "@/types/blog"
-import type { Comment } from "@/types/comment"
+import type { CommentResponseDTO } from "@/types/comment"
 
 interface BlogPostListProps {
   posts: BlogPost[]
   currentUser: BlogUser | null
-  comments: Comment[]
+  comments: CommentResponseDTO[]
   handleViewPost: (post: BlogPost) => void
   handleEditPost: (post: BlogPost) => void
   handleDeletePost: (post: BlogPost) => void
@@ -15,7 +15,7 @@ interface BlogPostListProps {
   canEditPost: (post: BlogPost) => boolean
   canDeletePost: (post: BlogPost) => boolean
   canReportPost: (post: BlogPost) => boolean
-  getRootComments: (blogId: number) => Comment[]
+  getRootComments: (blogId: number) => CommentResponseDTO[]
 }
 
 const BlogPostList: React.FC<BlogPostListProps> = ({
@@ -59,7 +59,7 @@ const BlogPostList: React.FC<BlogPostListProps> = ({
         <div className="grid gap-6">
           {posts.map((post, index) => (
             <BlogPostCard
-              key={post.blogId || post.blogId}
+              key={post.blogId || `blog-${index}`} // Fix: Add unique key prop
               post={post}
               index={index}
               currentUser={currentUser}

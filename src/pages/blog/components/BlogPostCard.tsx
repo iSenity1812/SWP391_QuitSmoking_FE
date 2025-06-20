@@ -13,16 +13,16 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { BlogPost } from "@/types/blog"
-import type { Comment } from "@/types/comment"
+import type { CommentResponseDTO } from "@/types/comment"
 import type { BlogUser } from "@/types/blog"
 import { formatDate } from "../utils/blog-utils"
-import { getRoleIcon, getStatusBadge, getRoleBadge } from "./UserBadges"
+import { getStatusBadge } from "./UserBadges"
 
 interface BlogPostCardProps {
     post: BlogPost
     index: number
     currentUser: BlogUser | null
-    comments: Comment[]
+    comments: CommentResponseDTO[]
     handleViewPost: (post: BlogPost) => void
     handleEditPost: (post: BlogPost) => void
     handleDeletePost: (post: BlogPost) => void
@@ -30,7 +30,7 @@ interface BlogPostCardProps {
     canEditPost: (post: BlogPost) => boolean
     canDeletePost: (post: BlogPost) => boolean
     canReportPost: (post: BlogPost) => boolean
-    getRootComments: (blogId: number) => Comment[]
+    getRootComments: (blogId: number) => CommentResponseDTO[]
 }
 
 const BlogPostCard: React.FC<BlogPostCardProps> = ({
@@ -54,9 +54,7 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
             <Card className="group overflow-hidden border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
                 <CardHeader>
                     <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                            {getStatusBadge(post.status)}
-                        </div>
+                        <div className="flex items-center gap-2">{getStatusBadge(post.status)}</div>
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-slate-500 dark:text-slate-400">{post.authorId}</span>
 
