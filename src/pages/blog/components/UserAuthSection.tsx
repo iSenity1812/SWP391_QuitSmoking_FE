@@ -4,7 +4,7 @@ import type React from "react"
 import { Plus, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import type { BlogUser } from "../types/blog-types"
+import type { BlogUser } from "../types/blog"
 import { getRoleIcon } from "./UserBadges"
 
 interface UserAuthSectionProps {

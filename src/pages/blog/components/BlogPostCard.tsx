@@ -12,7 +12,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { BlogPost, BlogUser, Comment } from "../types/blog-types"
+import type { BlogPost, BlogUser, Comment } from "../types/blog"
 import { formatDate } from "../utils/blog-utils"
 import { getRoleIcon, getStatusBadge, getRoleBadge } from "./UserBadges"
 
