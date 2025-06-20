@@ -1,5 +1,3 @@
-"use client"
-
 import type React from "react"
 import { Calendar, Clock, CheckCircle, MoreVertical, Edit, Trash2, Flag } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
@@ -11,10 +9,12 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { BlogPost, BlogUser, Comment } from "../types/blog-types"
+import type { BlogPost } from "@/types/blog"
+import type { Comment } from "@/types/comment"
 import { formatDate } from "../utils/blog-utils"
 import { getStatusBadge, getRoleBadge, getRoleIcon } from "./UserBadges"
 import CommentSection from "./CommentSection"
+import type { BlogUser } from "@/types/blog"
 
 interface BlogPostDetailProps {
     post: BlogPost
@@ -54,12 +54,10 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
                 <CardHeader>
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                            {getStatusBadge(post.Status)}
-                            {getRoleBadge(post.AuthorRole)}
+                            {getStatusBadge(post.status)}
                         </div>
                         <div className="flex items-center gap-2">
-                            {getRoleIcon(post.AuthorRole)}
-                            <span className="text-sm text-slate-500 dark:text-slate-400">Tác giả: {post.AuthorID}</span>
+                            <span className="text-sm text-slate-500 dark:text-slate-400">Tác giả: {post.authorId}</span>
 
                             {/* Action Menu */}
                             {currentUser && (canEditPost(post) || canDeletePost(post) || canReportPost(post)) && (
@@ -102,36 +100,36 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
                             )}
                         </div>
                     </div>
-                    <CardTitle className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white">{post.Title}</CardTitle>
+                    <CardTitle className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white">{post.title}</CardTitle>
                     <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mt-4">
                         <span className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
-                            Đăng: {formatDate(post.CreatedAt)}
+                            Đăng: {formatDate(post.createdAt || new Date().toISOString())}
                         </span>
-                        {post.LastUpdated && (
+                        {post.lastUpdated && (
                             <span className="flex items-center gap-1">
                                 <Clock className="w-4 h-4" />
-                                Cập nhật: {formatDate(post.LastUpdated)}
+                                Cập nhật: {formatDate(post.lastUpdated)}
                             </span>
                         )}
-                        {post.ApprovedBy && post.ApprovedAt && (
+                        {post.approvedBy && post.approvedAt && (
                             <span className="flex items-center gap-1">
                                 <CheckCircle className="w-4 h-4" />
-                                Phê duyệt: {formatDate(post.ApprovedAt)} bởi {post.ApprovedBy}
+                                Phê duyệt: {formatDate(post.approvedAt)} bởi {post.approvedBy}
                             </span>
                         )}
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div className="prose dark:prose-invert max-w-none">
-                        <div className="text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">{post.Content}</div>
+                        <div className="text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">{post.content}</div>
                     </div>
                 </CardContent>
 
                 {/* Phần bình luận */}
                 <CardFooter>
                     <CommentSection
-                        blogId={post.BlogID}
+                        blogId={post.blogId || 0}
                         comments={comments}
                         currentUser={currentUser}
                         handleAddComment={handleAddComment}

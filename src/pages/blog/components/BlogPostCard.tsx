@@ -12,7 +12,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { BlogPost, BlogUser, Comment } from "../types/blog"
+import type { BlogPost } from "@/types/blog"
+import type { Comment } from "@/types/comment"
+import type { BlogUser } from "@/types/blog"
 import { formatDate } from "../utils/blog-utils"
 import { getRoleIcon, getStatusBadge, getRoleBadge } from "./UserBadges"
 
@@ -45,18 +47,18 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
     canReportPost,
     getRootComments,
 }) => {
+    const blogId = post.blogId || 0
+
     return (
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: index * 0.1 }}>
             <Card className="group overflow-hidden border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
                 <CardHeader>
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                            {getStatusBadge(post.Status)}
-                            {getRoleBadge(post.AuthorRole)}
+                            {getStatusBadge(post.status)}
                         </div>
                         <div className="flex items-center gap-2">
-                            {getRoleIcon(post.AuthorRole)}
-                            <span className="text-sm text-slate-500 dark:text-slate-400">{post.AuthorID}</span>
+                            <span className="text-sm text-slate-500 dark:text-slate-400">{post.authorId}</span>
 
                             {/* Action Menu for List View */}
                             {currentUser && (canEditPost(post) || canDeletePost(post) || canReportPost(post)) && (
@@ -100,10 +102,10 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
                         </div>
                     </div>
                     <CardTitle className="text-xl font-bold text-slate-800 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                        {post.Title}
+                        {post.title}
                     </CardTitle>
                     <CardDescription className="text-slate-600 dark:text-slate-300 line-clamp-2">
-                        {post.Content.substring(0, 150)}...
+                        {post.content.substring(0, 150)}...
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -111,12 +113,12 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
                         <div className="flex items-center gap-4">
                             <span className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4" />
-                                {formatDate(post.CreatedAt)}
+                                {formatDate(post.createdAt || new Date().toISOString())}
                             </span>
-                            {post.LastUpdated && (
+                            {post.lastUpdated && (
                                 <span className="flex items-center gap-1">
                                     <Clock className="w-4 h-4" />
-                                    Cập nhật: {formatDate(post.LastUpdated)}
+                                    Cập nhật: {formatDate(post.lastUpdated)}
                                 </span>
                             )}
                         </div>
@@ -125,7 +127,7 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
                         <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
                             <span className="flex items-center gap-1">
                                 <MessageCircle className="w-4 h-4" />
-                                {getRootComments(post.BlogID).length} bình luận
+                                {getRootComments(blogId).length} bình luận
                             </span>
                         </div>
                         <Button

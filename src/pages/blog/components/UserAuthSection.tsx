@@ -4,7 +4,7 @@ import type React from "react"
 import { Plus, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import type { BlogUser } from "../types/blog"
+import type { BlogUser } from "@/types/blog"
 import { getRoleIcon } from "./UserBadges"
 
 interface UserAuthSectionProps {
@@ -20,14 +20,14 @@ const UserAuthSection: React.FC<UserAuthSectionProps> = ({ currentUser, handleCr
                     <>
                         <Avatar className="w-10 h-10">
                             <AvatarFallback>
-                                {currentUser.name
+                                {currentUser.username
                                     .split(" ")
                                     .map((n) => n[0])
                                     .join("")}
                             </AvatarFallback>
                         </Avatar>
                         <div>
-                            <p className="font-semibold text-slate-800 dark:text-white">{currentUser.name}</p>
+                            <p className="font-semibold text-slate-800 dark:text-white">{currentUser.username}</p>
                             <div className="flex items-center gap-1">
                                 {getRoleIcon(currentUser.role)}
                                 <span className="text-sm text-slate-500 dark:text-slate-400">{currentUser.role}</span>

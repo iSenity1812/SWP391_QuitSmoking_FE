@@ -6,8 +6,9 @@ import { MessageCircle, Send, Reply } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import type { BlogUser, Comment } from "../types/blog-types"
-import { formatDate, getReplies } from "../utils/blog-utils"
+import type { BlogUser } from "@/types/blog"
+import type { Comment } from "@/types/comment"
+import { formatDate, getCommentReplies } from "../utils/blog-utils"
 
 interface CommentSectionProps {
     blogId: number
@@ -28,7 +29,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
     const [replyingTo, setReplyingTo] = useState<number | null>(null)
     const [replyText, setReplyText] = useState("")
 
-    const rootComments = comments.filter((comment) => comment.BlogID === blogId && !comment.ParentCommentID)
+    const rootComments = comments.filter((comment) => comment.blogId === blogId && !comment.parentCommentId)
 
     const handleSubmitComment = () => {
         if (!currentUser) {
@@ -92,33 +93,35 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             {/* Danh sách bình luận */}
             <div className="w-full space-y-4">
                 {rootComments.map((comment) => (
-                    <div key={comment.CommentID} className="border rounded-lg p-4 bg-white/50 dark:bg-slate-800/50">
+                    <div key={comment.commentId} className="border rounded-lg p-4 bg-white/50 dark:bg-slate-800/50">
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                                 <Avatar className="w-8 h-8">
-                                    <AvatarFallback>{comment.UserID.slice(-2).toUpperCase()}</AvatarFallback>
+                                    <AvatarFallback>{(comment.userId || "U").slice(-2).toUpperCase()}</AvatarFallback>
                                 </Avatar>
                                 <div>
-                                    <p className="text-sm font-semibold text-slate-800 dark:text-white">{comment.UserID}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(comment.CommentDate)}</p>
+                                    <p className="text-sm font-semibold text-slate-800 dark:text-white">{comment.userId}</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                        {formatDate(comment.commentDate || new Date().toISOString())}
+                                    </p>
                                 </div>
                             </div>
-                            <span className="text-xs text-slate-400">#{comment.CommentID}</span>
+                            <span className="text-xs text-slate-400">#{comment.commentId}</span>
                         </div>
-                        <p className="text-slate-700 dark:text-slate-200 mb-2">{comment.Content}</p>
+                        <p className="text-slate-700 dark:text-slate-200 mb-2">{comment.content}</p>
 
                         <Button
                             variant="ghost"
                             size="sm"
                             className="text-slate-500 dark:text-slate-400"
-                            onClick={() => handleReply(comment.CommentID)}
+                            onClick={() => handleReply(comment.commentId!)}
                         >
                             <Reply className="w-4 h-4 mr-1" />
                             {currentUser ? "Phản hồi" : "Đăng nhập để phản hồi"}
                         </Button>
 
                         {/* Form phản hồi */}
-                        {replyingTo === comment.CommentID && currentUser && (
+                        {replyingTo === comment.commentId && currentUser && (
                             <div className="mt-2 pl-8 border-l-2 border-slate-200 dark:border-slate-700">
                                 <Textarea
                                     placeholder="Viết phản hồi của bạn..."
@@ -127,7 +130,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                                     className="mb-2 text-sm"
                                 />
                                 <div className="flex gap-2">
-                                    <Button size="sm" onClick={() => handleSubmitReply(comment.CommentID)} disabled={!replyText.trim()}>
+                                    <Button size="sm" onClick={() => handleSubmitReply(comment.commentId!)} disabled={!replyText.trim()}>
                                         Gửi
                                     </Button>
                                     <Button variant="outline" size="sm" onClick={() => setReplyingTo(null)}>
@@ -138,23 +141,25 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                         )}
 
                         {/* Phản hồi cho bình luận */}
-                        {getReplies(comments, comment.CommentID).length > 0 && (
+                        {getCommentReplies(comments, comment.commentId!).length > 0 && (
                             <div className="mt-3 pl-8 space-y-3 border-l-2 border-slate-200 dark:border-slate-700">
-                                {getReplies(comments, comment.CommentID).map((reply) => (
-                                    <div key={reply.CommentID} className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3">
+                                {getCommentReplies(comments, comment.commentId!).map((reply) => (
+                                    <div key={reply.commentId} className="bg-slate-50 dark:bg-slate-700/50 rounded-lg p-3">
                                         <div className="flex items-center justify-between mb-1">
                                             <div className="flex items-center gap-2">
                                                 <Avatar className="w-6 h-6">
-                                                    <AvatarFallback>{reply.UserID.slice(-2).toUpperCase()}</AvatarFallback>
+                                                    <AvatarFallback>{(reply.userId || "U").slice(-2).toUpperCase()}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <p className="text-xs font-semibold text-slate-800 dark:text-white">{reply.UserID}</p>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(reply.CommentDate)}</p>
+                                                    <p className="text-xs font-semibold text-slate-800 dark:text-white">{reply.userId}</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                        {formatDate(reply.createdAt || new Date().toISOString())}
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <span className="text-xs text-slate-400">#{reply.CommentID}</span>
+                                            <span className="text-xs text-slate-400">#{reply.commentId}</span>
                                         </div>
-                                        <p className="text-sm text-slate-700 dark:text-slate-200">{reply.Content}</p>
+                                        <p className="text-sm text-slate-700 dark:text-slate-200">{reply.content}</p>
                                     </div>
                                 ))}
                             </div>

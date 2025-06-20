@@ -3,9 +3,11 @@
 import type React from "react"
 import { useState } from "react"
 import { AnimatedSection } from "@/components/ui/AnimatedSection"
-import type { BlogPost, BlogUser, Comment, BlogFormData, ReportFormData } from "./types/blog-types"
-import { getRootComments, getPublishingStatus } from "./utils/blog-utils"
-import { sampleBlogPosts, sampleComments } from "./data/blog-data"
+import { useBlogPosts, useBlogActions, useAdminBlogActions } from "@/hooks/use-blogs"
+import { useCommentsByBlog } from "@/hooks/use-comments"
+import { commentService } from "@/services/commentService"
+import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser } from "@/types/blog"
+import type { CommentRequestDTO, Comment as BackendComment } from "@/types/comment"
 
 // Components
 import BlogHeader from "./components/BlogHeader"
@@ -16,17 +18,27 @@ import UserAuthSection from "./components/UserAuthSection"
 // Dialogs
 import LoginPromptDialog from "./dialogs/LoginPromptDialog"
 import BlogFormDialog from "./dialogs/BlogFormDialog"
-import ReportDialog from "./dialogs/ReportDialog"
+// import ReportDialog from "./dialogs/ReportDialog"
 import DeleteConfirmDialog from "./dialogs/DeleteConfirmDialog"
+
+// Form data interfaces
+interface BlogFormData {
+    title: string
+    content: string
+}
+
+interface ReportFormData {
+    reason: string
+    reportType: string
+    reportedContentType: string
+}
 
 const BlogPage: React.FC = () => {
     // State
     const [searchTerm, setSearchTerm] = useState("")
-    const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null)
-    const [blogPosts, setBlogPosts] = useState<BlogPost[]>(sampleBlogPosts)
-    const [comments, setComments] = useState<Comment[]>(sampleComments)
+    const [selectedPost, setSelectedPost] = useState<BackendBlogPost | null>(null)
 
-    // User state (null for guest)
+    // User state (null for guest) - In real app, get from AuthContext
     const [currentUser, setCurrentUser] = useState<BlogUser | null>(null)
 
     // Dialog states
@@ -37,27 +49,57 @@ const BlogPage: React.FC = () => {
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
 
     // Temporary state for editing/deleting/reporting
-    const [editingPost, setEditingPost] = useState<BlogPost | null>(null)
-    const [reportingPost, setReportingPost] = useState<BlogPost | null>(null)
-    const [deletingPost, setDeletingPost] = useState<BlogPost | null>(null)
+    const [editingPost, setEditingPost] = useState<BackendBlogPost | null>(null)
+    const [reportingPost, setReportingPost] = useState<BackendBlogPost | null>(null)
+    const [deletingPost, setDeletingPost] = useState<BackendBlogPost | null>(null)
 
-    // Filter posts based on search term and published status
-    const filteredPosts = blogPosts.filter((post) => {
-        const isPublished = post.Status === "Published"
-        const matchesSearch =
-            post.Title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            post.Content.toLowerCase().includes(searchTerm.toLowerCase())
-        return isPublished && matchesSearch
+    // Backend hooks
+    const {
+        data: blogsData,
+        loading: blogsLoading,
+        error: blogsError,
+        refetch: refetchBlogs,
+    } = useBlogPosts({
+        page: 0,
+        size: 20,
+        keyword: searchTerm || undefined,
     })
 
+    const { createBlog, updateBlog, deleteBlog, loading: actionLoading } = useBlogActions()
+    const { approveBlog, rejectBlog } = useAdminBlogActions()
+
+    // Comments for selected post
+    const {
+        comments: selectedPostComments,
+        loading: commentsLoading,
+        refetch: refetchComments,
+    } = useCommentsByBlog(selectedPost?.blogId || 0)
+
+    // Get blog posts from API response
+    const blogPosts = blogsData?.content || []
+
+    // Filter posts based on search term (additional client-side filtering if needed)
+    const filteredPosts = blogPosts.filter((post) => {
+        if (!searchTerm) return true
+        return (
+            post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            post.content.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+    })
+
+    // Helper function to get root comments for a blog
+    const getRootComments = (blogId: number): BackendComment[] => {
+        return selectedPostComments.filter((comment) => comment.blogId === blogId && !comment.parentCommentId)
+    }
+
     // Handlers
-    const handleViewPost = (post: BlogPost) => {
+    const handleViewPost = (post: BackendBlogPost) => {
         setSelectedPost(post)
+        window.scrollTo(0, 0)
     }
 
     const handleBackToList = () => {
         setSelectedPost(null)
-        // Scroll to top when going back to blog list
         window.scrollTo(0, 0)
     }
 
@@ -67,8 +109,7 @@ const BlogPage: React.FC = () => {
             return
         }
 
-        // Content Admin cannot create blogs
-        if (currentUser.role === "Content Admin") {
+        if (currentUser.role === "CONTENT_ADMIN") {
             alert("Content Admin không có quyền tạo bài viết.")
             return
         }
@@ -76,98 +117,97 @@ const BlogPage: React.FC = () => {
         setIsCreateDialogOpen(true)
     }
 
-    const handleCreateBlog = (formData: BlogFormData) => {
+    const handleCreateBlog = async (formData: BlogFormData) => {
         if (!currentUser) {
             setIsLoginPromptOpen(true)
             return
         }
 
-        const newBlog: BlogPost = {
-            BlogID: Math.max(...blogPosts.map((p) => p.BlogID)) + 1,
-            AuthorID: currentUser.id,
-            AuthorRole: currentUser.role,
-            Title: formData.title,
-            Content: formData.content,
-            CreatedAt: new Date().toISOString(),
-            Status: getPublishingStatus(currentUser.role),
-            UserHasLiked: false,
+        try {
+            const blogData: BlogRequestDTO = {
+                title: formData.title,
+                content: formData.content,
+            }
+
+            await createBlog(blogData)
+            setIsCreateDialogOpen(false)
+            refetchBlogs()
+
+            const successMessage =
+                currentUser.role === "COACH"
+                    ? "Bài viết đã được tạo thành công! Bài viết đang chờ phê duyệt."
+                    : "Bài viết đã được tạo và xuất bản thành công!"
+
+            alert(successMessage)
+        } catch (error: any) {
+            alert(`Lỗi khi tạo bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
-
-        setBlogPosts((prev) => [newBlog, ...prev])
-        setIsCreateDialogOpen(false)
-
-        // Show success message
-        const successMessage =
-            currentUser.role === "Coach"
-                ? "Bài viết đã được tạo thành công! Bài viết đang chờ phê duyệt."
-                : "Bài viết đã được tạo và xuất bản thành công!"
-
-        alert(successMessage)
     }
 
-    const handleEditPost = (post: BlogPost) => {
+    const handleEditPost = (post: BackendBlogPost) => {
         if (!canEditPost(post)) return
-
         setEditingPost(post)
         setIsEditDialogOpen(true)
     }
 
-    const handleUpdateBlog = (formData: BlogFormData) => {
+    const handleUpdateBlog = async (formData: BlogFormData) => {
         if (!editingPost || !currentUser) return
 
-        setBlogPosts((prev) =>
-            prev.map((post) =>
-                post.BlogID === editingPost.BlogID
-                    ? {
-                        ...post,
-                        Title: formData.title,
-                        Content: formData.content,
-                        LastUpdated: new Date().toISOString(),
-                    }
-                    : post,
-            ),
-        )
+        try {
+            const blogData: BlogRequestDTO = {
+                title: formData.title,
+                content: formData.content,
+            }
 
-        // Update selected post if it's the one being edited
-        if (selectedPost?.BlogID === editingPost.BlogID) {
-            setSelectedPost({
-                ...editingPost,
-                Title: formData.title,
-                Content: formData.content,
-                LastUpdated: new Date().toISOString(),
-            })
+            await updateBlog(editingPost.blogId!, blogData)
+
+            // Update selected post if it's the one being edited
+            if (selectedPost?.blogId === editingPost.blogId) {
+                setSelectedPost({
+                    ...editingPost,
+                    title: formData.title,
+                    content: formData.content,
+                    lastUpdated: new Date().toISOString(),
+                })
+            }
+
+            setEditingPost(null)
+            setIsEditDialogOpen(false)
+            refetchBlogs()
+            alert("Bài viết đã được cập nhật thành công!")
+        } catch (error: any) {
+            alert(`Lỗi khi cập nhật bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
-
-        setEditingPost(null)
-        setIsEditDialogOpen(false)
-        alert("Bài viết đã được cập nhật thành công!")
     }
 
-    const handleDeletePost = (post: BlogPost) => {
+    const handleDeletePost = (post: BackendBlogPost) => {
         if (!canDeletePost(post)) return
-
         setDeletingPost(post)
         setIsDeleteConfirmOpen(true)
     }
 
-    const confirmDeletePost = () => {
+    const confirmDeletePost = async () => {
         if (!deletingPost) return
 
-        setBlogPosts((prev) => prev.filter((post) => post.BlogID !== deletingPost.BlogID))
+        try {
+            await deleteBlog(deletingPost.blogId!)
 
-        // If we're viewing the post that's being deleted, go back to the list
-        if (selectedPost?.BlogID === deletingPost.BlogID) {
-            setSelectedPost(null)
+            // If we're viewing the post that's being deleted, go back to the list
+            if (selectedPost?.blogId === deletingPost.blogId) {
+                setSelectedPost(null)
+            }
+
+            setDeletingPost(null)
+            setIsDeleteConfirmOpen(false)
+            refetchBlogs()
+            alert("Bài viết đã được xóa thành công!")
+        } catch (error: any) {
+            alert(`Lỗi khi xóa bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
-
-        setDeletingPost(null)
-        setIsDeleteConfirmOpen(false)
-        alert("Bài viết đã được xóa thành công!")
     }
 
-    const handleReportPost = (post: BlogPost) => {
+    const handleReportPost = (post: BackendBlogPost) => {
         if (!canReportPost(post)) return
-
         setReportingPost(post)
         setIsReportDialogOpen(true)
     }
@@ -178,10 +218,10 @@ const BlogPage: React.FC = () => {
             return
         }
 
-        // In a real app, we would send this report to the server
+        // In a real app, you would send this report to the server
         console.log("Report submitted:", {
-            reportedBlogId: reportingPost.BlogID,
-            reportedBy: currentUser.id,
+            reportedBlogId: reportingPost.blogId,
+            reportedBy: currentUser.blogId,
             ...reportData,
         })
 
@@ -190,56 +230,65 @@ const BlogPage: React.FC = () => {
         alert("Báo cáo đã được gửi thành công! Đội ngũ quản trị sẽ xem xét báo cáo của bạn.")
     }
 
-    const handleAddComment = (blogId: number, content: string, parentCommentId?: number) => {
+    const handleAddComment = async (blogId: number, content: string, parentCommentId?: number) => {
         if (!currentUser) {
             setIsLoginPromptOpen(true)
             return
         }
 
-        const newComment: Comment = {
-            CommentID: Math.max(...comments.map((c) => c.CommentID), 0) + 1,
-            BlogID: blogId,
-            UserID: currentUser.id,
-            ParentCommentID: parentCommentId,
-            Content: content,
-            CommentDate: new Date().toISOString(),
-        }
+        try {
+            const commentData: CommentRequestDTO = {
+                blogId,
+                content,
+                parentCommentId,
+            }
 
-        setComments((prev) => [...prev, newComment])
+            await commentService.addComment(commentData)
+            refetchComments()
+        } catch (error: any) {
+            alert(`Lỗi khi thêm bình luận: ${error.message || "Có lỗi xảy ra"}`)
+        }
     }
 
-    const handleDemoLogin = (role: "Normal member" | "Premium member" | "Coach" | "Content Admin") => {
-        const demoUsers = {
-            "Normal member": { id: "user-normal", name: "Nguyễn Văn A", role: "Normal member" as const },
-            "Premium member": { id: "user-premium", name: "Trần Thị B", role: "Premium member" as const },
-            Coach: { id: "user-coach", name: "Lê Văn C", role: "Coach" as const },
-            "Content Admin": { id: "user-admin", name: "Admin", role: "Content Admin" as const },
-        }
-
-        setCurrentUser(demoUsers[role])
-        setIsLoginPromptOpen(false)
-    }
 
     // Permission checks
-    const canEditPost = (post: BlogPost) => {
+    const canEditPost = (post: BackendBlogPost) => {
         if (!currentUser) return false
         return (
-            currentUser.id === post.AuthorID || // Author can edit their own posts
-            currentUser.role === "Content Admin" // Admin can edit any post
+            currentUser.blogId === post.authorId || // Author can edit their own posts
+            currentUser.role === "CONTENT_ADMIN" // Admin can edit any post
         )
     }
 
-    const canDeletePost = (post: BlogPost) => {
+    const canDeletePost = (post: BackendBlogPost) => {
         if (!currentUser) return false
         return (
-            currentUser.id === post.AuthorID || // Author can delete their own posts
-            currentUser.role === "Content Admin" // Admin can delete any post
+            currentUser.blogId === post.authorId || // Author can delete their own posts
+            currentUser.role === "CONTENT_ADMIN" // Admin can delete any post
         )
     }
 
-    const canReportPost = (post: BlogPost) => {
+    const canReportPost = (post: BackendBlogPost) => {
         if (!currentUser) return false
-        return currentUser.id !== post.AuthorID // Users can't report their own posts
+        return currentUser.blogId !== post.authorId // Users can't report their own posts
+    }
+
+    // Error handling
+    if (blogsError) {
+        return (
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-red-600 mb-4">Lỗi tải dữ liệu</h2>
+                    <p className="text-slate-600 dark:text-slate-300 mb-4">{blogsError}</p>
+                    <button
+                        onClick={() => refetchBlogs()}
+                        className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600"
+                    >
+                        Thử lại
+                    </button>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -250,11 +299,16 @@ const BlogPage: React.FC = () => {
                 <AnimatedSection animation="fadeUp" delay={300}>
                     <UserAuthSection currentUser={currentUser} handleCreateBlogClick={handleCreateBlogClick} />
 
-                    {selectedPost ? (
+                    {blogsLoading ? (
+                        <div className="text-center py-12">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto"></div>
+                            <p className="mt-4 text-slate-600 dark:text-slate-300">Đang tải bài viết...</p>
+                        </div>
+                    ) : selectedPost ? (
                         <BlogPostDetail
                             post={selectedPost}
                             currentUser={currentUser}
-                            comments={comments}
+                            comments={selectedPostComments}
                             handleBackToList={handleBackToList}
                             handleEditPost={handleEditPost}
                             handleDeletePost={handleDeletePost}
@@ -269,7 +323,7 @@ const BlogPage: React.FC = () => {
                         <BlogPostList
                             posts={filteredPosts}
                             currentUser={currentUser}
-                            comments={comments}
+                            comments={selectedPostComments}
                             handleViewPost={handleViewPost}
                             handleEditPost={handleEditPost}
                             handleDeletePost={handleDeletePost}
@@ -277,7 +331,7 @@ const BlogPage: React.FC = () => {
                             canEditPost={canEditPost}
                             canDeletePost={canDeletePost}
                             canReportPost={canReportPost}
-                            getRootComments={(blogId) => getRootComments(comments, blogId)}
+                            getRootComments={getRootComments}
                         />
                     )}
                 </AnimatedSection>
@@ -287,14 +341,14 @@ const BlogPage: React.FC = () => {
             <LoginPromptDialog
                 isOpen={isLoginPromptOpen}
                 onClose={() => setIsLoginPromptOpen(false)}
-                handleDemoLogin={handleDemoLogin}
             />
 
             <BlogFormDialog
                 isOpen={isCreateDialogOpen}
                 onClose={() => setIsCreateDialogOpen(false)}
                 onSubmit={handleCreateBlog}
-                currentUserRole={currentUser?.role}
+                currentUserRole={UserRole?.role}
+                loading={actionLoading}
             />
 
             <BlogFormDialog
@@ -307,24 +361,25 @@ const BlogPage: React.FC = () => {
                 initialData={
                     editingPost
                         ? {
-                            title: editingPost.Title,
-                            content: editingPost.Content,
+                            title: editingPost.title,
+                            content: editingPost.content,
                         }
                         : undefined
                 }
                 isEdit={true}
+                loading={actionLoading}
             />
 
-            <ReportDialog
+            {/* <ReportDialog
                 isOpen={isReportDialogOpen}
                 onClose={() => {
                     setIsReportDialogOpen(false)
                     setReportingPost(null)
                 }}
                 onSubmit={handleSubmitReport}
-                postTitle={reportingPost?.Title || ""}
-                postAuthor={reportingPost?.AuthorID || ""}
-            />
+                postTitle={reportingPost?.title || ""}
+                postAuthor={reportingPost?.authorId || ""}
+            /> */}
 
             <DeleteConfirmDialog
                 isOpen={isDeleteConfirmOpen}
@@ -333,7 +388,7 @@ const BlogPage: React.FC = () => {
                     setDeletingPost(null)
                 }}
                 onConfirm={confirmDeletePost}
-                postTitle={deletingPost?.Title || ""}
+                postTitle={deletingPost?.title || ""}
             />
         </div>
     )
