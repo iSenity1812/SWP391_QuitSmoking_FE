@@ -64,7 +64,7 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">{getStatusBadge(post.status)}</div>
                         <div className="flex items-center gap-2">
-                            <span className="text-sm text-slate-500 dark:text-slate-400">Tác giả: {post.authorId}</span>
+                            <span className="text-sm text-slate-500 dark:text-slate-400">Tác giả: {post.authorName}</span>
 
                             {/* Action Menu */}
                             {currentUser && (canEditPost(post) || canDeletePost(post) || canReportPost(post)) && (

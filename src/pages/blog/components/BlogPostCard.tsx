@@ -56,7 +56,7 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">{getStatusBadge(post.status)}</div>
                         <div className="flex items-center gap-2">
-                            <span className="text-sm text-slate-500 dark:text-slate-400">{post.authorId}</span>
+                            <span className="text-sm text-slate-500 dark:text-slate-400">{post.authorName}</span>
 
                             {/* Action Menu for List View */}
                             {currentUser && (canEditPost(post) || canDeletePost(post) || canReportPost(post)) && (
@@ -122,12 +122,12 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
                         </div>
                     </div>
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                        {/* <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
                             <span className="flex items-center gap-1">
                                 <MessageCircle className="w-4 h-4" />
-                                {getRootComments(blogId).length} bình luận
+                                {comments.length} bình luận
                             </span>
-                        </div>
+                        </div> */}
                         <Button
                             variant="ghost"
                             size="sm"

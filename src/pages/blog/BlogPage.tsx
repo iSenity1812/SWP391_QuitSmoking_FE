@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { AnimatedSection } from "@/components/ui/AnimatedSection"
-import { useBlogPosts, useBlogActions } from "@/hooks/use-blogs"
+import { useBlogPosts, useBlogActions, useMyBlogs } from "@/hooks/use-blogs"
 import { commentService } from "@/services/commentService"
 import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser } from "@/types/blog"
 import type { CommentRequestDTO, CommentResponseDTO, CommentApiResponse } from "@/types/comment"
@@ -13,6 +13,7 @@ import BlogHeader from "./components/BlogHeader"
 import BlogPostList from "./components/BlogPostList"
 import BlogPostDetail from "./components/BlogPostDetail"
 import UserAuthSection from "./components/UserAuthSection"
+import MyPostsList from "./components/MyPostList"
 
 // Dialogs
 import LoginPromptDialog from "./dialogs/LoginPromptDialog"
@@ -32,11 +33,16 @@ interface ReportFormData {
     reportedContentType: string
 }
 
+
+
+type ViewMode = "list" | "detail" | "myPosts"
+
 const BlogPage: React.FC = () => {
     // State
     const [searchTerm, setSearchTerm] = useState("")
     const [selectedPost, setSelectedPost] = useState<BackendBlogPost | null>(null)
     const [selectedPostComments, setSelectedPostComments] = useState<CommentResponseDTO[]>([])
+    const [viewMode, setViewMode] = useState<ViewMode>("list")
 
     // User state (null for guest) - In real app, get from AuthContext
     const [currentUser, setCurrentUser] = useState<BlogUser | null>(null)
@@ -56,7 +62,7 @@ const BlogPage: React.FC = () => {
         setCurrentUser({
             blogId: "11111111-1111-1111-1111-111111111111",
             name: "John Doe",
-            role: "NORMAL_MEMBER",
+            role: "CONTENT_ADMIN",
         })
     }, [])
 
@@ -84,11 +90,23 @@ const BlogPage: React.FC = () => {
         keyword: searchTerm || undefined,
     })
 
+    // My posts hook - only fetch when user is logged in and viewing my posts
+    const {
+        data: myPostsData,
+        loading: myPostsLoading,
+        error: myPostsError,
+        refetch: refetchMyPosts,
+    } = useMyBlogs(currentUser?.blogId || "", {
+        page: 0,
+        size: 50, // Get more posts for user's own posts
+    })
+
     const { createBlog, updateBlog, deleteBlog, loading: actionLoading } = useBlogActions()
     // const { approveBlog, rejectBlog } = useAdminBlogActions()
 
     // Get blog posts from API response
     const blogPosts = blogsData?.content || []
+    const myPosts = myPostsData?.content?.filter((post) => post.status === "PUBLISHED") || []
 
     // Filter posts based on search term (additional client-side filtering if needed)
     const filteredPosts = blogPosts.filter((post) => {
@@ -112,6 +130,7 @@ const BlogPage: React.FC = () => {
         console.log("Post comments:", post.comments)
 
         setSelectedPost(post)
+        setViewMode("detail")
 
         // Use comments from the blog response
         if (post.comments && Array.isArray(post.comments)) {
@@ -128,6 +147,21 @@ const BlogPage: React.FC = () => {
     const handleBackToList = () => {
         setSelectedPost(null)
         setSelectedPostComments([])
+        setViewMode("list")
+        window.scrollTo(0, 0)
+    }
+
+    const handleViewMyPosts = () => {
+        if (!currentUser) {
+            setIsLoginPromptOpen(true)
+            return
+        }
+        setViewMode("myPosts")
+        window.scrollTo(0, 0)
+    }
+
+    const handleBackFromMyPosts = () => {
+        setViewMode("list")
         window.scrollTo(0, 0)
     }
 
@@ -160,6 +194,7 @@ const BlogPage: React.FC = () => {
             await createBlog(blogData, currentUser.blogId)
             setIsCreateDialogOpen(false)
             refetchBlogs()
+            refetchMyPosts() // Also refresh my posts
 
             const successMessage =
                 currentUser.role === "COACH"
@@ -208,6 +243,7 @@ const BlogPage: React.FC = () => {
             setEditingPost(null)
             setIsEditDialogOpen(false)
             refetchBlogs()
+            refetchMyPosts() // Also refresh my posts
             alert("Bài viết đã được cập nhật thành công!")
         } catch (error: any) {
             alert(`Lỗi khi cập nhật bài viết: ${error.message || "Có lỗi xảy ra"}`)
@@ -236,11 +272,13 @@ const BlogPage: React.FC = () => {
             if (selectedPost?.blogId === deletingPost.blogId) {
                 setSelectedPost(null)
                 setSelectedPostComments([])
+                setViewMode("list")
             }
 
             setDeletingPost(null)
             setIsDeleteConfirmOpen(false)
             refetchBlogs()
+            refetchMyPosts() // Also refresh my posts
             alert("Bài viết đã được xóa thành công!")
         } catch (error: any) {
             alert(`Lỗi khi xóa bài viết: ${error.message || "Có lỗi xảy ra"}`)
@@ -371,14 +409,18 @@ const BlogPage: React.FC = () => {
 
             <main className="container mx-auto px-6 pb-20">
                 <AnimatedSection animation="fadeUp" delay={300}>
-                    <UserAuthSection currentUser={currentUser} handleCreateBlogClick={handleCreateBlogClick} />
+                    <UserAuthSection
+                        currentUser={currentUser}
+                        handleCreateBlogClick={handleCreateBlogClick}
+                        handleViewMyPosts={handleViewMyPosts}
+                    />
 
                     {blogsLoading ? (
                         <div className="text-center py-12">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto"></div>
                             <p className="mt-4 text-slate-600 dark:text-slate-300">Đang tải bài viết...</p>
                         </div>
-                    ) : selectedPost ? (
+                    ) : viewMode === "detail" && selectedPost ? (
                         <BlogPostDetail
                             post={selectedPost}
                             currentUser={currentUser}
@@ -392,6 +434,16 @@ const BlogPage: React.FC = () => {
                             canReportPost={canReportPost}
                             handleAddComment={handleAddComment}
                             setIsLoginPromptOpen={setIsLoginPromptOpen}
+                        />
+                    ) : viewMode === "myPosts" ? (
+                        <MyPostsList
+                            posts={myPosts}
+                            currentUser={currentUser}
+                            loading={myPostsLoading}
+                            onBack={handleBackFromMyPosts}
+                            onViewPost={handleViewPost}
+                            onEditPost={handleEditPost}
+                            onDeletePost={handleDeletePost}
                         />
                     ) : (
                         <BlogPostList

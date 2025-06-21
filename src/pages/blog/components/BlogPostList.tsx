@@ -18,6 +18,7 @@ interface BlogPostListProps {
   getRootComments: (blogId: number) => CommentResponseDTO[]
 }
 
+
 const BlogPostList: React.FC<BlogPostListProps> = ({
   posts,
   currentUser,
@@ -33,10 +34,13 @@ const BlogPostList: React.FC<BlogPostListProps> = ({
 }) => {
   return (
     <div className="space-y-6">
+
       <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
         <span className="w-2 h-8 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full"></span>
         Bài viết ({posts.length})
       </h2>
+
+
 
       {posts.length === 0 ? (
         <Card className="text-center py-12">
