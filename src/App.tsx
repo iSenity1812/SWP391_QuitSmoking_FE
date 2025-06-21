@@ -7,6 +7,8 @@ import { useEffect, useState } from "react"
 import { OnboardingPage } from "./pages/onboarding/onBoardingPage"
 import { AppRoutes } from "./routes/route"
 import { useTokenRefresh } from "./hooks/useTokenRefresh"
+import { ToastContainer } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
 
 function shouldHideNavbar(pathname: string) {
   const hiddenPaths = [
@@ -79,7 +81,6 @@ export default function App() {
       </div>
     )
   }
-
   return (
     <div className="min-h-screen flex flex-col">
       {shouldShowNavbar && <Navbar />}
@@ -98,6 +99,21 @@ export default function App() {
           <AppRoutes />
         </AnimatePresence>
       </main>
+
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        className="mt-16"
+      />
     </div>
   )
 }

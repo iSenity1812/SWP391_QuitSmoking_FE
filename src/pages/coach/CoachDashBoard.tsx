@@ -11,7 +11,8 @@ import { CustomerManagement } from "./components/CustomerManagement"
 import { CommunicationCenter } from "./components/CommunicationCenter"
 import { CoachProfile } from "./components/CoachProfile"
 import { CoachBlogManagement } from "./components/CoachBlogManagement"
-import { AppointmentScheduler } from "./components/AppointmentScheduler"
+// import { AppointmentScheduler } from "./components/AppointmentScheduler"
+import { AppointmentScheduler } from "./components/AppointmentSchedulerNew"
 
 export default function CoachDashboard() {
     const [activeTab, setActiveTab] = useState("overview")

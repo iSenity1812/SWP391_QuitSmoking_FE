@@ -11,6 +11,58 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CalendarIcon, Clock, Plus, Edit, Trash2, Users, Phone, MapPin, CheckCircle } from "lucide-react"
 import { useAppointments, type Appointment } from "../AppointmentContext"
 
+
+// Format mẫu Response JSON cho danh sách lịch hẹn
+// API: GET http://localhost:8080/api/appointments/coach-appointments
+// {
+//   "status": 1073741824,
+//   "message": "string",
+//   "data": [
+//     {
+//       "appointmentId": 9007199254740991,
+//       "member": {
+//         "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+//         "username": "string",
+//         "email": "string"
+//       },
+//       "coachSchedule": {
+//         "scheduleId": 9007199254740991,
+//         "coach": {
+//           "coachId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+//           "username": "string",
+//           "email": "string",
+//           "fullName": "string"
+//         },
+//         "timeSlot": {
+//           "timeSlotId": 1073741824,
+//           "label": "string",
+//           "startTime": {
+//             "hour": 1073741824,
+//             "minute": 1073741824,
+//             "second": 1073741824,
+//             "nano": 1073741824
+//           },
+//           "endTime": {
+//             "hour": 1073741824,
+//             "minute": 1073741824,
+//             "second": 1073741824,
+//             "nano": 1073741824
+//           },
+//           "deleted": true
+//         },
+//         "scheduleDate": "2025-06-20",
+//         "booked": true
+//       },
+//       "status": "CONFIRMED",
+//       "note": "string",
+//       "bookingTime": "2025-06-20T12:04:35.928Z"
+//     }
+//   ],
+//   "error": {},
+//   "errorCode": "string",
+//   "timestamp": "2025-06-20T12:04:35.928Z"
+// }
+
 export function AppointmentScheduler() {
     const [selectedDate, setSelectedDate] = useState<string>(() => {
         const today = new Date()
@@ -18,8 +70,7 @@ export function AppointmentScheduler() {
         const month = String(today.getMonth() + 1).padStart(2, "0")
         const day = String(today.getDate()).padStart(2, "0")
         return `${year}-${month}-${day}`
-    })
-    const [searchTerm, setSearchTerm] = useState("")
+    });
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [newAppointment, setNewAppointment] = useState<{
         clientName: string
