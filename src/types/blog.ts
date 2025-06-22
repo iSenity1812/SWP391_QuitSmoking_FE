@@ -21,10 +21,15 @@ export interface BlogRequestDTO {
   content: string
 }
 
+export type Role = 'NORMAL_MEMBER' | 'PREMIUM_MEMBER' | 'SUPER_ADMIN' | 'CONTENT_ADMIN' | 'COACH';
+
 export interface BlogUser {
-  blogId: string // Change from 'id' to 'blogId' to match usage
-  name: string
-  role: "NORMAL_MEMBER" | "PREMIUM_MEMBER" | "COACH" | "CONTENT_ADMIN"
+  id: string; // Đổi từ blogId sang id để khớp với AccountResponse
+  username: string; // Đổi từ name sang username để khớp với AccountResponse
+  role: Role; // Đảm bảo Role được định nghĩa hoặc là string
+  // Bạn có thể thêm các trường khác nếu cần như email, profilePicture
+  email?: string;
+  profilePicture?: string | null;
 }
 
 export type BlogStatus = "PENDING" | "PUBLISHED" | "REJECTED"
@@ -81,23 +86,23 @@ export interface BlogWithAuthor extends BlogPost {
 }
 
 // Legacy types for UI compatibility
-export interface Blog {
-  blogId?: number
-  id?: number // Add fallback
-  authorId: string
-  title: string
-  content: string
-  createdAt?: string
-  lastUpdated?: string
-  status: BlogStatus
-  approvedBy?: string
-  approvedAt?: string
-  authorName?: string
-  viewCount?: number
-  likeCount?: number
-  commentCount?: number
-  comments?: import("./comment").CommentResponseDTO[] // Add comments array
-}
+// export interface Blog {
+//   blogId?: number
+//   id?: number // Add fallback
+//   authorId: string
+//   title: string
+//   content: string
+//   createdAt?: string
+//   lastUpdated?: string
+//   status: BlogStatus
+//   approvedBy?: string
+//   approvedAt?: string
+//   authorName?: string
+//   viewCount?: number
+//   likeCount?: number
+//   commentCount?: number
+//   comments?: import("./comment").CommentResponseDTO[] // Add comments array
+// }
 
 export interface CreateBlogRequest {
   authorId: string
@@ -109,9 +114,6 @@ export interface CreateBlogRequest {
 export interface UpdateBlogRequest {
   title?: string
   content?: string
-  status?: BlogStatus
-  approvedBy?: string
-  approvedAt?: string
 }
 
 // Backend response DTO structure - UPDATED to match actual backend

@@ -23,6 +23,7 @@ axiosConfig.interceptors.request.use(
             "/blogs", // GET blogs - public
             "/auth/login",
             "/auth/register",
+            "/comments"
         ]
 
         // Kiểm tra xem có phải endpoint public không

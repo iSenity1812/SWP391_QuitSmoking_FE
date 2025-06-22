@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Edit, Trash2, Eye } from "lucide-react"
 import type { BlogPost as BackendBlogPost, BlogUser } from "@/types/blog"
 import { formatDate } from "../utils/blog-utils"
+import type { BlogStatus } from "@/types/blog"
 
 
 interface MyPostsListProps {
@@ -19,6 +20,32 @@ interface MyPostsListProps {
     onDeletePost: (post: BackendBlogPost) => void
 }
 
+const getStatusBadgeColors = (status: BlogStatus) => {
+    switch (status) {
+        case "PUBLISHED":
+            return "bg-emerald-100 text-emerald-800"; // Xanh lá cây đậm hơn
+        case "PENDING":
+            return "bg-amber-100 text-amber-800"; // Vàng
+        case "REJECTED":
+            return "bg-red-100 text-red-800";     // Đỏ
+        default:
+            return "bg-gray-100 text-gray-800";   // Mặc định cho các trạng thái không xác định
+    }
+};
+
+const getVietnameseStatus = (status: BlogStatus) => {
+    switch (status) {
+        case "PUBLISHED":
+            return "Đã xuất bản";
+        case "PENDING":
+            return "Chờ phê duyệt";
+        case "REJECTED":
+            return "Bị từ chối";
+        default:
+            return status; // Trả về nguyên trạng nếu không khớp
+    }
+};
+
 const MyPostsList: React.FC<MyPostsListProps> = ({
     posts,
     currentUser,
@@ -28,6 +55,7 @@ const MyPostsList: React.FC<MyPostsListProps> = ({
     onEditPost,
     onDeletePost,
 }) => {
+    console.log("[MyPostsList] Received posts prop:", posts);
     if (loading) {
         return (
             <div className="text-center py-12">
@@ -91,8 +119,9 @@ const MyPostsList: React.FC<MyPostsListProps> = ({
                                                     {formatDate(post.lastUpdated || new Date().toISOString())}
                                                 </span>
                                             )}
-                                            <Badge variant="secondary" className="bg-green-100 text-green-800">
-                                                {post.status}
+                                            <Badge variant="secondary" className={getStatusBadgeColors(post.status)}>
+                                                {/* HIỂN THỊ TRẠNG THÁI BẰNG TIẾNG VIỆT */}
+                                                {getVietnameseStatus(post.status)}
                                             </Badge>
                                         </div>
                                     </div>
@@ -118,17 +147,7 @@ const MyPostsList: React.FC<MyPostsListProps> = ({
                                         </svg>
                                         {post.commentCount || 0} bình luận
                                     </span>
-                                    <span className="flex items-center gap-1">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                                            />
-                                        </svg>
-                                        {post.likeCount || 0} lượt thích
-                                    </span>
+
                                 </div>
 
                                 {/* Actions */}

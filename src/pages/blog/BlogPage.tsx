@@ -7,6 +7,7 @@ import { useBlogPosts, useBlogActions, useMyBlogs } from "@/hooks/use-blogs"
 import { commentService } from "@/services/commentService"
 import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser } from "@/types/blog"
 import type { CommentRequestDTO, CommentResponseDTO, CommentApiResponse } from "@/types/comment"
+import type { AccountResponse } from "@/types/auth"
 
 // Components
 import BlogHeader from "./components/BlogHeader"
@@ -20,6 +21,7 @@ import LoginPromptDialog from "./dialogs/LoginPromptDialog"
 import BlogFormDialog from "./dialogs/BlogFormDialog"
 // import ReportDialog from "./dialogs/ReportDialog"
 import DeleteConfirmDialog from "./dialogs/DeleteConfirmDialog"
+// import { userInfo } from "@/utils/userInfo"
 
 // Form data interfaces
 interface BlogFormData {
@@ -32,8 +34,7 @@ interface ReportFormData {
     reportType: string
     reportedContentType: string
 }
-
-
+export type Role = 'NORMAL_MEMBER' | 'PREMIUM_MEMBER' | 'SUPER_ADMIN' | 'CONTENT_ADMIN' | 'COACH';
 
 type ViewMode = "list" | "detail" | "myPosts"
 
@@ -47,24 +48,29 @@ const BlogPage: React.FC = () => {
     // User state (null for guest) - In real app, get from AuthContext
     const [currentUser, setCurrentUser] = useState<BlogUser | null>(null)
 
-    // Mock login function for testing - replace with real auth logic
-    const handleMockLogin = (role: "NORMAL_MEMBER" | "PREMIUM_MEMBER" | "COACH" | "CONTENT_ADMIN") => {
-        setCurrentUser({
-            blogId: "user123",
-            name: "Test User",
-            role: role,
-        })
-    }
-
     // Set mock user on component mount
     useEffect(() => {
-        // Mock user for testing - replace with real auth
-        setCurrentUser({
-            blogId: "11111111-1111-1111-1111-111111111111",
-            name: "John Doe",
-            role: "CONTENT_ADMIN",
-        })
-    }, [])
+        const userInfoString = localStorage.getItem("userInfo");
+        if (userInfoString) {
+            try {
+                const accountData = JSON.parse(userInfoString);
+                const user: BlogUser = {
+                    id: accountData.userId, // Đảm bảo khớp với JSON trong localStorage
+                    username: accountData.username,
+                    role: accountData.role,
+
+                };
+                setCurrentUser(user);
+                console.log("DEBUG: currentUser loaded from localStorage. ID:", user.id);
+            } catch (e) {
+                console.error("Error parsing user info from localStorage", e);
+                setCurrentUser(null);
+            }
+        } else {
+            console.log("DEBUG: No user info found in localStorage.");
+            setCurrentUser(null);
+        }
+    }, []);
 
     // Dialog states
     const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false)
@@ -91,12 +97,13 @@ const BlogPage: React.FC = () => {
     })
 
     // My posts hook - only fetch when user is logged in and viewing my posts
+    console.log("Rendering component. currentUser.id passed to useMyBlogs:", currentUser?.id || "");
     const {
         data: myPostsData,
         loading: myPostsLoading,
         error: myPostsError,
         refetch: refetchMyPosts,
-    } = useMyBlogs(currentUser?.blogId || "", {
+    } = useMyBlogs(currentUser?.id || "", {
         page: 0,
         size: 50, // Get more posts for user's own posts
     })
@@ -106,7 +113,7 @@ const BlogPage: React.FC = () => {
 
     // Get blog posts from API response
     const blogPosts = blogsData?.content || []
-    const myPosts = myPostsData?.content?.filter((post) => post.status === "PUBLISHED") || []
+    const myPosts = myPostsData?.content || [];
 
     // Filter posts based on search term (additional client-side filtering if needed)
     const filteredPosts = blogPosts.filter((post) => {
@@ -191,7 +198,7 @@ const BlogPage: React.FC = () => {
                 content: formData.content,
             }
 
-            await createBlog(blogData, currentUser.blogId)
+            await createBlog(blogData, currentUser.id)
             setIsCreateDialogOpen(false)
             refetchBlogs()
             refetchMyPosts() // Also refresh my posts
@@ -300,7 +307,7 @@ const BlogPage: React.FC = () => {
         // In a real app, you would send this report to the server
         console.log("Report submitted:", {
             reportedBlogId: reportingPost.blogId,
-            reportedBy: currentUser.blogId,
+            reportedBy: currentUser.id,
             ...reportData,
         })
 
@@ -360,7 +367,7 @@ const BlogPage: React.FC = () => {
     const canEditPost = (post: BackendBlogPost) => {
         if (!currentUser) return false
         return (
-            currentUser.blogId === post.authorId || // Author can edit their own posts
+            currentUser.id === post.authorId || // Author can edit their own posts
             currentUser.role === "CONTENT_ADMIN" // Admin can edit any post
         )
     }
@@ -368,14 +375,14 @@ const BlogPage: React.FC = () => {
     const canDeletePost = (post: BackendBlogPost) => {
         if (!currentUser) return false
         return (
-            currentUser.blogId === post.authorId || // Author can delete their own posts
+            currentUser.id === post.authorId || // Author can delete their own posts
             currentUser.role === "CONTENT_ADMIN" // Admin can delete any post
         )
     }
 
     const canReportPost = (post: BackendBlogPost) => {
         if (!currentUser) return false
-        return currentUser.blogId !== post.authorId // Users can't report their own posts
+        return currentUser.id !== post.authorId // Users can't report their own posts
     }
 
     // Debug logging

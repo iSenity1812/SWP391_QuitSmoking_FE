@@ -120,12 +120,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                                 <div className="flex items-center gap-2">
                                     <Avatar className="w-8 h-8">
                                         <AvatarFallback>
-                                            {(comment.user?.name || comment.user?.username || "U").slice(0, 2).toUpperCase()}
+                                            {(comment.user?.username || "U").slice(0, 2).toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div>
                                         <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                                            {comment.user?.name || comment.user?.username || "Unknown User"}
+                                            {comment.user?.username || "Unknown User"}
                                         </p>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">
                                             {formatDate(comment.commentDate || new Date().toISOString())}
@@ -179,12 +179,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                                                 <div className="flex items-center gap-2">
                                                     <Avatar className="w-6 h-6">
                                                         <AvatarFallback>
-                                                            {(reply.user?.name || reply.user?.username || "U").slice(0, 2).toUpperCase()}
+                                                            {(reply.user?.username || "U").slice(0, 2).toUpperCase()}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div>
                                                         <p className="text-xs font-semibold text-slate-800 dark:text-white">
-                                                            {reply.user?.name || reply.user?.username || "Unknown User"}
+                                                            {reply.user?.username || "Unknown User"}
                                                         </p>
                                                         <p className="text-xs text-slate-500 dark:text-slate-400">
                                                             {formatDate(reply.commentDate || new Date().toISOString())}

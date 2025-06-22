@@ -1,7 +1,7 @@
 import type React from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import BlogPostCard from "./BlogPostCard"
-import type { BlogPost, BlogUser } from "@/types/blog"
+import type { Blog, BlogUser } from "@/types/blog"
 import type { CommentResponseDTO } from "@/types/comment"
 
 interface BlogPostListProps {

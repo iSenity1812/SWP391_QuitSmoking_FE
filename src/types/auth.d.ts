@@ -4,6 +4,7 @@ export type Role = 'NORMAL_MEMBER' | 'PREMIUM_MEMBER' | 'SUPER_ADMIN' | 'CONTENT
 
 // Dữ liệu trả về từ Spring Boot sau khi đăng nhập/đăng ký thành công
 export interface AccountResponse {
+    id: string; // ID của người dùng, có thể là số nguyên hoặc chuỗi tùy vào cách bạn định nghĩa trong backend
     username: string;
     email: string;
     profilePicture: string | null; // URL của ảnh đại diện người dùng, có thể null
@@ -25,14 +26,7 @@ export interface LoginRequest {
     password: string;
 }
 
-export interface AccountResponse {
-    username: string;
-    email: string;
-    profilePicture?: string | null; // URL của ảnh đại diện người dùng, có thể null
-    role: string; // hoặc 'Role' nếu bạn định nghĩa enum Role ở frontend
-    isActive: boolean;
-    token: string; // Token JWT để xác thực người dùng
-}
+
 
 // Kiểu cho phản hồi lỗi từ API (nếu Spring Boot của bạn trả về cấu trúc lỗi này)
 // Dựa trên cách bạn cấu hình GlobalExceptionHandler

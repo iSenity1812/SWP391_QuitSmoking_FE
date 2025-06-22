@@ -41,29 +41,6 @@ const LoginPromptDialog: React.FC<LoginPromptDialogProps> = ({ isOpen, onClose }
                                 Đăng ký tài khoản mới
                             </Button>
                         </Link>
-                        <div className="text-center">
-                            <span className="text-sm text-slate-500 dark:text-slate-400">hoặc đăng nhập demo:</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                            <Button
-                                variant="ghost"
-                                className="text-blue-600 hover:text-blue-700"
-                            >
-                                Premium Member
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                className="text-purple-600 hover:text-purple-700"
-                            >
-                                Coach
-                            </Button>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            className="text-red-600 hover:text-red-700"
-                        >
-                            Content Admin (để test)
-                        </Button>
                     </div>
                 </div>
             </DialogContent>

@@ -11,6 +11,7 @@ import type {
   CreateBlogRequest,
   UpdateBlogRequest,
 } from "@/types/blog"
+import { el } from "date-fns/locale"
 
 // Hook để lấy published blogs (public) - using getAllBlogs and filtering
 export const useBlogPosts = (params?: BlogListParams) => {
@@ -117,10 +118,12 @@ export const useMyBlogs = (authorId: string, params?: BlogListParams) => {
   const [error, setError] = useState<string | null>(null)
 
   const fetchMyBlogs = async () => {
+    console.log(`[useMyBlogs] Attempting to fetch blogs for authorId: ${authorId}`); // This is what you need to see
     setLoading(true)
     setError(null)
     try {
       const blogs = await BlogService.getBlogsByAuthor(authorId)
+      console.log("[useMyBlogs] Fetched blogs (all statuses from service):", blogs); // Thêm dòng này nếu chưa có
 
       // Create a mock SpringPageResponse structure
       const mockResponse: SpringPageResponse<BlogPost> = {
@@ -154,7 +157,10 @@ export const useMyBlogs = (authorId: string, params?: BlogListParams) => {
 
   useEffect(() => {
     if (authorId) {
+      console.log(`[useMyBlogs] useEffect triggered for authorId: ${authorId}`); // Add this
       fetchMyBlogs()
+    } else {
+      console.log("[useMyBlogs] useEffect triggered but authorId is falsy, not fetching."); // Add this
     }
   }, [authorId, JSON.stringify(params)])
 

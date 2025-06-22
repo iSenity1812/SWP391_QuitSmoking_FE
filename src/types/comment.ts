@@ -22,7 +22,6 @@ export interface CommentResponseDTO {
     user: {
         userId: string
         username: string
-        name?: string
         email?: string
     }
     parentCommentId?: number
@@ -39,6 +38,7 @@ export interface CommentApiResponse<T> {
 
 export interface CommentPageResponse {
     content: CommentResponseDTO[]
+    blogId: number
     pageable: {
         sort: {
             empty: boolean

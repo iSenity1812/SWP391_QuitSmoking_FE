@@ -12,6 +12,9 @@ import { PasswordInput } from "./PasswordInput";
 import { PasswordRequirements } from "./PasswordRequirements";
 import { ConfirmPasswordInput } from "./ConfirmPasswordInput";
 import { RegSubmitButton } from "./RegSubmitButton";
+import { useAuth } from "@/context/AuthContext";
+import type { RegisterRequest } from "@/types/auth"; // Import RegisterRequest type if needed
+import { toast } from "react-toastify";
 
 export const RegisterForm: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -31,14 +34,19 @@ export const RegisterForm: React.FC = () => {
   const [hasLowercase, setHasLowercase] = useState(false);
   const [hasNumber, setHasNumber] = useState(false);
   const [hasSpecial, setHasSpecial] = useState(false);
+  const { register: authContextRegister } = useAuth(); // Assuming you have a register function in your AuthContext
 
   const validateUsername = (value: string) => {
-    setIsUsernameValid(value.length >= 3);
+    const valid = value.length >= 3;
+    setIsUsernameValid(valid);
+    return valid;
   };
 
   const validateEmail = (value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    setIsEmailValid(emailRegex.test(value));
+    const valid = emailRegex.test(value);
+    setIsEmailValid(valid);
+    return valid;
   };
 
   const validatePassword = (value: string) => {
@@ -64,16 +72,20 @@ export const RegisterForm: React.FC = () => {
     if (special) strength += 20;
 
     setPasswordStrength(strength);
-    setIsPasswordValid(minLength && uppercase && lowercase && number && special);
+    const valid = minLength && uppercase && lowercase && number && special;
+    setIsPasswordValid(valid);
 
     // Also validate confirm password if it has a value
     if (confirmPassword) {
       setIsConfirmPasswordValid(confirmPassword === value);
     }
+    return valid;
   };
 
   const validateConfirmPassword = (value: string) => {
-    setIsConfirmPasswordValid(value === password && value !== "");
+    const valid = value === password && value !== "";
+    setIsConfirmPasswordValid(valid);
+    return valid;
   };
 
   const getFormProgress = () => {
@@ -88,16 +100,34 @@ export const RegisterForm: React.FC = () => {
     return (validFields / totalFields) * 100;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isUsernameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid) {
-      setIsSubmitting(true);
-      // Simulate API call
-      setTimeout(() => {
-        setIsSubmitting(false);
-        // Handle successful registration
-        alert("Registration successful!");
-      }, 1500);
+    setIsSubmitting(true);
+
+    // Thực hiện lại các validation cuối cùng trước khi gửi
+    const finalUsernameValid = validateUsername(username);
+    const finalEmailValid = validateEmail(email);
+    const finalPasswordValid = validatePassword(password);
+    const finalConfirmPasswordValid = validateConfirmPassword(confirmPassword);
+
+    if (!finalUsernameValid || !finalEmailValid || !finalPasswordValid || !finalConfirmPasswordValid) {
+      setIsSubmitting(false);
+      toast.error("Vui lòng điền đầy đủ thông tin hợp lệ.");
+      return;
+    }
+
+    try {
+      const registerData: RegisterRequest = { username, email, password };
+      const response = await authContextRegister(registerData);
+
+      if (response.status === 200) toast.success(response.message || "Đăng ký thành công!");
+      else toast.error(response.message || "Đăng ký thất bại!");
+    } catch (err: unknown) {
+      console.error("Error during registration:", err);
+      const errorMessage = typeof err === "string" ? err : "Đã xảy ra lỗi trong quá trình đăng ký.";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
