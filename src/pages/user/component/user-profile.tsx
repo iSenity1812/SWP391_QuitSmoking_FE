@@ -14,6 +14,7 @@ import { SocialTab } from "../components/tabs/SocialTab"
 import { BookingTab } from "../components/tabs/BookingtTab"
 import CertificationTab from "../components/tabs/CertificationTab"
 import type { AchievementNotification } from "../types/user-types"
+import DiaryTab from "../components/tabs/DiaryTab"
 
 export default function UserProfile() {
     const [activeTab, setActiveTab] = useState("overview")
@@ -65,8 +66,19 @@ export default function UserProfile() {
             }
         }
 
+        // Add tab change event listener
+        const handleTabChangeEvent = (event: CustomEvent) => {
+            setActiveTab(event.detail)
+            setSidebarOpen(false)
+        }
+
         document.addEventListener("mousedown", handleClickOutside)
-        return () => document.removeEventListener("mousedown", handleClickOutside)
+        window.addEventListener("changeTab", handleTabChangeEvent as EventListener)
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+            window.removeEventListener("changeTab", handleTabChangeEvent as EventListener)
+        }
     }, [sidebarOpen])
 
     const renderTabContent = () => {
@@ -85,6 +97,8 @@ export default function UserProfile() {
                 return <BookingTab user={user} />
             case "certification":
                 return <CertificationTab />
+            case "diary":
+                return <DiaryTab />
             default:
                 return <OverviewTab user={user} onTestAchievement={handleTestAchievement} />
         }

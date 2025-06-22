@@ -1,15 +1,32 @@
+"use client"
+
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Plus, MessageCircle, Trophy } from "lucide-react"
 import type { User } from "../../types/user-types"
+import ChatWindow from "../chat/ChatWindow"
 
 interface SocialTabProps {
     user: User
 }
 
 export function SocialTab({ user }: SocialTabProps) {
+    const [selectedFriend, setSelectedFriend] = useState<any>(null)
+    const [isChatOpen, setIsChatOpen] = useState(false)
+
+    const handleChatClick = (friend: any) => {
+        setSelectedFriend(friend)
+        setIsChatOpen(true)
+    }
+
+    const handleClosChat = () => {
+        setIsChatOpen(false)
+        setSelectedFriend(null)
+    }
+
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -46,7 +63,12 @@ export function SocialTab({ user }: SocialTabProps) {
                                             <p className="text-sm text-slate-500 dark:text-slate-400">{friend.streak} ngày streak</p>
                                         </div>
                                     </div>
-                                    <Button variant="outline" size="sm">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleChatClick(friend)}
+                                        className="hover:bg-emerald-50 hover:border-emerald-200 dark:hover:bg-emerald-900/20"
+                                    >
                                         <MessageCircle className="h-4 w-4" />
                                     </Button>
                                 </div>
@@ -121,6 +143,11 @@ export function SocialTab({ user }: SocialTabProps) {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Chat Window */}
+            {isChatOpen && selectedFriend && (
+                <ChatWindow friend={selectedFriend} currentUser={user} onClose={handleClosChat} />
+            )}
         </div>
     )
 }

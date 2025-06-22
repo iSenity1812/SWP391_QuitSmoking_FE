@@ -3,7 +3,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-    Share2,
     LogOut,
     X,
     LayoutDashboard,
@@ -11,8 +10,8 @@ import {
     Award,
     Heart,
     Users,
-    Calendar,
     Crown,
+    BookOpen,
 } from "lucide-react"
 import type { User } from "../types/user-types"
 import type React from "react"
@@ -30,13 +29,14 @@ const sidebarItems: Array<{
     label: string
     icon: React.ComponentType<{ className?: string }>
     premium?: boolean
+    description?: string
 }> = [
-        { id: "overview", label: "Tổng quan", icon: LayoutDashboard },
-        { id: "progress", label: "Tiến trình", icon: ChartBar },
-        { id: "achievements", label: "Thành tựu", icon: Award },
-        { id: "health", label: "Sức khỏe", icon: Heart },
-        { id: "social", label: "Cộng đồng", icon: Users },
-        { id: "booking", label: "Đặt Lịch Chuyên Gia", icon: Calendar, premium: true },
+        { id: "overview", label: "Tổng quan", icon: LayoutDashboard, description: "Xem tổng quan tiến trình" },
+        { id: "progress", label: "Tiến trình", icon: ChartBar, description: "Theo dõi tiến độ bỏ thuốc" },
+        { id: "achievements", label: "Thành tựu", icon: Award, description: "Xem các thành tích đạt được" },
+        { id: "health", label: "Sức khỏe", icon: Heart, description: "Theo dõi sức khỏe" },
+        { id: "social", label: "Cộng đồng", icon: Users, description: "Kết nối với cộng đồng" },
+        { id: "diary", label: "Nhật ký", icon: BookOpen, description: "Viết và xem nhật ký cá nhân" },
     ]
 
 export function UserProfileSidebar({
@@ -84,34 +84,37 @@ export function UserProfileSidebar({
                         <button
                             key={item.id}
                             className={`
-            w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left
-            ${activeTab === item.id
+                w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left group relative
+                ${activeTab === item.id
                                     ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium"
                                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 }
-        `}
+              `}
                             onClick={() => {
                                 onTabChange(item.id)
                                 onSidebarClose()
                             }}
+                            title={item.description}
                         >
                             <item.icon
                                 className={`h-5 w-5 ${activeTab === item.id ? "text-emerald-600 dark:text-emerald-400" : ""}`}
                             />
                             <span className="flex-1">{item.label}</span>
                             {item.premium && <Crown className="h-4 w-4 text-amber-500" />}
+                            {item.id === "chat" && <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>}
+                            {item.id === "diary" && (
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                </div>
+                            )}
                         </button>
                     ))}
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
-                    <Button variant="outline" className="w-full justify-start" size="sm">
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Chia sẻ tiến trình
-                    </Button>
                     <Button
                         variant="outline"
-                        className="w-full justify-start mt-2 text-rose-600 dark:text-rose-400"
+                        className="w-full justify-start text-rose-600 dark:text-rose-400"
                         size="sm"
                         onClick={() => {
                             localStorage.removeItem("user_session")

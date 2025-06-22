@@ -11,7 +11,21 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Upload, FileText, Award, Clock, CheckCircle, XCircle, Eye, Download, Plus, AlertCircle } from "lucide-react"
+import {
+    Upload,
+    FileText,
+    Award,
+    Clock,
+    CheckCircle,
+    XCircle,
+    Eye,
+    Download,
+    Plus,
+    AlertCircle,
+    Send,
+    Star,
+    X,
+} from "lucide-react"
 
 interface Certificate {
     id: number
@@ -37,6 +51,7 @@ interface CoachApplication {
     certificates: Certificate[]
     adminFeedback?: string
     reviewDate?: string
+    applicationScore?: number
 }
 
 const mockCertificates: Certificate[] = [
@@ -81,6 +96,7 @@ export default function CertificationTab() {
     const [applicationDialogOpen, setApplicationDialogOpen] = useState(false)
     const [viewCertDialogOpen, setViewCertDialogOpen] = useState(false)
     const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     // Form states
     const [newCertificate, setNewCertificate] = useState({
@@ -118,6 +134,7 @@ export default function CertificationTab() {
         }
 
         setCertificates((prev) => [...prev, certificate])
+        setApplication((prev) => ({ ...prev, certificates: [...prev.certificates, certificate] }))
         setNewCertificate({
             name: "",
             issuer: "",
@@ -129,15 +146,25 @@ export default function CertificationTab() {
         setUploadDialogOpen(false)
     }
 
-    const handleSubmitApplication = () => {
+    const handleSubmitApplication = async () => {
+        setIsSubmitting(true)
+
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+
         const updatedApplication: CoachApplication = {
             ...application,
             status: "submitted",
             submissionDate: new Date().toISOString().split("T")[0],
             certificates: certificates,
         }
+
         setApplication(updatedApplication)
         setApplicationDialogOpen(false)
+        setIsSubmitting(false)
+
+        // Show success notification
+        alert("Đơn đăng ký Coach đã được gửi thành công! Admin sẽ xem xét và phản hồi trong vòng 3-5 ngày làm việc.")
     }
 
     const getStatusBadge = (status: Certificate["status"]) => {
@@ -190,6 +217,21 @@ export default function CertificationTab() {
         )
     }
 
+    const getApplicationScore = () => {
+        let score = 0
+
+        // Certificate scoring
+        const verifiedCerts = certificates.filter((cert) => cert.status === "verified").length
+        score += verifiedCerts * 25 // 25 points per verified certificate
+
+        // Content scoring
+        if (application.motivation.length > 100) score += 15
+        if (application.experience.length > 100) score += 15
+        if (application.specialization.length >= 2) score += 10
+
+        return Math.min(score, 100)
+    }
+
     return (
         <div className="space-y-6">
             {/* Application Status */}
@@ -204,7 +246,15 @@ export default function CertificationTab() {
                                 </CardTitle>
                                 <CardDescription>Trạng thái đơn đăng ký trở thành Coach của bạn</CardDescription>
                             </div>
-                            {getApplicationStatusBadge(application.status)}
+                            <div className="flex items-center space-x-3">
+                                {getApplicationStatusBadge(application.status)}
+                                {application.status !== "draft" && (
+                                    <div className="flex items-center space-x-1">
+                                        <Star className="h-4 w-4 text-yellow-500" />
+                                        <span className="text-sm font-medium">{getApplicationScore()}/100</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -215,11 +265,16 @@ export default function CertificationTab() {
                                     <div>
                                         <p className="font-medium text-blue-900 dark:text-blue-100">Sẵn sàng trở thành Coach?</p>
                                         <p className="text-sm text-blue-700 dark:text-blue-300">
-                                            Hoàn thiện hồ sơ và nộp đơn đăng ký để trở thành Coach
+                                            Hoàn thiện hồ sơ và nộp đơn đăng ký để trở thành Coach chuyên nghiệp
                                         </p>
                                     </div>
                                 </div>
-                                <Button onClick={() => setApplicationDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                                <Button
+                                    onClick={() => setApplicationDialogOpen(true)}
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                    disabled={!canSubmitApplication()}
+                                >
+                                    <Send className="h-4 w-4 mr-2" />
                                     Nộp đơn đăng ký
                                 </Button>
                             </div>
@@ -232,7 +287,8 @@ export default function CertificationTab() {
                                     <div>
                                         <p className="font-medium text-yellow-900 dark:text-yellow-100">Đơn đã được nộp</p>
                                         <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                                            Đơn đăng ký của bạn đang được admin xem xét. Chúng tôi sẽ thông báo kết quả sớm nhất.
+                                            Đơn đăng ký của bạn đang được admin xem xét. Chúng tôi sẽ thông báo kết quả trong vòng 3-5 ngày
+                                            làm việc.
                                         </p>
                                         {application.submissionDate && (
                                             <p className="text-xs text-yellow-600 mt-1">Nộp ngày: {application.submissionDate}</p>
@@ -242,16 +298,35 @@ export default function CertificationTab() {
                             </div>
                         )}
 
-                        {application.status === "approved" && (
-                            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        {application.status === "under_review" && (
+                            <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                                 <div className="flex items-center space-x-3">
-                                    <CheckCircle className="h-5 w-5 text-green-600" />
+                                    <Eye className="h-5 w-5 text-orange-600" />
                                     <div>
-                                        <p className="font-medium text-green-900 dark:text-green-100">Chúc mừng! Bạn đã trở thành Coach</p>
-                                        <p className="text-sm text-green-700 dark:text-green-300">
-                                            Đơn đăng ký của bạn đã được phê duyệt. Bạn có thể truy cập bảng điều khiển Coach.
+                                        <p className="font-medium text-orange-900 dark:text-orange-100">Đang được xem xét</p>
+                                        <p className="text-sm text-orange-700 dark:text-orange-300">
+                                            Admin đang xem xét đơn đăng ký của bạn. Vui lòng kiên nhẫn chờ đợi.
                                         </p>
                                     </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {application.status === "approved" && (
+                            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <CheckCircle className="h-5 w-5 text-green-600" />
+                                        <div>
+                                            <p className="font-medium text-green-900 dark:text-green-100">
+                                                🎉 Chúc mừng! Bạn đã trở thành Coach
+                                            </p>
+                                            <p className="text-sm text-green-700 dark:text-green-300">
+                                                Đơn đăng ký của bạn đã được phê duyệt. Bạn có thể truy cập bảng điều khiển Coach.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Button className="bg-green-600 hover:bg-green-700">Truy cập Coach Dashboard</Button>
                                 </div>
                             </div>
                         )}
@@ -263,6 +338,14 @@ export default function CertificationTab() {
                                     <div>
                                         <p className="font-medium text-red-900 dark:text-red-100">Đơn đăng ký bị từ chối</p>
                                         <p className="text-sm text-red-700 dark:text-red-300 mt-1">{application.adminFeedback}</p>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="mt-2 text-red-600 border-red-200 hover:bg-red-50"
+                                            onClick={() => setApplication((prev) => ({ ...prev, status: "draft" }))}
+                                        >
+                                            Nộp lại đơn
+                                        </Button>
                                     </div>
                                 </div>
                             </div>
@@ -271,8 +354,72 @@ export default function CertificationTab() {
                 </Card>
             </motion.div>
 
-            {/* Certificates */}
+            {/* Application Requirements */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center space-x-2">
+                            <FileText className="h-5 w-5 text-blue-600" />
+                            <span>Yêu cầu trở thành Coach</span>
+                        </CardTitle>
+                        <CardDescription>Kiểm tra các yêu cầu cần thiết để đăng ký</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-3">
+                                {certificates.some((cert) => cert.status === "verified") ? (
+                                    <CheckCircle className="h-5 w-5 text-green-600" />
+                                ) : (
+                                    <XCircle className="h-5 w-5 text-red-600" />
+                                )}
+                                <span className="text-sm">Có ít nhất 1 chứng chỉ được xác minh</span>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                                {application.motivation.length > 50 ? (
+                                    <CheckCircle className="h-5 w-5 text-green-600" />
+                                ) : (
+                                    <XCircle className="h-5 w-5 text-red-600" />
+                                )}
+                                <span className="text-sm">Viết động lực trở thành Coach (tối thiểu 50 ký tự)</span>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                                {application.experience.length > 50 ? (
+                                    <CheckCircle className="h-5 w-5 text-green-600" />
+                                ) : (
+                                    <XCircle className="h-5 w-5 text-red-600" />
+                                )}
+                                <span className="text-sm">Mô tả kinh nghiệm liên quan (tối thiểu 50 ký tự)</span>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                                {application.specialization.length > 0 ? (
+                                    <CheckCircle className="h-5 w-5 text-green-600" />
+                                ) : (
+                                    <XCircle className="h-5 w-5 text-red-600" />
+                                )}
+                                <span className="text-sm">Chọn ít nhất 1 chuyên môn</span>
+                            </div>
+                        </div>
+
+                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium">Điểm đánh giá hồ sơ:</span>
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                                        <div
+                                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                            style={{ width: `${getApplicationScore()}%` }}
+                                        ></div>
+                                    </div>
+                                    <span className="text-sm font-bold">{getApplicationScore()}/100</span>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </motion.div>
+
+            {/* Certificates */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
                 <Card>
                     <CardHeader>
                         <div className="flex items-center justify-between">
@@ -471,10 +618,10 @@ export default function CertificationTab() {
 
             {/* Coach Application Dialog */}
             <Dialog open={applicationDialogOpen} onOpenChange={setApplicationDialogOpen}>
-                <DialogContent className="sm:max-w-2xl">
+                <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Đơn đăng ký trở thành Coach</DialogTitle>
-                        <DialogDescription>Hoàn thiện thông tin để nộp đơn đăng ký trở thành Coach</DialogDescription>
+                        <DialogDescription>Hoàn thiện thông tin để nộp đơn đăng ký trở thành Coach chuyên nghiệp</DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-6">
@@ -484,9 +631,10 @@ export default function CertificationTab() {
                                 id="motivation"
                                 value={application.motivation}
                                 onChange={(e) => setApplication((prev) => ({ ...prev, motivation: e.target.value }))}
-                                placeholder="Chia sẻ lý do bạn muốn trở thành Coach..."
+                                placeholder="Chia sẻ lý do bạn muốn trở thành Coach, kinh nghiệm cá nhân với việc cai thuốc và mong muốn giúp đỡ người khác..."
                                 rows={4}
                             />
+                            <p className="text-xs text-gray-500 mt-1">{application.motivation.length}/500 ký tự</p>
                         </div>
 
                         <div>
@@ -495,15 +643,24 @@ export default function CertificationTab() {
                                 id="experience"
                                 value={application.experience}
                                 onChange={(e) => setApplication((prev) => ({ ...prev, experience: e.target.value }))}
-                                placeholder="Mô tả kinh nghiệm của bạn trong việc cai thuốc và hỗ trợ người khác..."
+                                placeholder="Mô tả kinh nghiệm của bạn trong việc cai thuốc, hỗ trợ người khác, hoặc kiến thức chuyên môn liên quan..."
                                 rows={4}
                             />
+                            <p className="text-xs text-gray-500 mt-1">{application.experience.length}/500 ký tự</p>
                         </div>
 
                         <div>
                             <Label>Chuyên môn *</Label>
                             <div className="mt-2 space-y-2">
-                                {["Cai thuốc dần dần", "Phương pháp tự nhiên", "Hỗ trợ tâm lý", "Dinh dưỡng", "Thể dục"].map((spec) => (
+                                {[
+                                    "Cai thuốc dần dần",
+                                    "Phương pháp tự nhiên",
+                                    "Hỗ trợ tâm lý",
+                                    "Dinh dưỡng",
+                                    "Thể dục",
+                                    "Y học",
+                                    "Tư vấn",
+                                ].map((spec) => (
                                     <label key={spec} className="flex items-center space-x-2">
                                         <input
                                             type="checkbox"
@@ -545,6 +702,22 @@ export default function CertificationTab() {
                                 </div>
                             )}
                         </div>
+
+                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <h4 className="font-medium mb-2">Điểm đánh giá hồ sơ</h4>
+                            <div className="flex items-center justify-between">
+                                <div className="flex-1 bg-gray-200 rounded-full h-3 mr-4">
+                                    <div
+                                        className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                                        style={{ width: `${getApplicationScore()}%` }}
+                                    ></div>
+                                </div>
+                                <span className="font-bold text-lg">{getApplicationScore()}/100</span>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-2">
+                                Điểm cao hơn sẽ tăng cơ hội được duyệt. Hãy hoàn thiện thông tin để đạt điểm tối đa!
+                            </p>
+                        </div>
                     </div>
 
                     <div className="flex justify-end space-x-2">
@@ -553,10 +726,20 @@ export default function CertificationTab() {
                         </Button>
                         <Button
                             onClick={handleSubmitApplication}
-                            disabled={!canSubmitApplication()}
+                            disabled={!canSubmitApplication() || isSubmitting}
                             className="bg-blue-600 hover:bg-blue-700"
                         >
-                            Nộp đơn đăng ký
+                            {isSubmitting ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    Đang gửi...
+                                </>
+                            ) : (
+                                <>
+                                    <Send className="h-4 w-4 mr-2" />
+                                    Nộp đơn đăng ký
+                                </>
+                            )}
                         </Button>
                     </div>
                 </DialogContent>
@@ -565,8 +748,16 @@ export default function CertificationTab() {
             {/* View Certificate Dialog */}
             <Dialog open={viewCertDialogOpen} onOpenChange={setViewCertDialogOpen}>
                 <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
+                    <DialogHeader className="flex flex-row items-center justify-between">
                         <DialogTitle>Chi tiết chứng chỉ</DialogTitle>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setViewCertDialogOpen(false)}
+                            className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
                     </DialogHeader>
 
                     {selectedCertificate && (

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Crown, Users, Calendar, DollarSign, Edit, Trash2, Plus, UserCheck } from "lucide-react"
+import { Crown, Calendar, DollarSign, Edit, Trash2, Plus, } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -17,9 +17,6 @@ interface PremiumProgram {
     features: string[]
     price: number
     duration: number // in days
-    maxParticipants: number
-    currentParticipants: number
-    coachAssigned?: string
     status: "active" | "inactive" | "full"
     createdAt: string
     startDate: string
@@ -35,9 +32,7 @@ export function PremiumPrograms() {
             features: ["Coach cá nhân 1-1", "Kế hoạch tùy chỉnh", "Hỗ trợ 24/7", "Báo cáo tiến độ chi tiết"],
             price: 299000,
             duration: 30,
-            maxParticipants: 50,
-            currentParticipants: 35,
-            coachAssigned: "Dr. Nguyễn Văn A",
+
             status: "active",
             createdAt: "2024-01-01T00:00:00Z",
             startDate: "2024-01-15T00:00:00Z",
@@ -57,9 +52,6 @@ export function PremiumPrograms() {
             ],
             price: 799000,
             duration: 90,
-            maxParticipants: 30,
-            currentParticipants: 30,
-            coachAssigned: "Dr. Trần Thị B",
             status: "full",
             createdAt: "2024-01-01T00:00:00Z",
             startDate: "2024-01-01T00:00:00Z",
@@ -76,8 +68,7 @@ export function PremiumPrograms() {
         features: [""],
         price: 0,
         duration: 30,
-        maxParticipants: 50,
-        coachAssigned: "",
+
         startDate: "",
         endDate: "",
     })
@@ -90,9 +81,6 @@ export function PremiumPrograms() {
             features: formData.features.filter((f) => f.trim() !== ""),
             price: formData.price,
             duration: formData.duration,
-            maxParticipants: formData.maxParticipants,
-            currentParticipants: 0,
-            coachAssigned: formData.coachAssigned || undefined,
             status: "active",
             createdAt: new Date().toISOString(),
             startDate: formData.startDate,
@@ -111,8 +99,6 @@ export function PremiumPrograms() {
             features: [...program.features, ""],
             price: program.price,
             duration: program.duration,
-            maxParticipants: program.maxParticipants,
-            coachAssigned: program.coachAssigned || "",
             startDate: program.startDate.split("T")[0],
             endDate: program.endDate.split("T")[0],
         })
@@ -128,7 +114,7 @@ export function PremiumPrograms() {
                         ...program,
                         ...formData,
                         features: formData.features.filter((f) => f.trim() !== ""),
-                        coachAssigned: formData.coachAssigned || undefined,
+
                         startDate: formData.startDate + "T00:00:00Z",
                         endDate: formData.endDate + "T23:59:59Z",
                     }
@@ -146,8 +132,6 @@ export function PremiumPrograms() {
             features: [""],
             price: 0,
             duration: 30,
-            maxParticipants: 50,
-            coachAssigned: "",
             startDate: "",
             endDate: "",
         })
@@ -253,26 +237,7 @@ export function PremiumPrograms() {
                                         </div>
 
                                         {/* Participants */}
-                                        <div className="flex justify-between items-center p-3 bg-white dark:bg-slate-600/50 rounded-lg">
-                                            <div className="flex items-center space-x-2">
-                                                <Users className="w-4 h-4 text-purple-500" />
-                                                <span className="text-slate-700 dark:text-slate-300">Học viên</span>
-                                            </div>
-                                            <span className="font-medium text-slate-900 dark:text-white">
-                                                {program.currentParticipants}/{program.maxParticipants}
-                                            </span>
-                                        </div>
 
-                                        {/* Coach */}
-                                        {program.coachAssigned && (
-                                            <div className="flex justify-between items-center p-3 bg-white dark:bg-slate-600/50 rounded-lg">
-                                                <div className="flex items-center space-x-2">
-                                                    <UserCheck className="w-4 h-4 text-blue-500" />
-                                                    <span className="text-slate-700 dark:text-slate-300">Coach</span>
-                                                </div>
-                                                <span className="font-medium text-slate-900 dark:text-white">{program.coachAssigned}</span>
-                                            </div>
-                                        )}
 
                                         {/* Features */}
                                         <div>
@@ -366,27 +331,7 @@ export function PremiumPrograms() {
                                 />
                             </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="program-participants">Số lượng học viên tối đa</Label>
-                            <Input
-                                id="program-participants"
-                                type="number"
-                                value={formData.maxParticipants}
-                                onChange={(e) =>
-                                    setFormData((prev) => ({ ...prev, maxParticipants: Number.parseInt(e.target.value) || 50 }))
-                                }
-                                placeholder="50"
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="program-coach">Coach phụ trách (tùy chọn)</Label>
-                            <Input
-                                id="program-coach"
-                                value={formData.coachAssigned}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, coachAssigned: e.target.value }))}
-                                placeholder="Dr. Nguyễn Văn A"
-                            />
-                        </div>
+
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="program-start">Ngày bắt đầu</Label>
@@ -494,27 +439,8 @@ export function PremiumPrograms() {
                                 />
                             </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-program-participants">Số lượng học viên tối đa</Label>
-                            <Input
-                                id="edit-program-participants"
-                                type="number"
-                                value={formData.maxParticipants}
-                                onChange={(e) =>
-                                    setFormData((prev) => ({ ...prev, maxParticipants: Number.parseInt(e.target.value) || 50 }))
-                                }
-                                placeholder="50"
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-program-coach">Coach phụ trách (tùy chọn)</Label>
-                            <Input
-                                id="edit-program-coach"
-                                value={formData.coachAssigned}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, coachAssigned: e.target.value }))}
-                                placeholder="Dr. Nguyễn Văn A"
-                            />
-                        </div>
+
+
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="edit-program-start">Ngày bắt đầu</Label>

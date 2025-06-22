@@ -3,8 +3,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Target, Trophy, Calendar, BookOpen, MessageCircle, Download, Users, Heart } from "lucide-react"
+import { Target, Trophy, MessageCircle, Download, Users, Heart, Share2, Settings } from "lucide-react"
 import type { User } from "../../types/user-types"
+import { useState } from "react"
+import { ProgressSharing } from "../ProgressSharing"
+import { CoachPromotionBanner } from "../CoachPromotionBanner"
 
 interface OverviewTabProps {
     user: User
@@ -12,8 +15,24 @@ interface OverviewTabProps {
 }
 
 export function OverviewTab({ user, onTestAchievement }: OverviewTabProps) {
+    const [showShareDialog, setShowShareDialog] = useState(false)
+
+    const handleApplyCoach = () => {
+        // Navigate to certification tab
+        const event = new CustomEvent("changeTab", { detail: "certification" })
+        window.dispatchEvent(event)
+    }
+
+    const handleUpdatePlan = () => {
+        // Navigate to plan page
+        window.location.href = "/plan"
+    }
+
     return (
         <div className="space-y-6">
+            {/* Coach Promotion Banner */}
+            <CoachPromotionBanner user={user} onApplyCoach={handleApplyCoach} />
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Next Milestone */}
                 <Card className="lg:col-span-2">
@@ -56,13 +75,13 @@ export function OverviewTab({ user, onTestAchievement }: OverviewTabProps) {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
-                            <Button className="w-full justify-start" variant="outline">
-                                <Calendar className="h-4 w-4 mr-3" />
+                            <Button className="w-full justify-start" variant="outline" onClick={handleUpdatePlan}>
+                                <Settings className="h-4 w-4 mr-3" />
                                 Cập nhật kế hoạch
                             </Button>
-                            <Button className="w-full justify-start" variant="outline">
-                                <BookOpen className="h-4 w-4 mr-3" />
-                                Viết nhật ký
+                            <Button className="w-full justify-start" variant="outline" onClick={() => setShowShareDialog(true)}>
+                                <Share2 className="h-4 w-4 mr-3" />
+                                Chia sẻ tiến trình
                             </Button>
                             <Button className="w-full justify-start" variant="outline">
                                 <MessageCircle className="h-4 w-4 mr-3" />
@@ -97,12 +116,12 @@ export function OverviewTab({ user, onTestAchievement }: OverviewTabProps) {
                             <div key={index} className="flex items-center gap-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
                                 <div
                                     className={`rounded-full p-2 ${activity.type === "achievement"
-                                            ? "bg-yellow-100 dark:bg-yellow-900"
-                                            : activity.type === "milestone"
-                                                ? "bg-green-100 dark:bg-green-900"
-                                                : activity.type === "social"
-                                                    ? "bg-blue-100 dark:bg-blue-900"
-                                                    : "bg-purple-100 dark:bg-purple-900"
+                                        ? "bg-yellow-100 dark:bg-yellow-900"
+                                        : activity.type === "milestone"
+                                            ? "bg-green-100 dark:bg-green-900"
+                                            : activity.type === "social"
+                                                ? "bg-blue-100 dark:bg-blue-900"
+                                                : "bg-purple-100 dark:bg-purple-900"
                                         }`}
                                 >
                                     {activity.type === "achievement" && <Trophy className="h-4 w-4 text-yellow-600" />}
@@ -119,6 +138,9 @@ export function OverviewTab({ user, onTestAchievement }: OverviewTabProps) {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Progress Sharing Dialog */}
+            <ProgressSharing user={user} isOpen={showShareDialog} onClose={() => setShowShareDialog(false)} />
         </div>
     )
 }

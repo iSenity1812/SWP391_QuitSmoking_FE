@@ -22,7 +22,6 @@ import {
 import { useTheme } from "@/context/ThemeContext"
 import { ContentDashboard } from "./components/ContentDashboard"
 import { ReviewsManagement } from "./components/ReviewsManagement"
-import { ContentLibrary } from "./components/ContentLibrary"
 import { AchievementsManagement } from "./components/AchievementsManagement"
 import { PremiumPrograms } from "./components/PremiumPrograms"
 import { ContentReports } from "./components/ContentReports"
@@ -38,7 +37,6 @@ export default function ContentAdminPage() {
         { id: "dashboard", label: "Tổng Quan", icon: BarChart3 },
         { id: "reviews", label: "Đánh Giá", icon: MessageSquare },
         { id: "blogs", label: "Blog", icon: FileText },
-        { id: "content", label: "Thư Viện", icon: FileText },
         { id: "achievements", label: "Thành Tựu", icon: Trophy },
         { id: "premium", label: "Premium", icon: Crown },
         { id: "reports", label: "Báo Cáo", icon: Flag },
@@ -52,8 +50,6 @@ export default function ContentAdminPage() {
                 return <ReviewsManagement />
             case "blogs":
                 return <BlogManagement />
-            case "content":
-                return <ContentLibrary />
             case "achievements":
                 return <AchievementsManagement />
             case "premium":

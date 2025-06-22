@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { FileText, Eye, Heart, MessageSquare, Share2, Edit, Trash2, Plus, BarChart3, TrendingUp } from "lucide-react"
+import { FileText, Eye, Heart, MessageSquare, Share2, Edit, Trash2, BarChart3, TrendingUp } from "lucide-react"
 import { ChartContainer, LineChart } from "@/components/ui/Chart"
 import { useTheme } from "@/context/ThemeContext"
 
@@ -125,8 +125,8 @@ export function ContentManagement() {
         .slice(0, 5)
         .map((content) => ({
             title: content.title.length > 25 ? content.title.substring(0, 25) + "..." : content.title,
-            views: content.views,
-            engagement: content.likes + content.comments + content.shares,
+            views: Math.round(content.views / 1000), // Convert to thousands for better scaling
+            engagementRate: Math.round(((content.likes + content.comments + content.shares) / content.views) * 100), // Percentage
         }))
 
     const getTypeIcon = (type: string) => {
@@ -194,7 +194,7 @@ export function ContentManagement() {
                                     { dataKey: "views", label: "Lượt xem", color: chartColors.primary },
                                     { dataKey: "likes", label: "Lượt thích", color: chartColors.success },
                                 ]}
-                                width={500}
+                                width={480}
                                 height={300}
                             />
                         </ChartContainer>
@@ -216,7 +216,7 @@ export function ContentManagement() {
                                 dataset={contentTypeData}
                                 xAxis={[{ scaleType: "point", dataKey: "type" }]}
                                 series={[{ dataKey: "count", label: "Số lượng", color: chartColors.success }]}
-                                width={500}
+                                width={480}
                                 height={300}
                             />
                         </ChartContainer>
@@ -246,7 +246,7 @@ export function ContentManagement() {
                                 { dataKey: "comments", label: "Bình luận", color: chartColors.warning },
                                 { dataKey: "shares", label: "Chia sẻ", color: chartColors.red },
                             ]}
-                            width={800}
+                            width={1000}
                             height={400}
                         />
                     </ChartContainer>
@@ -262,19 +262,19 @@ export function ContentManagement() {
                             <span>Nội Dung Hiệu Suất Cao</span>
                         </CardTitle>
                         <CardDescription className="text-gray-600 dark:text-gray-400">
-                            Top 5 nội dung có lượt xem cao nhất
+                            Lượt xem (nghìn) và tỷ lệ tương tác (%) của top 5 nội dung
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <ChartContainer className="h-[300px]">
+                        <ChartContainer className="h-[300px] w-full">
                             <LineChart
                                 dataset={topPerformingData}
                                 xAxis={[{ scaleType: "point", dataKey: "title" }]}
                                 series={[
-                                    { dataKey: "views", label: "Lượt xem", color: chartColors.warning },
-                                    { dataKey: "engagement", label: "Tương tác", color: chartColors.purple },
+                                    { dataKey: "views", label: "Lượt xem (K)", color: chartColors.warning },
+                                    { dataKey: "engagementRate", label: "Tỷ lệ tương tác (%)", color: chartColors.purple },
                                 ]}
-                                width={500}
+                                width={480}
                                 height={300}
                             />
                         </ChartContainer>
@@ -282,46 +282,12 @@ export function ContentManagement() {
                 </Card>
 
                 {/* Content Management Actions */}
-                <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
-                    <CardHeader>
-                        <CardTitle className="text-gray-900 dark:text-gray-100">Thao Tác Quản Lý</CardTitle>
-                        <CardDescription className="text-gray-600 dark:text-gray-400">
-                            Các tác vụ quản lý nội dung thường dùng
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-2 gap-4">
-                            <Button variant="outline" className="h-20 flex flex-col space-y-2">
-                                <Plus className="w-6 h-6" />
-                                <span>Tạo Nội Dung</span>
-                            </Button>
-                            <Button variant="outline" className="h-20 flex flex-col space-y-2">
-                                <Edit className="w-6 h-6" />
-                                <span>Chỉnh Sửa</span>
-                            </Button>
-                            <Button variant="outline" className="h-20 flex flex-col space-y-2">
-                                <Eye className="w-6 h-6" />
-                                <span>Xem Trước</span>
-                            </Button>
-                            <Button variant="outline" className="h-20 flex flex-col space-y-2">
-                                <BarChart3 className="w-6 h-6" />
-                                <span>Phân Tích</span>
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
 
             {/* Content List */}
             <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
                 <CardHeader>
-                    <CardTitle className="flex items-center justify-between text-gray-900 dark:text-gray-100">
-                        <span>Quản Lý Nội Dung</span>
-                        <Button size="sm">
-                            <Plus className="w-4 h-4 mr-2" />
-                            Tạo Nội Dung Mới
-                        </Button>
-                    </CardTitle>
+                    <CardTitle className="text-gray-900 dark:text-gray-100">Quản Lý Nội Dung</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">

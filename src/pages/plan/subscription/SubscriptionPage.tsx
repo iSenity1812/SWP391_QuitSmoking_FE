@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Check, Crown, Star, Shield, Smartphone, Building, ChevronLeft, Sparkles, ArrowLeft } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Check, Crown, Star, Shield, Smartphone, Building, ChevronLeft, Sparkles } from "lucide-react"
 
 interface PlanOption {
     id: string
@@ -159,14 +158,10 @@ export default function SubscriptionPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 pt-20">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 pt-24">
             <div className="max-w-6xl mx-auto p-6">
                 {/* Header */}
                 <div className="mb-8">
-                    <Link to="/profile" className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 mb-4">
-                        <ArrowLeft className="w-4 h-4" />
-                        Quay lại Profile
-                    </Link>
                     <div className="text-center">
                         <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-2">Nâng Cấp Premium</h1>
                         <p className="text-xl text-slate-600 dark:text-slate-300">
