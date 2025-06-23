@@ -38,10 +38,10 @@ export const UsernameOrEmailInput: React.FC<UsernameOrEmailInputProps> = ({
             validate(e.target.value);
           }}
           className={`pr-10 ${isValid === true
-              ? "border-primary focus:ring-primary"
-              : isValid === false
-                ? "border-destructive focus:ring-destructive"
-                : ""
+            ? "border-primary focus:ring-primary"
+            : isValid === false
+              ? "border-destructive focus:ring-destructive"
+              : ""
             }`}
         />
         <AnimatePresence>

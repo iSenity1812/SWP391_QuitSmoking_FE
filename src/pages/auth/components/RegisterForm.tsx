@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { Sparkles, ArrowRight } from "lucide-react";
+import { toast } from "react-toastify";
 
 import { AuthFormProgress } from "./AuthFormProgress";
 import { UsernameInput } from "./UsernameInput";
@@ -12,11 +13,12 @@ import { PasswordInput } from "./PasswordInput";
 import { PasswordRequirements } from "./PasswordRequirements";
 import { ConfirmPasswordInput } from "./ConfirmPasswordInput";
 import { RegSubmitButton } from "./RegSubmitButton";
-import { useAuth } from "@/context/AuthContext";
-import type { RegisterRequest } from "@/types/auth"; // Import RegisterRequest type if needed
-import { toast } from "react-toastify";
+import type { RegisterRequest, ValidationApiError } from "@/types/auth";
+import { AxiosError } from "axios";
+import { useAuth } from "@/hooks/useAuth";
 
 export const RegisterForm: React.FC = () => {
+  const { register: authRegister } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,19 +36,14 @@ export const RegisterForm: React.FC = () => {
   const [hasLowercase, setHasLowercase] = useState(false);
   const [hasNumber, setHasNumber] = useState(false);
   const [hasSpecial, setHasSpecial] = useState(false);
-  const { register: authContextRegister } = useAuth(); // Assuming you have a register function in your AuthContext
 
   const validateUsername = (value: string) => {
-    const valid = value.length >= 3;
-    setIsUsernameValid(valid);
-    return valid;
+    setIsUsernameValid(value.length >= 3);
   };
 
   const validateEmail = (value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const valid = emailRegex.test(value);
-    setIsEmailValid(valid);
-    return valid;
+    setIsEmailValid(emailRegex.test(value));
   };
 
   const validatePassword = (value: string) => {
@@ -72,20 +69,16 @@ export const RegisterForm: React.FC = () => {
     if (special) strength += 20;
 
     setPasswordStrength(strength);
-    const valid = minLength && uppercase && lowercase && number && special;
-    setIsPasswordValid(valid);
+    setIsPasswordValid(minLength && uppercase && lowercase && number && special);
 
     // Also validate confirm password if it has a value
     if (confirmPassword) {
       setIsConfirmPasswordValid(confirmPassword === value);
     }
-    return valid;
   };
 
   const validateConfirmPassword = (value: string) => {
-    const valid = value === password && value !== "";
-    setIsConfirmPasswordValid(valid);
-    return valid;
+    setIsConfirmPasswordValid(value === password && value !== "");
   };
 
   const getFormProgress = () => {
@@ -98,34 +91,113 @@ export const RegisterForm: React.FC = () => {
     if (isConfirmPasswordValid) validFields++;
 
     return (validFields / totalFields) * 100;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  }; const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    // Thực hiện lại các validation cuối cùng trước khi gửi
-    const finalUsernameValid = validateUsername(username);
-    const finalEmailValid = validateEmail(email);
-    const finalPasswordValid = validatePassword(password);
-    const finalConfirmPasswordValid = validateConfirmPassword(confirmPassword);
-
-    if (!finalUsernameValid || !finalEmailValid || !finalPasswordValid || !finalConfirmPasswordValid) {
-      setIsSubmitting(false);
-      toast.error("Vui lòng điền đầy đủ thông tin hợp lệ.");
+    if (!isUsernameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
+      toast.error("Vui lòng điền đầy đủ thông tin hợp lệ!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
 
-    try {
-      const registerData: RegisterRequest = { username, email, password };
-      const response = await authContextRegister(registerData);
+    setIsSubmitting(true);
 
-      if (response.status === 200) toast.success(response.message || "Đăng ký thành công!");
-      else toast.error(response.message || "Đăng ký thất bại!");
-    } catch (err: unknown) {
-      console.error("Error during registration:", err);
-      const errorMessage = typeof err === "string" ? err : "Đã xảy ra lỗi trong quá trình đăng ký.";
-      toast.error(errorMessage);
+    try {
+      const registerData: RegisterRequest = {
+        username: username.trim(),
+        email: email.trim().toLowerCase(),
+        password: password,
+      };
+
+      // Show loading toast
+      const loadingToastId = toast.loading("Đang tạo tài khoản...", {
+        position: "top-right"
+      });
+
+      // Use AuthContext register instead of authService directly
+      const response = await authRegister(registerData);
+
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId);
+
+      if (response.status === 200 && response.data) {
+        // Registration successful
+        toast.success("🎉 Đăng ký thành công! Chào mừng bạn đến với QuitTogether!", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+
+        // Clear form
+        setUsername("");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setIsUsernameValid(null);
+        setIsEmailValid(null);
+        setIsPasswordValid(null);
+        setIsConfirmPasswordValid(null);
+
+        // AuthContext will handle navigation automatically
+        // No need to manually navigate here
+
+      } else {
+        // Server returned error response
+        toast.error(response.message || "Đăng ký thất bại. Vui lòng thử lại!", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+      }
+    } catch (error: unknown) {
+      // Dismiss any loading toast
+      toast.dismiss();
+
+      console.error("Registration error:", error);      // Handle Axios errors
+      if (error instanceof AxiosError && error.response) {
+        const status = error.response.status;
+        const errorData = error.response.data;
+
+        if (status === 400 && errorData) {
+          const validationError = errorData as ValidationApiError;
+
+          if (validationError.error && typeof validationError.error === 'object') {
+            // Handle field-specific validation errors
+            Object.entries(validationError.error).forEach(([field, message]) => {
+              toast.error(`${field}: ${message}`, {
+                position: "top-right",
+                autoClose: 4000,
+              });
+            });
+          } else {
+            toast.error(validationError.message || "Dữ liệu không hợp lệ!", {
+              position: "top-right",
+              autoClose: 4000,
+            });
+          }
+        } else if (status === 409) {
+          // Conflict - usually duplicate email/username
+          toast.error("Email hoặc tên người dùng đã tồn tại!", {
+            position: "top-right",
+            autoClose: 4000,
+          });
+        } else if (status >= 500) {
+          toast.error("Lỗi server! Vui lòng thử lại sau.", {
+            position: "top-right",
+            autoClose: 4000,
+          });
+        } else {
+          toast.error("Đăng ký thất bại! Vui lòng kiểm tra thông tin.", {
+            position: "top-right",
+            autoClose: 4000,
+          });
+        }
+      } else {
+        toast.error("Đăng ký thất bại! Vui lòng kiểm tra kết nối mạng.", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }

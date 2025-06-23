@@ -96,15 +96,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 </Button>
             </div>
 
-            {/* Debug info */}
-            {process.env.NODE_ENV === "development" && (
-                <div className="w-full mb-4 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
-                    <p>Debug: BlogId = {blogId}</p>
-                    <p>Total comments: {comments.length}</p>
-                    <p>Root comments: {rootComments.length}</p>
-                    <p>Comments for this blog: {comments.filter((c) => c.blogId === blogId).length}</p>
-                </div>
-            )}
+
 
             {/* Danh sách bình luận */}
             <div className="w-full space-y-4">

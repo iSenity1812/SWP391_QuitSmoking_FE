@@ -1,67 +1,158 @@
-import React from "react";
-import ClientLayout from "@/layouts/ClientLayout";
-import { LandingPage } from "@/pages/Landing/LandingPage";
-import LoginPage from "@/pages/auth/LoginPage";
-import RegisterPage from "@/pages/auth/RegisterPage";
-import BlogPage from "@/pages/blog/BlogPage";
-import AboutPage from "@/pages/about/AboutPage";
-import PlanPage from "@/pages/plan/PlanPage";
-import { PlanSelectionDirectPage } from "@/pages/plan-selection/PlanDirectPage";
-import AdminPage from "@/pages/admin/AdminPage";
-import type { Role } from "@/types/auth";
-import { PublicRoute } from "@/pages/auth/PublicRoute";
-import { PrivateRoute } from "@/pages/auth/PrivateRoute";
+import { Routes, Route } from "react-router-dom"
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
+import { AuthRedirect } from "@/components/auth/AuthRedirect"
 
-export interface AppRoute {
-    path: string;
-    element: React.ReactNode;
-    isPrivate?: boolean;
-    allowedRoles?: Role[];
-    isPublic?: boolean;
-    layout?: React.ComponentType<{ children: React.ReactNode }>;
-    children?: AppRoute[];
+// Public pages
+import { LandingPage } from "@/pages/Landing/LandingPage"
+import BlogPage from "@/pages/blog/BlogPage"
+import AboutPage from "@/pages/about/AboutPage"
+import LoginPage from "@/pages/auth/LoginPage"
+import RegisterPage from "@/pages/auth/RegisterPage"
+import { OnboardingPage } from "@/pages/onboarding/onBoardingPage"
+import { PlanSelectionDirectPage } from "@/pages/plan-selection/PlanDirectPage"
+
+// Protected pages
+import PlanPage from "@/pages/plan/PlanPage"
+import UserProfilePage from "@/pages/user/userProfilePage"
+import SubscriptionPage from "@/pages/plan/subscription/SubscriptionPage"
+
+// Role-specific pages
+import AdminPage from "@/pages/admin/AdminPage"
+import CoachPage from "@/pages/coach/CoachPage"
+import ContentAdminPage from "@/pages/admin/content/ContentAdminPage"
+
+// Test components (remove in production)
+import { RouteTestDashboard } from "@/components/auth/RouteTestDashboard"
+
+export function AppRoutes() {
+    return (
+        <Routes>
+            {/* Public Routes - accessible by guests and members only (NOT admin/coach except blog for coach) */}      <Route
+                path="/"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+                        requireAuth={false}
+                    >
+                        <LandingPage />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/about"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+                        requireAuth={false}
+                    >
+                        <AboutPage />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Blog - accessible by guests, members, and coaches */}
+            <Route
+                path="/blog"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER', 'COACH']}
+                        requireAuth={false}
+                    >
+                        <BlogPage />
+                    </ProtectedRoute>
+                }
+            />{/* Auth routes - prevent authenticated users from accessing */}
+            <Route path="/login" element={<AuthRedirect><LoginPage /></AuthRedirect>} />
+            <Route path="/register" element={<AuthRedirect><RegisterPage /></AuthRedirect>} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/plan-selection" element={<PlanSelectionDirectPage />} />
+
+            {/* Protected Routes - Require Authentication */}
+            <Route
+                path="/profile"
+                element={
+                    <ProtectedRoute requireAuth={true}>
+                        <UserProfilePage />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Member Routes - NORMAL_MEMBER & PREMIUM_MEMBER */}
+            <Route
+                path="/plan"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+                        requireAuth={true}
+                    >
+                        <PlanPage />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/subscription"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+                        requireAuth={true}
+                    >
+                        <SubscriptionPage />
+                    </ProtectedRoute>
+                }
+            />      {/* Admin Routes - SUPER_ADMIN only */}
+            <Route
+                path="/admin/*"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={['SUPER_ADMIN']}
+                        requireAuth={true}
+                        redirectTo="/login"
+                    >
+                        <AdminPage />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Coach Routes - COACH only */}
+            <Route
+                path="/coach/*"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={['COACH']}
+                        requireAuth={true}
+                        redirectTo="/login"
+                    >
+                        <CoachPage />
+                    </ProtectedRoute>
+                }
+            />
+
+            {/* Content Admin Routes - CONTENT_ADMIN only */}
+            <Route
+                path="/contentadmin/*"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={['CONTENT_ADMIN']}
+                        requireAuth={true}
+                        redirectTo="/login"
+                    >
+                        <ContentAdminPage />
+                    </ProtectedRoute>
+                }
+            />{/* Catch all - 404 or redirect to home */}
+            <Route path="*" element={<LandingPage />} />
+
+            {/* Development/Testing Route - Remove in production */}
+            <Route
+                path="/route-test"
+                element={
+                    <ProtectedRoute requireAuth={true}>
+                        <RouteTestDashboard />
+                    </ProtectedRoute>
+                }
+            />
+        </Routes>
+    )
 }
-
-export const appRoutes: AppRoute[] = [
-    {
-        path: '/',
-        element: <LandingPage />,
-        layout: ClientLayout,
-    },
-    // Nhóm các route công khai (chỉ khi chưa đăng nhập)
-    {
-        path: '/', // Path này là cha, không hiển thị gì cả, chỉ để bọc các route con
-        element: <PublicRoute />, // PublicRoute sẽ render Outlet
-        children: [
-            { path: 'login', element: <LoginPage />, layout: ClientLayout }, // Áp dụng ClientLayout nếu cần
-            { path: 'register', element: <RegisterPage />, layout: ClientLayout }, // Áp dụng ClientLayout nếu cần
-            // ... thêm các route công khai khác
-        ]
-    },
-    {
-        path: '/blog',
-        element: <BlogPage />,
-    },
-    {
-        path: '/about',
-        element: <AboutPage />,
-    },
-    // Nhóm các route riêng tư
-    {
-        path: '/', // Path này là cha
-        element: <PrivateRoute allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER', 'SUPER_ADMIN', 'CONTENT_ADMIN']} />, // PrivateRoute sẽ render Outlet, bạn có thể truyền tất cả roles vào đây hoặc để mặc định trong PrivateRoute
-        children: [
-            { path: 'plan', element: <PlanPage />, allowedRoles: ['NORMAL_MEMBER', 'PREMIUM_MEMBER'] },
-            { path: 'plan-selection', element: <PlanSelectionDirectPage />, allowedRoles: ['NORMAL_MEMBER', 'PREMIUM_MEMBER'] },
-            // ... thêm các route riêng tư khác
-        ]
-    },
-    // Route admin riêng biệt nếu logic quá khác biệt
-    {
-        path: '/admin', // Đường dẫn cho các route admin
-        element: <PrivateRoute allowedRoles={['SUPER_ADMIN', 'CONTENT_ADMIN']} />,
-        children: [
-            { path: '*', element: <AdminPage /> }, // AdminPage sẽ xử lý các route con của /admin/*
-        ]
-    }
-]

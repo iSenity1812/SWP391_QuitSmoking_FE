@@ -1,97 +1,74 @@
-// src/api/axiosConfig.ts
 import axios from 'axios';
 
-// Đặt base URL của API backend của bạn
-// Khuyến nghị sử dụng biến môi trường cho việc này
-const API_BASE_URL = 'http://localhost:8080/api';
-
-// Tạo một instance Axios tùy chỉnh
 const axiosConfig = axios.create({
-    baseURL: API_BASE_URL,
-    timeout: 10000, // Thời gian chờ (10 giây)
+    baseURL: 'http://localhost:8080/api', // Thay doi sau
+    timeout: 10000, // 10 seconds timeout
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-    },
+    }
 });
-
-axiosConfig.interceptors.request.use(
-    (config) => {
-        console.log(`Making request to: ${config.baseURL}${config.url}`)
-
-        const publicEndpoints = [
-            "/blogs", // GET blogs - public
-            "/auth/login",
-            "/auth/register",
-            "/comments"
-        ]
-
-        // Kiểm tra xem có phải endpoint public không
-        const isPublicEndpoint = publicEndpoints.some((endpoint) => config.url?.includes(endpoint))
-        const isGetRequest = config.method?.toLowerCase() === "get"
-
-        // Chỉ thêm token cho các endpoint private hoặc non-GET requests
-        if (!isPublicEndpoint || !isGetRequest) {
-            const token = localStorage.getItem("jwtToken")
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`
-            }
-        }
-
-        return config
-    },
-    (error) => {
-        console.error("Request interceptor error:", error)
-        return Promise.reject(error)
-    },
-)
 
 // Thêm Request Interceptor: Thêm JWT token vào header cho mỗi request
 axiosConfig.interceptors.request.use(
     (config) => {
         const isAuthEndpoint = config.url?.includes('/auth/login') || config.url?.includes('/auth/register');
         if (!isAuthEndpoint) {
-            const token = localStorage.getItem('jwtToken'); // Lấy token từ localStorage
+            const token = localStorage.getItem('jwt_token'); // Lấy token từ localStorage
             if (token) {
-                config.headers.Authorization = `Bearer ${token}`; // Thêm token vào header Authorization
+                config.headers['Authorization'] = `Bearer ${token}`; // Thêm token vào header
             }
         }
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
+    (err) => {
+        return Promise.reject(err);
     }
 );
 
-// Thêm Response Interceptor: Xử lý lỗi chung (ví dụ: 401 Unauthorized, 403 Forbidden)
+// Thêm Response Interceptor: Xử lý lỗi chung (ví dụ: 401 Unauthorized, 403 Forbidden, 500 Internal Server Error)
 axiosConfig.interceptors.response.use(
     (response) => {
-        // Nếu phản hồi thành công, trả về dữ liệu
+        // Trả về response nếu không có lỗi
         return response;
     },
-    (error) => {
-        // Xử lý lỗi HTTP
-        if (axios.isAxiosError(error) && error.response) {
-            // if (status === 401) {
-            //   // Lỗi Unauthorized: Token hết hạn hoặc không hợp lệ
-            //   // Đăng xuất người dùng hoặc chuyển hướng đến trang đăng nhập
-            //   console.error('Unauthorized: Token expired or invalid. Redirecting to login...');
-            //   localStorage.removeItem('jwtToken'); // Xóa token cũ
-            //   localStorage.removeItem('userInfo');
-            //   // Điều hướng người dùng về trang đăng nhập
-            //   window.location.href = '/login'; // Hoặc sử dụng history.push nếu dùng React Router
-            // } else if (status === 403) {
-            //   // Lỗi Forbidden: Người dùng không có quyền truy cập
-            //   console.error('Forbidden: You do not have permission to access this resource.');
-            //   // Có thể điều hướng đến trang "Access Denied"
-            //   window.location.href = '/unauthorized';
-            // }
-            // Các lỗi khác có thể xử lý ở đây (ví dụ: 500 Internal Server Error)
-            //Trả về lỗi để các component gọi API có thể bắt và xử lý cụ thể
-            return Promise.reject(error.response.data); // Trả về data của lỗi từ backend (ApiResponse)
+    (err) => {
+        if (err.response) {
+            // Xử lý lỗi dựa trên mã trạng thái HTTP
+            switch (err.response.status) {
+                case 401:
+                    console.error('Unauthorized access - redirecting to login');
+                    // Có thể redirect đến trang login hoặc thông báo lỗi
+                    break;
+                case 403:
+                    console.error('Forbidden access - you do not have permission');
+                    // Có thể thông báo cho người dùng rằng họ không có quyền truy cập
+                    break;
+                case 404:
+                    console.error('Resource not found - check the URL');
+                    // Có thể thông báo cho người dùng rằng tài nguyên không tồn tại
+                    break;
+                case 500:
+                    console.error('Internal Server Error - please try again later');
+                    // Có thể thông báo cho người dùng rằng có lỗi máy chủ
+                    break;
+                case 503:
+                    console.error('Service Unavailable - server is down or overloaded');
+                    // Có thể thông báo cho người dùng rằng dịch vụ hiện không khả dụng
+                    break;
+                case 400:
+                    console.error('Bad Request - check your input');
+                    // Có thể thông báo cho người dùng rằng yêu cầu không hợp lệ
+                    break;
+                default:
+                    console.error('An error occurred:', err.response.data);
+            }
+        } else {
+            console.error('Network error or server is down:', err.message);
         }
-        // Nếu không phải lỗi Axios hoặc không có response, trả về lỗi nguyên bản
-        return Promise.reject(error);
+        //Trả về lỗi để các component gọi API có thể bắt và xử lý cụ thể
+        return Promise.reject(err);
     }
-);
+)
+
 export default axiosConfig;

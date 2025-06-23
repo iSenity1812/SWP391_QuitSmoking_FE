@@ -50,7 +50,7 @@ const BlogPage: React.FC = () => {
 
     // Set mock user on component mount
     useEffect(() => {
-        const userInfoString = localStorage.getItem("userInfo");
+        const userInfoString = localStorage.getItem("user_info");
         if (userInfoString) {
             try {
                 const accountData = JSON.parse(userInfoString);

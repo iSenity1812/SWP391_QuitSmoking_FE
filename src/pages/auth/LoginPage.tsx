@@ -13,7 +13,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 import type { ApiResponse, LoginRequest } from "@/types/auth"; // Import LoginRequest và các type liên quan nếu cần
 import { toast } from "react-toastify";
-import { useAuth } from "@/context/AuthContext"
+import { useAuth } from "@/hooks/useAuth";
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState(""); // Đổi tên thành email để khớp với LoginRequest
@@ -77,7 +77,7 @@ export const LoginForm: React.FC = () => {
         "message" in err   // Kiểm tra một thuộc tính khác
       ) {
         // Ép kiểu err thành ApiResponse để TypeScript biết các thuộc tính của nó
-        const apiError = err as ApiResponse<any>;
+        const apiError = err as ApiResponse<unknown>;
 
         if (apiError.error) {
           if (typeof apiError.error === 'string') {
@@ -202,7 +202,7 @@ export default function LoginPage() {
           transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
           className="mb-8 text-center"
         >
-          <h1 className="text-4xl font-bold text-primary mb-2">Welcome back</h1>
+          <h1 className="text-4xl font-bold text-primary mb-2">Chào mừng trở lại</h1>
           <p className="text-muted-foreground">Your journey to a smoke-free life begins here</p>
         </motion.div>
 

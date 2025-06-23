@@ -13,7 +13,7 @@ import { NavItem } from "@/components/ui/nav-item";
 import { ThemeToggle } from "./ThemeToggle";
 import { Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { UserDropdown } from "@/pages/auth/components/UserDropdown";
 
 const navLinks = [
