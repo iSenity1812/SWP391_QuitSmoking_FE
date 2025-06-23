@@ -7,8 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import type { BlogFormData, UserRole } from "../types/blog-types"
-import { getPublishingMessage } from "../utils/blog-utils"
+
+// Define the correct UserRole type to match the backend
+type UserRole = "NORMAL_MEMBER" | "PREMIUM_MEMBER" | "COACH" | "CONTENT_ADMIN" | "SUPER_ADMIN"
+
+interface BlogFormData {
+    title: string
+    content: string
+}
 
 interface BlogFormDialogProps {
     isOpen: boolean
@@ -17,6 +23,18 @@ interface BlogFormDialogProps {
     initialData?: BlogFormData
     isEdit?: boolean
     currentUserRole?: UserRole
+    loading?: boolean
+}
+
+const getPublishingMessage = (role: UserRole): string => {
+    switch (role) {
+        case "COACH":
+            return "Bài viết của Coach sẽ được gửi để phê duyệt trước khi xuất bản."
+        case "CONTENT_ADMIN":
+            return "Bài viết sẽ được xuất bản ngay lập tức."
+        default:
+            return "Bài viết sẽ được xuất bản ngay lập tức."
+    }
 }
 
 const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
@@ -26,6 +44,7 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
     initialData,
     isEdit = false,
     currentUserRole,
+    loading = false,
 }) => {
     const [formData, setFormData] = useState<BlogFormData>(
         initialData || {
@@ -73,9 +92,9 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
                             className="min-h-[200px]"
                         />
                     </div>
-                    {currentUserRole === "Coach" && !isEdit && (
+                    {currentUserRole === "COACH" && !isEdit && (
                         <div className="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 p-3 rounded-lg">
-                            <strong>Lưu ý:</strong> {getPublishingMessage("Coach")}
+                            <strong>Lưu ý:</strong> {getPublishingMessage("COACH")}
                         </div>
                     )}
                     {isEdit && (
@@ -88,8 +107,8 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
                     <Button variant="outline" onClick={onClose}>
                         Hủy
                     </Button>
-                    <Button onClick={handleSubmit} disabled={!formData.title.trim() || !formData.content.trim()}>
-                        {isEdit ? "Cập nhật bài viết" : "Tạo bài viết"}
+                    <Button onClick={handleSubmit} disabled={!formData.title.trim() || !formData.content.trim() || loading}>
+                        {loading ? "Đang xử lý..." : isEdit ? "Cập nhật bài viết" : "Tạo bài viết"}
                     </Button>
                 </div>
             </DialogContent>
