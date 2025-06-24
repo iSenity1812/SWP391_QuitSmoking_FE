@@ -11,6 +11,7 @@ import type {
 export class BlogService {
     private static readonly BASE_PATH = "/blogs"
     private static readonly MY_PATH = "/my-blogs"
+    private static readonly ADMIN_PATH = "/admin"
 
     /**
      * Get all blogs - PUBLIC endpoint
@@ -140,93 +141,218 @@ export class BlogService {
             likeCount: 0,
             commentCount: dto.commentCount || 0,
             comments: dto.comments || [], // Include comments from backend
-        };
+        }
     }
 
     static async getMyBlogs(
         // Giữ lại các tham số phân trang nếu bạn muốn có khả năng kiểm soát trên frontend
         // Mặc dù kết quả cuối cùng là một mảng phẳng.
-        page: number = 0,
-        size: number = 10,
-        sort: string = "createdAt,desc"
-    ): Promise<BlogPost[]> { // Thay đổi kiểu trả về sang Promise<FrontendBlogPost[]>
+        page = 0,
+        size = 10,
+        sort = "createdAt,desc",
+    ): Promise<BlogPost[]> {
+        // Thay đổi kiểu trả về sang Promise<FrontendBlogPost[]>
         try {
             // Sử dụng this.BASE_PATH và this.MY_PATH để tạo URL đầy đủ
-            console.log("Fetching my blogs from:", `${axiosConfig.defaults.baseURL}${this.BASE_PATH}${this.MY_PATH}`);
+            console.log("Fetching my blogs from:", `${axiosConfig.defaults.baseURL}${this.BASE_PATH}${this.MY_PATH}`)
 
             // Backend trả về ApiResponse<Page<BlogResponseDTO>>
             const response = await axiosConfig.get<ApiResponse<SpringPageResponse<BlogResponseDTO>>>(
                 `${this.BASE_PATH}${this.MY_PATH}`, // Kết hợp BASE_PATH và MY_PATH
                 {
                     params: { page, size, sort }, // Truyền các tham số phân trang
-                }
-            );
-            console.log("Raw response (MyBlogs):", response.data);
+                },
+            )
+            console.log("Raw response (MyBlogs):", response.data)
 
             if (response.data.success === false) {
-                throw new Error(response.data.message || "Lỗi gọi API khi lấy bài viết của tôi.");
+                throw new Error(response.data.message || "Lỗi gọi API khi lấy bài viết của tôi.")
             }
 
-            const pageData = response.data.data;
-            console.log("Page data (MyBlogs):", pageData);
+            const pageData = response.data.data
+            console.log("Page data (MyBlogs):", pageData)
 
             if (!pageData) {
-                console.warn("Không có dữ liệu trang trong phản hồi (MyBlogs).");
-                return []; // Trả về mảng rỗng nếu không có dữ liệu
+                console.warn("Không có dữ liệu trang trong phản hồi (MyBlogs).")
+                return [] // Trả về mảng rỗng nếu không có dữ liệu
             }
 
-            let blogs: BlogPost[] = [];
+            let blogs: BlogPost[] = []
 
             // Backend của /my-blogs trả về SpringPageResponse, nên tập trung vào pageData.content
             if (Array.isArray(pageData.content)) {
-                console.log("Phản hồi là đối tượng phân trang với content là mảng (MyBlogs).");
-                blogs = pageData.content.map(BlogService.mapBlogDtoToFrontendBlog);
+                console.log("Phản hồi là đối tượng phân trang với content là mảng (MyBlogs).")
+                blogs = pageData.content.map(BlogService.mapBlogDtoToFrontendBlog)
             }
             // Trường hợp dự phòng nếu backend trả về thẳng một mảng (ít xảy ra với Spring Page)
             else if (Array.isArray(pageData)) {
-                console.warn("[MyBlogs] Backend trả về mảng trực tiếp, không phải SpringPageResponse. Vui lòng kiểm tra backend.");
-                blogs = pageData.map(BlogService.mapBlogDtoToFrontendBlog);
+                console.warn(
+                    "[MyBlogs] Backend trả về mảng trực tiếp, không phải SpringPageResponse. Vui lòng kiểm tra backend.",
+                )
+                blogs = pageData.map(BlogService.mapBlogDtoToFrontendBlog)
             } else {
-                console.warn("[MyBlogs] Dữ liệu phản hồi không phù hợp với cấu trúc mong đợi:", pageData);
+                console.warn("[MyBlogs] Dữ liệu phản hồi không phù hợp với cấu trúc mong đợi:", pageData)
                 // Trường hợp này có thể xảy ra nếu backend trả về một đối tượng khác không có 'content'
                 // hoặc 'content' không phải mảng. Chúng ta sẽ trả về mảng rỗng.
-                return [];
+                return []
             }
 
-            console.log("Converted blogs (MyBlogs):", blogs);
-            return blogs; // Trả về mảng BlogPost đã được "lấy phẳng"
-
+            console.log("Converted blogs (MyBlogs):", blogs)
+            return blogs // Trả về mảng BlogPost đã được "lấy phẳng"
         } catch (error: any) {
-            console.error("Lỗi khi lấy bài viết của tôi:", error);
+            console.error("Lỗi khi lấy bài viết của tôi:", error)
 
             // Xử lý lỗi chi tiết tương tự getAllBlogs
             if (error.response) {
-                console.error("Response error (MyBlogs):", error.response.status, error.response.data);
+                console.error("Response error (MyBlogs):", error.response.status, error.response.data)
 
                 if (error.response.status === 403) {
                     throw new Error(
-                        "Backend không cho phép truy cập endpoint /my-blogs. Vui lòng kiểm tra cấu hình Spring Security cho endpoint này."
-                    );
+                        "Backend không cho phép truy cập endpoint /my-blogs. Vui lòng kiểm tra cấu hình Spring Security cho endpoint này.",
+                    )
                 }
 
                 if (error.response.status === 404) {
-                    throw new Error("Endpoint /api/blogs/my-blogs không tồn tại. Vui lòng kiểm tra backend.");
+                    throw new Error("Endpoint /api/blogs/my-blogs không tồn tại. Vui lòng kiểm tra backend.")
                 }
 
                 if (error.response.data?.message) {
-                    throw new Error(`Lỗi Backend: ${error.response.data.message}`);
+                    throw new Error(`Lỗi Backend: ${error.response.data.message}`)
                 }
             }
 
             if (error.code === "ERR_NETWORK") {
-                throw new Error("Không thể kết nối tới backend. Vui lòng kiểm tra backend có đang chạy không.");
+                throw new Error("Không thể kết nối tới backend. Vui lòng kiểm tra backend có đang chạy không.")
             }
 
-            throw error;
+            throw error
         }
     }
 
+    /**
+     * Get all blogs for admin (including PENDING, REJECTED) - REQUIRES CONTENT_ADMIN
+     */
+    static async getAllBlogsForAdmin(
+        page = 0,
+        size = 100,
+        sort = "createdAt,desc",
+    ): Promise<SpringPageResponse<BlogPost>> {
+        try {
+            console.log(
+                "Fetching all blogs for admin from:",
+                `${axiosConfig.defaults.baseURL}${this.BASE_PATH}${this.ADMIN_PATH}/all`,
+            )
 
+            const response = await axiosConfig.get<ApiResponse<SpringPageResponse<BlogResponseDTO>>>(
+                `${this.BASE_PATH}${this.ADMIN_PATH}/all`,
+                {
+                    params: { page, size, sort },
+                },
+            )
+
+            console.log("Raw admin blogs response:", response.data)
+
+            if (response.data.success === false) {
+                throw new Error(response.data.message || "Failed to get admin blogs")
+            }
+
+            const pageData = response.data.data
+            if (!pageData) {
+                throw new Error("No page data in admin blogs response")
+            }
+
+            // Convert BlogResponseDTO[] to BlogPost[]
+            const blogs: BlogPost[] = pageData.content.map(this.mapBlogDtoToFrontendBlog)
+
+            // Return SpringPageResponse with converted blogs
+            const result: SpringPageResponse<BlogPost> = {
+                ...pageData,
+                content: blogs,
+            }
+
+            console.log("Converted admin blogs:", result)
+            return result
+        } catch (error: any) {
+            console.error("Error fetching admin blogs:", error)
+
+            if (error.response) {
+                if (error.response.status === 403) {
+                    throw new Error(
+                        "Bạn không có quyền truy cập chức năng này. Chỉ Content Admin mới có thể xem tất cả bài viết.",
+                    )
+                }
+                if (error.response.data?.message) {
+                    throw new Error(`Backend error: ${error.response.data.message}`)
+                }
+            }
+
+            throw error
+        }
+    }
+
+    /**
+     * Approve a blog - REQUIRES CONTENT_ADMIN
+     */
+    static async approveBlog(id: number): Promise<BlogPost> {
+        try {
+            console.log(`Approving blog ${id}`)
+
+            const response = await axiosConfig.put<ApiResponse<BlogResponseDTO>>(`${this.BASE_PATH}/${id}/approve`)
+
+            if (response.data.success === false) {
+                throw new Error(response.data.message || "Failed to approve blog")
+            }
+
+            const dto = response.data.data
+            return this.mapBlogDtoToFrontendBlog(dto)
+        } catch (error: any) {
+            console.error(`Error approving blog ${id}:`, error)
+
+            if (error.response) {
+                if (error.response.status === 403) {
+                    throw new Error("Bạn không có quyền duyệt bài viết. Chỉ Content Admin mới có thể duyệt bài viết.")
+                }
+                if (error.response.data?.message) {
+                    throw new Error(`Backend error: ${error.response.data.message}`)
+                }
+            }
+
+            throw error
+        }
+    }
+
+    /**
+     * Reject a blog - REQUIRES CONTENT_ADMIN
+     */
+    static async rejectBlog(id: number, adminNotes?: string): Promise<BlogPost> {
+        try {
+            console.log(`Rejecting blog ${id} with notes:`, adminNotes)
+
+            const response = await axiosConfig.put<ApiResponse<BlogResponseDTO>>(`${this.BASE_PATH}/${id}/reject`, null, {
+                params: adminNotes ? { adminNotes } : {},
+            })
+
+            if (response.data.success === false) {
+                throw new Error(response.data.message || "Failed to reject blog")
+            }
+
+            const dto = response.data.data
+            return this.mapBlogDtoToFrontendBlog(dto)
+        } catch (error: any) {
+            console.error(`Error rejecting blog ${id}:`, error)
+
+            if (error.response) {
+                if (error.response.status === 403) {
+                    throw new Error("Bạn không có quyền từ chối bài viết. Chỉ Content Admin mới có thể từ chối bài viết.")
+                }
+                if (error.response.data?.message) {
+                    throw new Error(`Backend error: ${error.response.data.message}`)
+                }
+            }
+
+            throw error
+        }
+    }
 
     /**
      * Get a blog by ID - PUBLIC endpoint

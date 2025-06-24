@@ -179,7 +179,7 @@ const BlogPage: React.FC = () => {
         }
 
         if (currentUser.role === "CONTENT_ADMIN") {
-            alert("Content Admin không có quyền tạo bài viết.")
+            alert("Content Admin không quyền tạo bài viết.")
             return
         }
 

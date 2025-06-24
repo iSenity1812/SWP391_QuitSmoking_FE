@@ -11,7 +11,6 @@ import type {
   CreateBlogRequest,
   UpdateBlogRequest,
 } from "@/types/blog"
-import { el } from "date-fns/locale"
 
 // Hook để lấy published blogs (public) - using getAllBlogs and filtering
 export const useBlogPosts = (params?: BlogListParams) => {
@@ -118,12 +117,12 @@ export const useMyBlogs = (authorId: string, params?: BlogListParams) => {
   const [error, setError] = useState<string | null>(null)
 
   const fetchMyBlogs = async () => {
-    console.log(`[useMyBlogs] Attempting to fetch blogs for authorId: ${authorId}`); // This is what you need to see
+    console.log(`[useMyBlogs] Attempting to fetch blogs for authorId: ${authorId}`) // This is what you need to see
     setLoading(true)
     setError(null)
     try {
       const blogs = await BlogService.getBlogsByAuthor(authorId)
-      console.log("[useMyBlogs] Fetched blogs (all statuses from service):", blogs); // Thêm dòng này nếu chưa có
+      console.log("[useMyBlogs] Fetched blogs (all statuses from service):", blogs) // Thêm dòng này nếu chưa có
 
       // Create a mock SpringPageResponse structure
       const mockResponse: SpringPageResponse<BlogPost> = {
@@ -157,18 +156,18 @@ export const useMyBlogs = (authorId: string, params?: BlogListParams) => {
 
   useEffect(() => {
     if (authorId) {
-      console.log(`[useMyBlogs] useEffect triggered for authorId: ${authorId}`); // Add this
+      console.log(`[useMyBlogs] useEffect triggered for authorId: ${authorId}`) // Add this
       fetchMyBlogs()
     } else {
-      console.log("[useMyBlogs] useEffect triggered but authorId is falsy, not fetching."); // Add this
+      console.log("[useMyBlogs] useEffect triggered but authorId is falsy, not fetching.") // Add this
     }
   }, [authorId, JSON.stringify(params)])
 
   return { data, loading, error, refetch: fetchMyBlogs }
 }
 
-// Hook cho admin - lấy tất cả blogs
-export const useAdminBlogs = (params?: BlogListParams) => {
+// Hook cho admin - lấy tất cả blogs (bao gồm PENDING, REJECTED)
+export const useAdminBlogs = (params?: BlogListParams & { status?: BlogStatus }) => {
   const [data, setData] = useState<SpringPageResponse<BlogPost> | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -177,33 +176,41 @@ export const useAdminBlogs = (params?: BlogListParams) => {
     setLoading(true)
     setError(null)
     try {
-      const blogs = await BlogService.getAllBlogs()
+      console.log("Fetching admin blogs with params:", params)
 
-      // Create a mock SpringPageResponse structure
-      const mockResponse: SpringPageResponse<BlogPost> = {
-        content: blogs,
-        totalElements: blogs.length,
-        totalPages: Math.ceil(blogs.length / 10),
-        size: 10,
-        number: 0,
-        first: true,
-        last: true,
-        numberOfElements: blogs.length,
-        empty: blogs.length === 0,
-        pageable: {
-          sort: { empty: true, sorted: false, unsorted: true },
-          offset: 0,
-          pageSize: 10,
-          pageNumber: 0,
-          paged: true,
-          unpaged: false,
-        },
-        sort: { empty: true, sorted: false, unsorted: true },
+      const response = await BlogService.getAllBlogsForAdmin(
+        params?.page || 0,
+        params?.size || 100,
+        params?.sort || "createdAt,desc",
+      )
+
+      // Apply status filter if provided
+      let filteredContent = response.content
+      if (params?.status) {
+        filteredContent = response.content.filter((blog) => blog.status === params.status)
       }
 
-      setData(mockResponse)
+      // Apply search filter if provided
+      if (params?.keyword) {
+        filteredContent = filteredContent.filter(
+          (blog) =>
+            blog.title.toLowerCase().includes(params.keyword!.toLowerCase()) ||
+            blog.content.toLowerCase().includes(params.keyword!.toLowerCase()),
+        )
+      }
+
+      const filteredResponse: SpringPageResponse<BlogPost> = {
+        ...response,
+        content: filteredContent,
+        totalElements: filteredContent.length,
+        numberOfElements: filteredContent.length,
+        empty: filteredContent.length === 0,
+      }
+
+      setData(filteredResponse)
     } catch (err: any) {
-      setError(err.message || "Có lỗi xảy ra khi tải blog")
+      console.error("Error fetching admin blogs:", err)
+      setError(err.message || "Có lỗi xảy ra khi tải blog cho admin")
     } finally {
       setLoading(false)
     }
@@ -328,7 +335,7 @@ export const useBlogActions = () => {
   return { createBlog, updateBlog, deleteBlog, loading, error }
 }
 
-// Hook cho admin actions - placeholder for future implementation
+// Hook cho admin actions - approve/reject blogs
 export const useAdminBlogActions = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -337,9 +344,8 @@ export const useAdminBlogActions = () => {
     setLoading(true)
     setError(null)
     try {
-      // This would need to be implemented in your BlogService
-      console.log("Approve blog functionality not yet implemented")
-      return null
+      const blog = await BlogService.approveBlog(id)
+      return blog
     } catch (err: any) {
       setError(err.message || "Có lỗi xảy ra khi duyệt blog")
       throw err
@@ -352,9 +358,8 @@ export const useAdminBlogActions = () => {
     setLoading(true)
     setError(null)
     try {
-      // This would need to be implemented in your BlogService
-      console.log("Reject blog functionality not yet implemented")
-      return null
+      const blog = await BlogService.rejectBlog(id, adminNotes)
+      return blog
     } catch (err: any) {
       setError(err.message || "Có lỗi xảy ra khi từ chối blog")
       throw err

@@ -11,7 +11,8 @@ import { CustomerManagement } from "./components/CustomerManagement"
 import { CommunicationCenter } from "./components/CommunicationCenter"
 import { CoachProfile } from "./components/CoachProfile"
 import { CoachBlogManagement } from "./components/CoachBlogManagement"
-import { AppointmentScheduler } from "./components/AppointmentScheduler"
+// import { AppointmentScheduler } from "./components/AppointmentScheduler"
+// import { AppointmentScheduler } from "./components/AppointmentSchedulerNew"
 
 export default function CoachDashboard() {
     const [activeTab, setActiveTab] = useState("overview")
@@ -23,7 +24,7 @@ export default function CoachDashboard() {
         { id: "customers", label: "Quản Lý Khách Hàng", icon: Users },
         { id: "appointments", label: "Lịch Hẹn", icon: Calendar },
         { id: "communication", label: "Giao Tiếp", icon: MessageSquare },
-        { id: "blog", label: "Quản Lý Blog", icon: BookOpen },
+        { id: "blog", label: "Blog", icon: BookOpen },
         { id: "profile", label: "Hồ Sơ Cá Nhân", icon: User },
     ]
 
@@ -33,8 +34,8 @@ export default function CoachDashboard() {
                 return <CoachOverview />
             case "customers":
                 return <CustomerManagement />
-            case "appointments":
-                return <AppointmentScheduler />
+            // case "appointments":
+            //     return <AppointmentScheduler />
             case "communication":
                 return <CommunicationCenter />
             case "blog":

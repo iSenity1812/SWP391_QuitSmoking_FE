@@ -1,518 +1,512 @@
 "use client"
+import { useState, useEffect } from "react"
+import { AnimatedSection } from "@/components/ui/AnimatedSection"
+import { useBlogPosts, useBlogActions, useMyBlogs } from "@/hooks/use-blogs"
+import { commentService } from "@/services/commentService"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser } from "@/types/blog"
+import type { CommentRequestDTO, CommentResponseDTO, CommentApiResponse } from "@/types/comment"
+import { Search } from "lucide-react"
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+// Components
+import BlogPostList from "@/pages/blog/components/BlogPostList"
+import BlogPostDetail from "@/pages/blog/components/BlogPostDetail"
+import UserAuthSection from "@/pages/blog/components/UserAuthSection"
+import MyPostsList from "@/pages/blog/components/MyPostList"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-    BookOpen,
-    Plus,
-    Edit,
-    Trash2,
-    Eye,
-    MessageSquare,
-    Heart,
-    Search,
-    Clock,
-    CheckCircle,
-    TrendingUp,
-} from "lucide-react"
 
-interface BlogPost {
-    id: number
+// Dialogs
+import LoginPromptDialog from "@/pages/blog/dialogs/LoginPromptDialog"
+import BlogFormDialog from "@/pages/blog/dialogs/BlogFormDialog"
+import DeleteConfirmDialog from "@/pages/blog/dialogs/DeleteConfirmDialog"
+
+// Form data interfaces
+interface BlogFormData {
     title: string
     content: string
-    excerpt: string
-    status: "draft" | "pending" | "published" | "rejected"
-    createdAt: string
-    updatedAt?: string
-    views: number
-    likes: number
-    comments: number
-    tags: string[]
 }
 
-interface Comment {
-    id: number
-    blogId: number
-    author: string
-    content: string
-    createdAt: string
-    avatar: string
+interface ReportFormData {
+    reason: string
+    reportType: string
+    reportedContentType: string
 }
+
+export type Role = "NORMAL_MEMBER" | "PREMIUM_MEMBER" | "SUPER_ADMIN" | "CONTENT_ADMIN" | "COACH"
+
+type ViewMode = "list" | "detail" | "myPosts"
+
+
+
+
 
 export function CoachBlogManagement() {
+    // State
     const [searchTerm, setSearchTerm] = useState("")
-    const [filterStatus, setFilterStatus] = useState<string>("all")
-    const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null)
+    const [selectedPost, setSelectedPost] = useState<BackendBlogPost | null>(null)
+    const [selectedPostComments, setSelectedPostComments] = useState<CommentResponseDTO[]>([])
+    const [viewMode, setViewMode] = useState<ViewMode>("list")
+
+    // User state (null for guest) - In real app, get from AuthContext
+    const [currentUser, setCurrentUser] = useState<BlogUser | null>(null)
+
+    // Set mock user on component mount
+    useEffect(() => {
+        const userInfoString = localStorage.getItem("user_info")
+        if (userInfoString) {
+            try {
+                const accountData = JSON.parse(userInfoString)
+                const user: BlogUser = {
+                    id: accountData.userId,
+                    username: accountData.username,
+                    role: accountData.role,
+                }
+                setCurrentUser(user)
+                console.log("DEBUG: currentUser loaded from localStorage. ID:", user.id)
+            } catch (e) {
+                console.error("Error parsing user info from localStorage", e)
+                setCurrentUser(null)
+            }
+        } else {
+            console.log("DEBUG: No user info found in localStorage.")
+            setCurrentUser(null)
+        }
+    }, [])
+
+    // Dialog states
+    const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false)
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-    const [newPost, setNewPost] = useState({
-        title: "",
-        content: "",
-        tags: "",
+    const [isReportDialogOpen, setIsReportDialogOpen] = useState(false)
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+
+    // Temporary state for editing/deleting/reporting
+    const [editingPost, setEditingPost] = useState<BackendBlogPost | null>(null)
+    const [reportingPost, setReportingPost] = useState<BackendBlogPost | null>(null)
+    const [deletingPost, setDeletingPost] = useState<BackendBlogPost | null>(null)
+
+    // Backend hooks
+    const {
+        data: blogsData,
+        loading: blogsLoading,
+        error: blogsError,
+        refetch: refetchBlogs,
+    } = useBlogPosts({
+        page: 0,
+        size: 20,
+        keyword: searchTerm || undefined,
     })
 
-    const blogPosts: BlogPost[] = [
-        {
-            id: 1,
-            title: "5 Kỹ Thuật Thở Sâu Giúp Kiểm Soát Cơn Thèm Thuốc",
-            content: "Khi bạn cảm thấy thèm thuốc, hãy thử áp dụng những kỹ thuật thở sâu sau đây...",
-            excerpt: "Học cách sử dụng hơi thở để vượt qua cơn thèm thuốc một cách hiệu quả",
-            status: "published",
-            createdAt: "2024-06-10",
-            updatedAt: "2024-06-11",
-            views: 1247,
-            likes: 89,
-            comments: 23,
-            tags: ["kỹ thuật", "thở sâu", "kiểm soát"],
-        },
-        {
-            id: 2,
-            title: "Tại Sao Tuần Đầu Cai Thuốc Là Khó Khăn Nhất?",
-            content: "Tuần đầu tiên khi cai thuốc thường là thời gian khó khăn nhất...",
-            excerpt: "Hiểu rõ những thay đổi trong cơ thể và tâm lý trong tuần đầu cai thuốc",
-            status: "pending",
-            createdAt: "2024-06-12",
-            views: 0,
-            likes: 0,
-            comments: 0,
-            tags: ["tuần đầu", "khó khăn", "tâm lý"],
-        },
-        {
-            id: 3,
-            title: "Cách Xây Dựng Thói Quen Tích Cực Thay Thế Hút Thuốc",
-            content: "Thay vì hút thuốc, bạn có thể xây dựng những thói quen tích cực khác...",
-            excerpt: "Khám phá những hoạt động thay thế giúp bạn quên đi thói quen hút thuốc",
-            status: "draft",
-            createdAt: "2024-06-13",
-            views: 0,
-            likes: 0,
-            comments: 0,
-            tags: ["thói quen", "thay thế", "tích cực"],
-        },
-        {
-            id: 4,
-            title: "Vai Trò Của Gia Đình Trong Quá Trình Cai Thuốc",
-            content: "Sự hỗ trợ từ gia đình đóng vai trò quan trọng trong việc cai thuốc thành công...",
-            excerpt: "Tầm quan trọng của sự hỗ trợ từ người thân trong hành trình cai thuốc",
-            status: "published",
-            createdAt: "2024-06-08",
-            views: 892,
-            likes: 67,
-            comments: 15,
-            tags: ["gia đình", "hỗ trợ", "thành công"],
-        },
-    ]
+    // My posts hook - only fetch when user is logged in and viewing my posts
+    console.log("Rendering component. currentUser.id passed to useMyBlogs:", currentUser?.id || "")
+    const {
+        data: myPostsData,
+        loading: myPostsLoading,
+        error: myPostsError,
+        refetch: refetchMyPosts,
+    } = useMyBlogs(currentUser?.id || "", {
+        page: 0,
+        size: 50,
+    })
 
-    const comments: Comment[] = [
-        {
-            id: 1,
-            blogId: 1,
-            author: "Nguyễn Văn An",
-            content: "Bài viết rất hữu ích! Em đã áp dụng kỹ thuật thở 4-7-8 và thấy hiệu quả rõ rệt.",
-            createdAt: "2024-06-11",
-            avatar: "/placeholder.svg?height=32&width=32",
-        },
-        {
-            id: 2,
-            blogId: 1,
-            author: "Trần Thị Bình",
-            content: "Cảm ơn coach đã chia sẻ. Em sẽ thử áp dụng những kỹ thuật này.",
-            createdAt: "2024-06-11",
-            avatar: "/placeholder.svg?height=32&width=32",
-        },
-        {
-            id: 3,
-            blogId: 4,
-            author: "Lê Văn Cường",
-            content: "Gia đình em đã hỗ trợ rất nhiều. Bài viết này giúp em hiểu thêm về tầm quan trọng của sự hỗ trợ đó.",
-            createdAt: "2024-06-09",
-            avatar: "/placeholder.svg?height=32&width=32",
-        },
-    ]
+    const { createBlog, updateBlog, deleteBlog, loading: actionLoading } = useBlogActions()
 
+    // Get blog posts from API response
+    const blogPosts = blogsData?.content || []
+    const myPosts = myPostsData?.content || []
+
+    // Filter posts based on search term
     const filteredPosts = blogPosts.filter((post) => {
-        const matchesSearch =
+        if (!searchTerm) return true
+        return (
             post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             post.content.toLowerCase().includes(searchTerm.toLowerCase())
-        const matchesFilter = filterStatus === "all" || post.status === filterStatus
-        return matchesSearch && matchesFilter
+        )
     })
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "published":
-                return "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-            case "pending":
-                return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
-            case "draft":
-                return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
-            case "rejected":
-                return "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-            default:
-                return "bg-gray-100 text-gray-800"
-        }
+    // Helper function to get root comments for a blog
+    const getRootComments = (blogId: number): CommentResponseDTO[] => {
+        if (!selectedPost || !selectedPost.comments) return []
+        return selectedPost.comments.filter((comment) => comment.blogId === blogId && !comment.parentCommentId)
     }
 
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case "published":
-                return "Đã xuất bản"
-            case "pending":
-                return "Chờ duyệt"
-            case "draft":
-                return "Bản nháp"
-            case "rejected":
-                return "Bị từ chối"
-            default:
-                return status
-        }
-    }
-
-    const handleCreatePost = () => {
-        console.log("Creating post:", newPost)
-        setNewPost({ title: "", content: "", tags: "" })
-        setIsCreateDialogOpen(false)
-    }
-
-    const handleEditPost = (post: BlogPost) => {
+    // Handlers
+    const handleViewPost = (post: BackendBlogPost) => {
+        console.log("Viewing post:", post)
         setSelectedPost(post)
-        setNewPost({
-            title: post.title,
-            content: post.content,
-            tags: post.tags.join(", "),
-        })
+        setViewMode("detail")
+
+        if (post.comments && Array.isArray(post.comments)) {
+            console.log(`Found ${post.comments.length} comments in blog response`)
+            setSelectedPostComments(post.comments)
+        } else {
+            console.log("No comments found in blog response")
+            setSelectedPostComments([])
+        }
+    }
+
+    const handleBackToList = () => {
+        setSelectedPost(null)
+        setSelectedPostComments([])
+        setViewMode("list")
+    }
+
+    const handleViewMyPosts = () => {
+        if (!currentUser) {
+            setIsLoginPromptOpen(true)
+            return
+        }
+        setViewMode("myPosts")
+    }
+
+    const handleBackFromMyPosts = () => {
+        setViewMode("list")
+    }
+
+    const handleCreateBlogClick = () => {
+        if (!currentUser) {
+            setIsLoginPromptOpen(true)
+            return
+        }
+
+        if (currentUser.role === "CONTENT_ADMIN") {
+            alert("Content Admin không có quyền tạo bài viết.")
+            return
+        }
+
+        setIsCreateDialogOpen(true)
+    }
+
+    const handleCreateBlog = async (formData: BlogFormData) => {
+        if (!currentUser) {
+            setIsLoginPromptOpen(true)
+            return
+        }
+
+        try {
+            const blogData: BlogRequestDTO = {
+                title: formData.title,
+                content: formData.content,
+            }
+
+            await createBlog(blogData, currentUser.id)
+            setIsCreateDialogOpen(false)
+            refetchBlogs()
+            refetchMyPosts()
+
+            const successMessage =
+                currentUser.role === "COACH"
+                    ? "Bài viết đã được tạo thành công! Bài viết đang chờ phê duyệt."
+                    : "Bài viết đã được tạo và xuất bản thành công!"
+
+            alert(successMessage)
+        } catch (error: any) {
+            alert(`Lỗi khi tạo bài viết: ${error.message || "Có lỗi xảy ra"}`)
+        }
+    }
+
+    const handleEditPost = (post: BackendBlogPost) => {
+        if (!canEditPost(post)) return
+        setEditingPost(post)
         setIsEditDialogOpen(true)
     }
 
-    const handleUpdatePost = () => {
-        console.log("Updating post:", selectedPost?.id, newPost)
-        setNewPost({ title: "", content: "", tags: "" })
-        setSelectedPost(null)
-        setIsEditDialogOpen(false)
-    }
+    const handleUpdateBlog = async (formData: BlogFormData) => {
+        if (!editingPost || !currentUser) return
 
-    const handleDeletePost = (postId: number) => {
-        if (confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
-            console.log("Deleting post:", postId)
+        try {
+            const blogData: BlogRequestDTO = {
+                title: formData.title,
+                content: formData.content,
+            }
+
+            const blogIdToUpdate = editingPost.blogId
+            if (!blogIdToUpdate) {
+                alert("Không thể xác định ID của bài viết")
+                return
+            }
+
+            await updateBlog(blogIdToUpdate, blogData)
+
+            if (selectedPost?.blogId === editingPost.blogId) {
+                setSelectedPost({
+                    ...editingPost,
+                    title: formData.title,
+                    content: formData.content,
+                    lastUpdated: new Date().toISOString(),
+                })
+            }
+
+            setEditingPost(null)
+            setIsEditDialogOpen(false)
+            refetchBlogs()
+            refetchMyPosts()
+            alert("Bài viết đã được cập nhật thành công!")
+        } catch (error: any) {
+            alert(`Lỗi khi cập nhật bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
-    const getPostComments = (blogId: number) => {
-        return comments.filter((comment) => comment.blogId === blogId)
+    const handleDeletePost = (post: BackendBlogPost) => {
+        if (!canDeletePost(post)) return
+        setDeletingPost(post)
+        setIsDeleteConfirmOpen(true)
+    }
+
+    const confirmDeletePost = async () => {
+        if (!deletingPost) return
+
+        try {
+            const blogIdToDelete = deletingPost.blogId
+            if (!blogIdToDelete) {
+                alert("Không thể xác định ID của bài viết")
+                return
+            }
+
+            await deleteBlog(blogIdToDelete)
+
+            if (selectedPost?.blogId === deletingPost.blogId) {
+                setSelectedPost(null)
+                setSelectedPostComments([])
+                setViewMode("list")
+            }
+
+            setDeletingPost(null)
+            setIsDeleteConfirmOpen(false)
+            refetchBlogs()
+            refetchMyPosts()
+            alert("Bài viết đã được xóa thành công!")
+        } catch (error: any) {
+            alert(`Lỗi khi xóa bài viết: ${error.message || "Có lỗi xảy ra"}`)
+        }
+    }
+
+    const handleReportPost = (post: BackendBlogPost) => {
+        if (!canReportPost(post)) return
+        setReportingPost(post)
+        setIsReportDialogOpen(true)
+    }
+
+    const handleSubmitReport = (reportData: ReportFormData) => {
+        if (!reportingPost || !currentUser) {
+            setIsLoginPromptOpen(true)
+            return
+        }
+
+        console.log("Report submitted:", {
+            reportedBlogId: reportingPost.blogId,
+            reportedBy: currentUser.id,
+            ...reportData,
+        })
+
+        setReportingPost(null)
+        setIsReportDialogOpen(false)
+        alert("Báo cáo đã được gửi thành công! Đội ngũ quản trị sẽ xem xét báo cáo của bạn.")
+    }
+
+    const handleAddComment = async (blogId: number, content: string, parentCommentId?: number) => {
+        if (!currentUser) {
+            setIsLoginPromptOpen(true)
+            return
+        }
+
+        try {
+            const commentData: CommentRequestDTO = {
+                blogId,
+                content,
+                parentCommentId,
+            }
+
+            console.log("Adding comment:", commentData)
+            const response: CommentApiResponse<CommentResponseDTO> = await commentService.addComment(commentData)
+            console.log("Comment API response:", response)
+
+            if (response.success && response.data) {
+                const newComment = response.data
+                console.log("New comment:", newComment)
+
+                refetchBlogs()
+
+                if (selectedPost?.blogId === blogId) {
+                    const updatedComments: CommentResponseDTO[] = [...selectedPostComments, newComment]
+                    setSelectedPostComments(updatedComments)
+
+                    setSelectedPost({
+                        ...selectedPost,
+                        commentCount: (selectedPost.commentCount || 0) + 1,
+                        comments: updatedComments,
+                    })
+                }
+
+                alert("Bình luận đã được thêm thành công!")
+            } else {
+                throw new Error(response.message || "Failed to add comment")
+            }
+        } catch (error: any) {
+            console.error("Error adding comment:", error)
+            alert(`Lỗi khi thêm bình luận: ${error.message || "Có lỗi xảy ra"}`)
+        }
+    }
+
+    // Permission checks - Admin has more permissions
+    const canEditPost = (post: BackendBlogPost) => {
+        if (!currentUser) return false
+        return (
+            currentUser.id === post.authorId || currentUser.role === "CONTENT_ADMIN" || currentUser.role === "SUPER_ADMIN"
+        )
+    }
+
+    const canDeletePost = (post: BackendBlogPost) => {
+        if (!currentUser) return false
+        return (
+            currentUser.id === post.authorId || currentUser.role === "CONTENT_ADMIN" || currentUser.role === "SUPER_ADMIN"
+        )
+    }
+
+    const canReportPost = (post: BackendBlogPost) => {
+        if (!currentUser) return false
+        return currentUser.id !== post.authorId
+    }
+
+    // Error handling
+    if (blogsError) {
+        return (
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-red-600 mb-4">Lỗi tải dữ liệu</h2>
+                    <p className="text-slate-600 dark:text-slate-300 mb-4">{blogsError}</p>
+                    <button
+                        onClick={() => refetchBlogs()}
+                        className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600"
+                    >
+                        Thử lại
+                    </button>
+                </div>
+            </div>
+        )
     }
 
     return (
         <div className="space-y-6">
-            {/* Blog Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                                <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">{blogPosts.length}</p>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">Tổng bài viết</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
-                                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    {blogPosts.filter((p) => p.status === "published").length}
-                                </p>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">Đã xuất bản</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg flex items-center justify-center">
-                                <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    {blogPosts.filter((p) => p.status === "pending").length}
-                                </p>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">Chờ duyệt</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-                    <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center">
-                                <TrendingUp className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    {blogPosts.reduce((sum, post) => sum + post.views, 0)}
-                                </p>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">Tổng lượt xem</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+            {/* Admin Blog Management Header */}
+            <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm">
+                <CardTitle className="text-slate-900 dark:text-white mb-2">Trang Blog</CardTitle>
+                <CardDescription className="text-slate-600 dark:text-slate-400">
+                    Trang Blog Cá Nhân của Huấn Luyện Viên
+                </CardDescription>
             </div>
 
-            {/* Blog Management */}
-            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-slate-200 dark:border-slate-700/50">
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <CardTitle className="text-slate-900 dark:text-white">Quản Lý Blog</CardTitle>
-                        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button>
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Tạo Bài Viết
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                                <DialogHeader>
-                                    <DialogTitle>Tạo Bài Viết Mới</DialogTitle>
-                                </DialogHeader>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="text-sm font-medium">Tiêu đề</label>
-                                        <Input
-                                            value={newPost.title}
-                                            onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
-                                            placeholder="Nhập tiêu đề bài viết..."
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium">Nội dung</label>
-                                        <Textarea
-                                            value={newPost.content}
-                                            onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                                            placeholder="Nhập nội dung bài viết..."
-                                            rows={10}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium">Tags (phân cách bằng dấu phẩy)</label>
-                                        <Input
-                                            value={newPost.tags}
-                                            onChange={(e) => setNewPost({ ...newPost, tags: e.target.value })}
-                                            placeholder="kỹ thuật, thở sâu, kiểm soát..."
-                                        />
-                                    </div>
-                                    <div className="flex space-x-2">
-                                        <Button onClick={handleCreatePost} className="flex-1">
-                                            Tạo Bài Viết
-                                        </Button>
-                                        <Button onClick={() => setIsCreateDialogOpen(false)} variant="outline" className="flex-1">
-                                            Hủy
-                                        </Button>
-                                    </div>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
+            {/* Custom Search Section - Only Search Bar */}
+            <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm">
+                <div className="max-w-2xl mx-auto">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                        <Input
+                            type="text"
+                            placeholder="Tìm kiếm bài viết..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 pr-4 py-3 rounded-xl border-2 border-emerald-200 dark:border-slate-600 focus:border-emerald-400 dark:focus:border-emerald-500 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm"
+                        />
                     </div>
-                    <div className="flex flex-col md:flex-row gap-4 mt-4">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                            <Input
-                                placeholder="Tìm kiếm bài viết..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10"
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <Button
-                                variant={filterStatus === "all" ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setFilterStatus("all")}
-                            >
-                                Tất cả
-                            </Button>
-                            <Button
-                                variant={filterStatus === "published" ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setFilterStatus("published")}
-                            >
-                                Đã xuất bản
-                            </Button>
-                            <Button
-                                variant={filterStatus === "pending" ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setFilterStatus("pending")}
-                            >
-                                Chờ duyệt
-                            </Button>
-                            <Button
-                                variant={filterStatus === "draft" ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setFilterStatus("draft")}
-                            >
-                                Bản nháp
-                            </Button>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <Tabs defaultValue="list" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="list">Danh Sách Bài Viết</TabsTrigger>
-                            <TabsTrigger value="comments">Bình Luận</TabsTrigger>
-                        </TabsList>
+                </div>
+            </div>
 
-                        <TabsContent value="list" className="space-y-4">
-                            <div className="space-y-4">
-                                {filteredPosts.map((post) => (
-                                    <div
-                                        key={post.id}
-                                        className="p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                                    >
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex-1">
-                                                <div className="flex items-center space-x-2 mb-2">
-                                                    <h3 className="font-semibold text-slate-900 dark:text-white">{post.title}</h3>
-                                                    <Badge className={getStatusColor(post.status)}>{getStatusLabel(post.status)}</Badge>
-                                                </div>
-                                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{post.excerpt}</p>
-                                                <div className="flex items-center space-x-4 text-sm text-slate-500">
-                                                    <span>Tạo: {post.createdAt}</span>
-                                                    {post.updatedAt && <span>Cập nhật: {post.updatedAt}</span>}
-                                                    <div className="flex items-center space-x-1">
-                                                        <Eye className="w-4 h-4" />
-                                                        <span>{post.views}</span>
-                                                    </div>
-                                                    <div className="flex items-center space-x-1">
-                                                        <Heart className="w-4 h-4" />
-                                                        <span>{post.likes}</span>
-                                                    </div>
-                                                    <div className="flex items-center space-x-1">
-                                                        <MessageSquare className="w-4 h-4" />
-                                                        <span>{post.comments}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex flex-wrap gap-1 mt-2">
-                                                    {post.tags.map((tag, index) => (
-                                                        <Badge key={index} variant="outline" className="text-xs">
-                                                            {tag}
-                                                        </Badge>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className="flex space-x-2 ml-4">
-                                                <Button size="sm" variant="outline">
-                                                    <Eye className="w-4 h-4" />
-                                                </Button>
-                                                <Button size="sm" variant="outline" onClick={() => handleEditPost(post)}>
-                                                    <Edit className="w-4 h-4" />
-                                                </Button>
-                                                <Button size="sm" variant="outline" onClick={() => handleDeletePost(post.id)}>
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </TabsContent>
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm">
+                <AnimatedSection animation="fadeUp" delay={300}>
+                    <UserAuthSection
+                        currentUser={currentUser}
+                        handleCreateBlogClick={handleCreateBlogClick}
+                        handleViewMyPosts={handleViewMyPosts}
+                    />
 
-                        <TabsContent value="comments" className="space-y-4">
-                            <div className="space-y-4">
-                                {comments.map((comment) => {
-                                    const post = blogPosts.find((p) => p.id === comment.blogId)
-                                    return (
-                                        <div
-                                            key={comment.id}
-                                            className="p-4 border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50"
-                                        >
-                                            <div className="flex items-start space-x-3">
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarImage src={comment.avatar || "/placeholder.svg"} />
-                                                    <AvatarFallback>{comment.author.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <p className="font-medium text-sm">{comment.author}</p>
-                                                        <span className="text-xs text-slate-500">{comment.createdAt}</span>
-                                                    </div>
-                                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">{comment.content}</p>
-                                                    <p className="text-xs text-slate-500">
-                                                        Bài viết: <span className="font-medium">{post?.title}</span>
-                                                    </p>
-                                                </div>
-                                                <Button size="sm" variant="outline">
-                                                    Trả lời
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        </TabsContent>
-                    </Tabs>
-                </CardContent>
-            </Card>
+                    {blogsLoading ? (
+                        <div className="text-center py-12">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto"></div>
+                            <p className="mt-4 text-slate-600 dark:text-slate-300">Đang tải bài viết...</p>
+                        </div>
+                    ) : viewMode === "detail" && selectedPost ? (
+                        <BlogPostDetail
+                            post={selectedPost}
+                            currentUser={currentUser}
+                            comments={selectedPostComments}
+                            handleBackToList={handleBackToList}
+                            handleEditPost={handleEditPost}
+                            handleDeletePost={handleDeletePost}
+                            handleReportPost={handleReportPost}
+                            canEditPost={canEditPost}
+                            canDeletePost={canDeletePost}
+                            canReportPost={canReportPost}
+                            handleAddComment={handleAddComment}
+                            setIsLoginPromptOpen={setIsLoginPromptOpen}
+                        />
+                    ) : viewMode === "myPosts" ? (
+                        <MyPostsList
+                            posts={myPosts}
+                            currentUser={currentUser}
+                            loading={myPostsLoading}
+                            onBack={handleBackFromMyPosts}
+                            onViewPost={handleViewPost}
+                            onEditPost={handleEditPost}
+                            onDeletePost={handleDeletePost}
+                        />
+                    ) : (
+                        <BlogPostList
+                            posts={filteredPosts}
+                            currentUser={currentUser}
+                            comments={selectedPostComments}
+                            handleViewPost={handleViewPost}
+                            handleEditPost={handleEditPost}
+                            handleDeletePost={handleDeletePost}
+                            handleReportPost={handleReportPost}
+                            canEditPost={canEditPost}
+                            canDeletePost={canDeletePost}
+                            canReportPost={canReportPost}
+                            getRootComments={getRootComments}
+                        />
+                    )}
+                </AnimatedSection>
+            </div>
 
-            {/* Edit Post Dialog */}
-            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Chỉnh Sửa Bài Viết</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="text-sm font-medium">Tiêu đề</label>
-                            <Input
-                                value={newPost.title}
-                                onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
-                                placeholder="Nhập tiêu đề bài viết..."
-                            />
-                        </div>
-                        <div>
-                            <label className="text-sm font-medium">Nội dung</label>
-                            <Textarea
-                                value={newPost.content}
-                                onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                                placeholder="Nhập nội dung bài viết..."
-                                rows={10}
-                            />
-                        </div>
-                        <div>
-                            <label className="text-sm font-medium">Tags (phân cách bằng dấu phẩy)</label>
-                            <Input
-                                value={newPost.tags}
-                                onChange={(e) => setNewPost({ ...newPost, tags: e.target.value })}
-                                placeholder="kỹ thuật, thở sâu, kiểm soát..."
-                            />
-                        </div>
-                        <div className="flex space-x-2">
-                            <Button onClick={handleUpdatePost} className="flex-1">
-                                Cập Nhật Bài Viết
-                            </Button>
-                            <Button onClick={() => setIsEditDialogOpen(false)} variant="outline" className="flex-1">
-                                Hủy
-                            </Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            {/* Dialogs */}
+            <LoginPromptDialog isOpen={isLoginPromptOpen} onClose={() => setIsLoginPromptOpen(false)} />
+
+            <BlogFormDialog
+                isOpen={isCreateDialogOpen}
+                onClose={() => setIsCreateDialogOpen(false)}
+                onSubmit={handleCreateBlog}
+                currentUserRole={currentUser?.role}
+                loading={actionLoading}
+            />
+
+            <BlogFormDialog
+                isOpen={isEditDialogOpen}
+                onClose={() => {
+                    setIsEditDialogOpen(false)
+                    setEditingPost(null)
+                }}
+                onSubmit={handleUpdateBlog}
+                initialData={
+                    editingPost
+                        ? {
+                            title: editingPost.title,
+                            content: editingPost.content,
+                        }
+                        : undefined
+                }
+                isEdit={true}
+                loading={actionLoading}
+            />
+
+            <DeleteConfirmDialog
+                isOpen={isDeleteConfirmOpen}
+                onClose={() => {
+                    setIsDeleteConfirmOpen(false)
+                    setDeletingPost(null)
+                }}
+                onConfirm={confirmDeletePost}
+                postTitle={deletingPost?.title || ""}
+            />
         </div>
     )
 }
