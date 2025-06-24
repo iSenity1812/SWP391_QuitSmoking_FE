@@ -289,8 +289,8 @@ export function ProgressSharing({ user, isOpen, onClose, onShare }: ProgressShar
                                         type="button"
                                         disabled={isSharing}
                                         className={`w-full p-4 rounded-lg border-2 cursor-pointer transition-all text-left ${selectedAudience === option.id
-                                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
-                                                : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                                            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
+                                            : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
                                             } ${isSharing ? "opacity-50 cursor-not-allowed" : ""}`}
                                         onClick={() => !isSharing && setSelectedAudience(option.id)}
                                     >

@@ -13,8 +13,9 @@ import { HealthTab } from "../components/tabs/HealthTab"
 import { SocialTab } from "../components/tabs/SocialTab"
 import { BookingTab } from "../components/tabs/BookingtTab"
 import CertificationTab from "../components/tabs/CertificationTab"
-import type { AchievementNotification } from "../types/user-types"
+import type { AchievementNotification, User } from "../types/user-types"
 import DiaryTab from "../components/tabs/DiaryTab"
+import { PremiumChallenges } from "../components/PremiumChallenges" // Import PremiumChallenges
 
 export default function UserProfile() {
     const [activeTab, setActiveTab] = useState("overview")
@@ -23,8 +24,7 @@ export default function UserProfile() {
         show: false,
         achievement: null,
     })
-
-    const user = userData
+    const [user, setUser] = useState<User>(userData) // Use useState for user data
 
     const handleTestAchievement = () => {
         const randomAchievement = user.achievements[Math.floor(Math.random() * user.achievements.length)]
@@ -53,6 +53,11 @@ export default function UserProfile() {
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab)
+    }
+
+    // Function to update user challenges
+    const handleUpdateUserChallenges = (updatedChallenges: User["challenges"]) => {
+        setUser((prevUser) => ({ ...prevUser, challenges: updatedChallenges }))
     }
 
     // Close sidebar when clicking outside on mobile
@@ -99,6 +104,8 @@ export default function UserProfile() {
                 return <CertificationTab />
             case "diary":
                 return <DiaryTab />
+            case "challenges": // New case for challenges
+                return <PremiumChallenges user={user} onUpdateUserChallenges={handleUpdateUserChallenges} />
             default:
                 return <OverviewTab user={user} onTestAchievement={handleTestAchievement} />
         }

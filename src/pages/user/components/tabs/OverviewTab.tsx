@@ -7,7 +7,6 @@ import { Target, Trophy, MessageCircle, Download, Users, Heart, Share2, Settings
 import type { User } from "../../types/user-types"
 import { useState } from "react"
 import { ProgressSharing } from "../ProgressSharing"
-import { CoachPromotionBanner } from "../CoachPromotionBanner"
 
 interface OverviewTabProps {
     user: User
@@ -31,7 +30,7 @@ export function OverviewTab({ user, onTestAchievement }: OverviewTabProps) {
     return (
         <div className="space-y-6">
             {/* Coach Promotion Banner */}
-            <CoachPromotionBanner user={user} onApplyCoach={handleApplyCoach} />
+            {/* <CoachPromotionBanner user={user} onApplyCoach={handleApplyCoach} /> */}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Next Milestone */}
@@ -116,12 +115,12 @@ export function OverviewTab({ user, onTestAchievement }: OverviewTabProps) {
                             <div key={index} className="flex items-center gap-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
                                 <div
                                     className={`rounded-full p-2 ${activity.type === "achievement"
-                                        ? "bg-yellow-100 dark:bg-yellow-900"
-                                        : activity.type === "milestone"
-                                            ? "bg-green-100 dark:bg-green-900"
-                                            : activity.type === "social"
-                                                ? "bg-blue-100 dark:bg-blue-900"
-                                                : "bg-purple-100 dark:bg-purple-900"
+                                            ? "bg-yellow-100 dark:bg-yellow-900"
+                                            : activity.type === "milestone"
+                                                ? "bg-green-100 dark:bg-green-900"
+                                                : activity.type === "social"
+                                                    ? "bg-blue-100 dark:bg-blue-900"
+                                                    : "bg-purple-100 dark:bg-purple-900"
                                         }`}
                                 >
                                     {activity.type === "achievement" && <Trophy className="h-4 w-4 text-yellow-600" />}

@@ -437,8 +437,8 @@ export default function BookingPage() {
                 <div className="flex border-b border-gray-200 dark:border-gray-700 mb-8">
                     <button
                         className={`py-3 px-6 font-medium text-lg ${activeTab === "coaches"
-                                ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400"
-                                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                            ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400"
+                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                             }`}
                         onClick={() => setActiveTab("coaches")}
                     >
@@ -446,8 +446,8 @@ export default function BookingPage() {
                     </button>
                     <button
                         className={`py-3 px-6 font-medium text-lg ${activeTab === "calendar"
-                                ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400"
-                                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                            ? "text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400"
+                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                             }`}
                         onClick={() => setActiveTab("calendar")}
                     >
@@ -563,12 +563,12 @@ export default function BookingPage() {
                                                         <button
                                                             onClick={() => setSelectedDate(day.date)}
                                                             className={`w-full h-8 rounded-md text-sm transition-colors ${day.isSelected
-                                                                    ? "bg-blue-500 text-white"
-                                                                    : day.isToday
-                                                                        ? "bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                                                                        : day.hasAppointments
-                                                                            ? "bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400"
-                                                                            : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white"
+                                                                ? "bg-blue-500 text-white"
+                                                                : day.isToday
+                                                                    ? "bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                                                                    : day.hasAppointments
+                                                                        ? "bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400"
+                                                                        : "hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white"
                                                                 }`}
                                                         >
                                                             {day.day}

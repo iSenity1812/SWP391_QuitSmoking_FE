@@ -1,11 +1,87 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Filter, Search, Trophy, Target, Award } from "lucide-react"
+import {
+  Filter,
+  Search,
+  Trophy,
+  Target,
+  Award,
+  CalendarDays,
+  Coins,
+  PiggyBank,
+  Banknote,
+  Gem,
+  Plane,
+  CheckCircle,
+  TrendingDown,
+  Shield,
+  RefreshCw,
+  Sunrise,
+  Heart,
+  Activity,
+  Users,
+  Sparkles,
+  Gift,
+  Flame,
+} from "lucide-react"
 import type { User } from "../../types/user-types"
 
 interface AchievementsTabProps {
   user: User
+}
+
+const getAchievementIcon = (iconName: string) => {
+  switch (iconName) {
+    case "calendar":
+      return <CalendarDays className="h-8 w-8" />
+    case "trophy":
+      return <Trophy className="h-8 w-8" />
+    case "award":
+      return <Award className="h-8 w-8" />
+    case "medal":
+      return <Award className="h-8 w-8" /> // Using Award for medal as it's similar
+    case "crown":
+      return <Award className="h-8 w-8" /> // Using Award for crown
+    case "flame":
+      return <Flame className="h-8 w-8" />
+    case "coins":
+      return <Coins className="h-8 w-8" />
+    case "piggy-bank":
+      return <PiggyBank className="h-8 w-8" />
+    case "banknote":
+      return <Banknote className="h-8 w-8" />
+    case "gem":
+      return <Gem className="h-8 w-8" />
+    case "plane":
+      return <Plane className="h-8 w-8" />
+    case "check-circle":
+      return <CheckCircle className="h-8 w-8" />
+    case "trending-down":
+      return <TrendingDown className="h-8 w-8" />
+    case "target":
+      return <Target className="h-8 w-8" />
+    case "shield":
+      return <Shield className="h-8 w-8" />
+    case "refresh-cw":
+      return <RefreshCw className="h-8 w-8" />
+    case "sunrise":
+      return <Sunrise className="h-8 w-8" />
+    case "heart":
+      return <Heart className="h-8 w-8" />
+    case "activity":
+      return <Activity className="h-8 w-8" />
+    case "users":
+      return <Users className="h-8 w-8" />
+    case "sparkles":
+      return <Sparkles className="h-8 w-8" />
+    case "gift":
+      return <Gift className="h-8 w-8" />
+    case "calendar-days":
+      return <CalendarDays className="h-8 w-8" />
+    default:
+      return <Award className="h-8 w-8" /> // Default icon
+  }
 }
 
 export function AchievementsTab({ user }: AchievementsTabProps) {
@@ -66,9 +142,7 @@ export function AchievementsTab({ user }: AchievementsTabProps) {
 
         <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg relative overflow-hidden">
           <CardContent className="p-6 text-center relative z-10">
-            <div className="bg-white/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-
-            </div>
+            <div className="bg-white/20 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center"></div>
             <p className="text-4xl font-bold mb-2">
               {Math.round((user.achievements.filter((a) => a.completed).length / user.achievements.length) * 100)}%
             </p>
@@ -81,14 +155,13 @@ export function AchievementsTab({ user }: AchievementsTabProps) {
         </Card>
       </div>
 
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {user.achievements.map((achievement) => (
           <Card
             key={achievement.id}
             className={`relative ${achievement.completed
-              ? "bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-emerald-200 dark:border-emerald-800"
-              : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                ? "bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border-emerald-200 dark:border-emerald-800"
+                : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
               }`}
           >
             <CardContent className="p-6">
@@ -98,14 +171,14 @@ export function AchievementsTab({ user }: AchievementsTabProps) {
                   <Badge
                     variant="outline"
                     className={`text-xs ${achievement.category === "time"
-                      ? "border-blue-300 text-blue-600"
-                      : achievement.category === "saving"
-                        ? "border-green-300 text-green-600"
-                        : achievement.category === "health"
-                          ? "border-red-300 text-red-600"
-                          : achievement.category === "social"
-                            ? "border-purple-300 text-purple-600"
-                            : "border-gray-300 text-gray-600"
+                        ? "border-blue-300 text-blue-600"
+                        : achievement.category === "saving"
+                          ? "border-green-300 text-green-600"
+                          : achievement.category === "health"
+                            ? "border-red-300 text-red-600"
+                            : achievement.category === "social"
+                              ? "border-purple-300 text-purple-600"
+                              : "border-gray-300 text-gray-600"
                       }`}
                   >
                     {achievement.category === "time"
@@ -130,17 +203,12 @@ export function AchievementsTab({ user }: AchievementsTabProps) {
                   className={`rounded-full p-4 mb-4 inline-block ${achievement.completed ? "bg-emerald-100 dark:bg-emerald-900" : "bg-slate-100 dark:bg-slate-700"
                     }`}
                 >
-                  <Award
-                    className={`h-8 w-8 ${achievement.completed
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-slate-400 dark:text-slate-500"
-                      }`}
-                  />
+                  {getAchievementIcon(achievement.icon)}
                 </div>
                 <h3
                   className={`font-semibold mb-2 ${achievement.completed
-                    ? "text-emerald-700 dark:text-emerald-400"
-                    : "text-slate-500 dark:text-slate-400"
+                      ? "text-emerald-700 dark:text-emerald-400"
+                      : "text-slate-500 dark:text-slate-400"
                     }`}
                 >
                   {achievement.name}
