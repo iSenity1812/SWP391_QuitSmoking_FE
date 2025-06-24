@@ -1,5 +1,6 @@
 import { BarChart3, Calendar, DollarSign, Target } from "lucide-react"
 import { AnimatedSection } from "@/components/ui/AnimatedSection"
+import BlurText from "@/components/ui/BlurText"
 
 export function BenefitsSection() {
   return (
@@ -7,9 +8,16 @@ export function BenefitsSection() {
       <AnimatedSection animation="fadeUp" delay={400}>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-4 dark:text-white">
+            {/* <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-4 dark:text-white">
               Tại Sao Chọn QuitTogether?
-            </h2>
+            </h2> */}
+            <BlurText
+              text="Tại Sao Chọn QuitTogether?"
+              delay={200}
+              animateBy="words"
+              direction="top"
+              className="justify-center text-3xl sm:text-4xl font-bold text-slate-800 mb-4 dark:text-white"
+            />
             <p className="text-lg text-slate-600 max-w-2xl mx-auto dark:text-slate-300">
               Ứng dụng của chúng tôi giúp việc bỏ thuốc lá trở nên dễ dàng hơn với các phương pháp đã được chứng minh và
               tính năng hỗ trợ

@@ -91,9 +91,9 @@ export const RegisterForm: React.FC = () => {
     if (isConfirmPasswordValid) validFields++;
 
     return (validFields / totalFields) * 100;
-  };  const handleSubmit = async (e: React.FormEvent) => {
+  }; const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isUsernameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
       toast.error("Vui lòng điền đầy đủ thông tin hợp lệ!", {
         position: "top-right",

@@ -5,6 +5,27 @@ export interface ApiResponse<T> {
   data: T
 }
 
+// Coach Schedule Registration Types
+export interface ScheduleRegistrationResponse {
+  scheduleId: number
+  coach: {
+    coachId: string
+    username: string
+    email: string
+    fullName: string
+    rating: number
+  }
+  timeSlot: {
+    timeSlotId: number
+    label: string
+    startTime: string
+    endTime: string
+    deleted: boolean
+  }
+  scheduleDate: string
+  booked: boolean
+}
+
 // Time Slot Types
 export interface TimeSlot {
   timeSlotId: number
@@ -24,6 +45,7 @@ export interface TimeSlotResponse {
 
 // Weekly Schedule Types (API Response Format)
 export interface WeeklyScheduleApiSlot {
+  coachScheduleId: number
   date: string
   timeSlotId: number
   label: string
@@ -33,7 +55,7 @@ export interface WeeklyScheduleApiSlot {
     appointmentId: number
     clientName: string
     clientId: string
-    status: 'CONFIRMED' | 'SCHEDULED' | 'CANCELLED' | 'COMPLETED' | 'MISSED'
+    status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'MISSED'
     notes?: string
   }>
   available: boolean
@@ -47,6 +69,7 @@ export interface WeeklyScheduleApiResponse {
 
 // Frontend format after transformation
 export interface WeeklyScheduleSlot {
+  coachScheduleId: number
   date: string
   timeSlotId: number
   isAvailable: boolean
@@ -100,6 +123,10 @@ export interface SlotRegistrationRequest {
   weekStart: string
 }
 
+export interface SlotUnregisterRequest {
+  scheduleId: number
+}
+
 export interface AppointmentCreateRequest {
   coachId: number
   clientId: number
@@ -124,3 +151,11 @@ export interface UseTimeSlotsState {
   error: string | null
   refetch: () => Promise<void>
 }
+
+// appointment status: CONFIRMED | CANCELLED | COMPLETED | MISSED
+export type AppointmentStatus = {
+  CONFIRMED: 'CONFIRMED',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  MISSED: 'MISSED',
+};

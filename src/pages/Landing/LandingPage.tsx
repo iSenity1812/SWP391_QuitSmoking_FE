@@ -8,6 +8,7 @@ import { CoachAndAchievement } from "@/pages/landing/components/CoachAndAchievem
 import { SubscriptionsSection } from "@/pages/landing/components/SubscriptionsSection";
 import { motion } from "framer-motion";
 import { TestimonialSlider } from "./components/TestimonialSlider";
+// import SplashCursor from "@/components/ui/SplashCursor";
 
 const pageVariants = {
   initial: {
@@ -29,21 +30,24 @@ const pageTransition = {
 
 export function LandingPage() {
   return (
-    <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-      {/* Full height container to ensure the navbar is always at the top */}
-      <div className="flex min-h-screen flex-col bg-[#f9f9f9]">
-        <Navbar />
-        <main className="flex-1">
-          <HeroSection />
-          <MotivationMessages />
-          <BenefitsSection />
-          <CoachAndAchievement />
-          <SubscriptionsSection />
-          <TestimonialSlider />
-          <MotivationSection />
-        </main>
-        <Footer />
-      </div>
-    </motion.div>
+    <>
+      {/* <SplashCursor /> */}
+      <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
+        {/* Full height container to ensure the navbar is always at the top */}
+        <div className="flex min-h-screen flex-col bg-[#f9f9f9]">
+          <Navbar />
+          <main className="flex-1">
+            <HeroSection />
+            <MotivationMessages />
+            <BenefitsSection />
+            <CoachAndAchievement />
+            <SubscriptionsSection />
+            <TestimonialSlider />
+            <MotivationSection />
+          </main>
+          <Footer />
+        </div>
+      </motion.div>
+    </>
   );
 }

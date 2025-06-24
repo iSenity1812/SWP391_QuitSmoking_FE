@@ -18,16 +18,16 @@ import { UserDropdown } from "@/pages/auth/components/UserDropdown";
 
 // Define navigation links for different user states
 const publicNavLinks = [
-  { href: "/", label: "Home", icon: Home },
+  { href: "/", label: "Trang chủ", icon: Home },
   { href: "/blog", label: "Blog", icon: BookOpen },
-  { href: "/about", label: "About", icon: Info },
+  { href: "/about", label: "Thông tin", icon: Info },
 ];
 
 const memberNavLinks = [
-  { href: "/", label: "Home", icon: Home },
+  { href: "/", label: "Trang chủ", icon: Home },
   { href: "/blog", label: "Blog", icon: BookOpen },
-  { href: "/plan", label: "Plan", icon: Gem },
-  { href: "/about", label: "About", icon: Info },
+  { href: "/plan", label: "Tiến trình", icon: Gem },
+  { href: "/about", label: "Thông tin", icon: Info },
 ];
 
 const coachNavLinks = [
@@ -96,13 +96,13 @@ export function Navbar() {
                 to="/login"
                 className="hidden md:flex items-center px-4 py-2.5 rounded-xl font-semibold text-sm border-2 border-emerald-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-slate-700 dark:to-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500 hover:scale-105 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
               >
-                Log In
+                Đăng nhập
               </Link>
               <Link
                 to="/register"
                 className="hidden md:flex items-center px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-500/25"
               >
-                Sign Up
+                Đăng ký
               </Link>
             </>
           )}          {/* Mobile Menu */}
@@ -123,10 +123,10 @@ export function Navbar() {
               {!isAuthenticated && (
                 <>
                   <DropdownMenuItem asChild>
-                    <Link to="/login">Log In</Link>
+                    <Link to="/login">Đăng nhập</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/register">Sign Up</Link>
+                    <Link to="/register">Đăng ký</Link>
                   </DropdownMenuItem>
                 </>
               )}

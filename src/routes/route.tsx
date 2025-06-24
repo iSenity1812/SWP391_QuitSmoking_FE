@@ -9,7 +9,7 @@ import AboutPage from "@/pages/about/AboutPage"
 import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
 import { OnboardingPage } from "@/pages/onboarding/onBoardingPage"
-import { PlanSelectionDirectPage } from "@/pages/plan-selection/PlanDirectPage"
+// import { PlanSelectionDirectPage } from "@/pages/plan-selection/PlanDirectPage"
 
 // Protected pages
 import PlanPage from "@/pages/plan/PlanPage"
@@ -66,7 +66,7 @@ export function AppRoutes() {
       <Route path="/login" element={<AuthRedirect><LoginPage /></AuthRedirect>} />
       <Route path="/register" element={<AuthRedirect><RegisterPage /></AuthRedirect>} />
       <Route path="/onboarding" element={<OnboardingPage />} />
-      <Route path="/plan-selection" element={<PlanSelectionDirectPage />} />
+      {/* <Route path="/plan-selection" element={<PlanSelectionDirectPage />} /> */}
 
       {/* Protected Routes - Require Authentication */}
       <Route

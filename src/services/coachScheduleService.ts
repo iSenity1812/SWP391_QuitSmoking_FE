@@ -2,8 +2,8 @@ import axiosConfig from '@/config/axiosConfig'
 import type { 
   ApiResponse, 
   WeeklyScheduleApiResponse, 
-  TimeSlotResponse, 
-  SlotRegistrationRequest
+  TimeSlotResponse,
+  ScheduleRegistrationResponse
 } from '@/types/api'
 import { handleApiError } from '@/utils/dataTransformers'
 
@@ -61,45 +61,43 @@ export class CoachScheduleService {
       console.error('Error fetching time slots:', error)
       throw new Error(handleApiError(error))
     }
-  }
-
-  /**
+  }  /**
    * Register time slots for a coach
-   * POST /api/coaches/schedules/register
-   */  /**
-   * Register time slots for a coach
-   * POST /api/coaches/schedules/register
-   * Sử dụng coachId từ JWT token, không cần truyền trong request
+   * POST /api/coaches/schedules
+   * Request format: [{ "timeSlotId": 1, "scheduleDate": "2025-06-22" }]
    */
-  async registerTimeSlots(request: SlotRegistrationRequest): Promise<void> {
+  async registerTimeSlots(slots: { timeSlotId: number; scheduleDate: string }[]): Promise<ScheduleRegistrationResponse[]> {
     try {
-      const response = await axiosConfig.post<ApiResponse<void>>(
-        `/coaches/schedules/register`,
-        request
+      const response = await axiosConfig.post<ApiResponse<ScheduleRegistrationResponse[]>>(
+        `/coaches/schedules`,
+        slots
       )
       
       if (response.data.status !== 200) {
-        throw new Error(response.data.message || 'Failed to register time slots')      }
+        throw new Error(response.data.message || 'Failed to register time slots')
+      }
+      
+      return response.data.data
     } catch (error: unknown) {
       console.error('Error registering time slots:', error)
       throw new Error(handleApiError(error))
     }
   }
-
   /**
    * Cancel a time slot registration
-   * DELETE /api/coaches/schedules/slots/{slotId}
+   * DELETE /api/coaches/schedules/{scheduleId}
    */
-  async cancelSlotRegistration(slotId: number): Promise<void> {
+  async unregisterSlot(scheduleId: number): Promise<void> {
     try {
       const response = await axiosConfig.delete<ApiResponse<void>>(
-        `/coaches/schedules/slots/${slotId}`
+        `/coaches/schedules/${scheduleId}`
       )
       
       if (response.data.status !== 200) {
-        throw new Error(response.data.message || 'Failed to cancel slot registration')      }
+        throw new Error(response.data.message || 'Failed to unregister slot')
+      }
     } catch (error: unknown) {
-      console.error('Error cancelling slot registration:', error)
+      console.error('Error unregistering slot:', error)
       throw new Error(handleApiError(error))
     }
   }

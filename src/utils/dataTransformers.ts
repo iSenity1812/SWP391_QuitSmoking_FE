@@ -59,6 +59,8 @@ export class DataTransformer {
    */
   static transformWeeklySchedule(apiSchedule: WeeklyScheduleApiResponse): WeeklyScheduleResponse {
     return {
+      // Thêm coachScheduleId
+      coachScheduleId: apiSchedule.registeredSlots?.[0]?.coachScheduleId || 0,
       weekStart: apiSchedule.weekStartDate,
       weekEnd: apiSchedule.weekEndDate,
       registeredSlots: apiSchedule.registeredSlots?.map((slot: WeeklyScheduleApiSlot) => {
@@ -82,6 +84,7 @@ export class DataTransformer {
         const primaryAppointment = sortedAppointments.length > 0 ? sortedAppointments[0] : undefined
 
         return {
+          coachScheduleId: slot.coachScheduleId,
           date: slot.date,
           timeSlotId: slot.timeSlotId,
           isAvailable: slot.available,

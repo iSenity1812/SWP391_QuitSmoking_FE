@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { coachScheduleService } from '@/services/coachScheduleService'
-import type { UseWeeklyScheduleState, WeeklyScheduleResponse, SlotRegistrationRequest } from '@/types/api'
+import type { UseWeeklyScheduleState, WeeklyScheduleResponse } from '@/types/api'
 import { DataTransformer } from '@/utils/dataTransformers'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -8,8 +8,9 @@ import { useAuth } from '@/hooks/useAuth'
  * Custom hook to manage weekly schedule data
  */
 export function useWeeklySchedule(requestedCoachId: string | null, currentWeek: Date): UseWeeklyScheduleState & {
-  registerSlots: (timeSlotIds: number[]) => Promise<void>
-  cancelSlotRegistration: (slotId: number) => Promise<void>
+  registerSlots: (timeSlotIds: number[], scheduleDate: string) => Promise<void>
+  registerMultiDateSlots: (slotsByDate: Record<string, number[]>) => Promise<void>
+  unregisterSlot: (scheduleId: number) => Promise<void>
   updateAppointmentStatus: (appointmentId: number, status: 'confirmed' | 'cancelled' | 'completed') => Promise<void>
 } {
   const { user } = useAuth()
@@ -61,27 +62,45 @@ export function useWeeklySchedule(requestedCoachId: string | null, currentWeek: 
       setIsLoading(false)
     }
   }, [user, requestedCoachId, currentWeek])
-
   const refetch = useCallback(async () => {
     await fetchWeeklySchedule()
   }, [fetchWeeklySchedule])
-  const registerSlots = useCallback(async (timeSlotIds: number[]) => {
+  // Updated multi-date registration function  
+  const registerSlots = useCallback(async (timeSlotIds: number[], scheduleDate: string) => {
     if (!user || user.role !== 'COACH') throw new Error('User must be a coach to register slots')
 
-    const weekStart = DataTransformer.formatDateForApi(DataTransformer.getWeekStart(currentWeek))
-    const request: SlotRegistrationRequest = {
-      timeSlotIds,
-      weekStart
-    }
+    // Build request array with each slot and the provided date
+    const slots = timeSlotIds.map(timeSlotId => ({
+      timeSlotId,
+      scheduleDate
+    }))
 
-    await coachScheduleService.registerTimeSlots(request)
+    await coachScheduleService.registerTimeSlots(slots)
     // Refetch data after successful registration
     await refetch()
-  }, [user, currentWeek, refetch])
+  }, [user, refetch])
 
-  const cancelSlotRegistration = useCallback(async (slotId: number) => {
-    await coachScheduleService.cancelSlotRegistration(slotId)
-    // Refetch data after successful cancellation
+  // New bulk multi-date registration function
+  const registerMultiDateSlots = useCallback(async (slotsByDate: Record<string, number[]>) => {
+    if (!user || user.role !== 'COACH') throw new Error('User must be a coach to register slots')
+
+    // Build request array for all dates and slots
+    const allSlots = Object.entries(slotsByDate).flatMap(([date, slotIds]) =>
+      slotIds.map(timeSlotId => ({
+        timeSlotId,
+        scheduleDate: date
+      }))
+    )
+
+    if (allSlots.length === 0) return
+
+    await coachScheduleService.registerTimeSlots(allSlots)
+    // Refetch data after successful registration
+    await refetch()
+  }, [user, refetch])
+  const unregisterSlot = useCallback(async (scheduleId: number) => {
+    await coachScheduleService.unregisterSlot(scheduleId)
+    // Refetch data after successful unregistration
     await refetch()
   }, [refetch])
 
@@ -93,7 +112,6 @@ export function useWeeklySchedule(requestedCoachId: string | null, currentWeek: 
     // Refetch data after successful status update
     await refetch()
   }, [refetch])
-
   useEffect(() => {
     fetchWeeklySchedule()
   }, [fetchWeeklySchedule])
@@ -104,7 +122,8 @@ export function useWeeklySchedule(requestedCoachId: string | null, currentWeek: 
     error,
     refetch,
     registerSlots,
-    cancelSlotRegistration,
+    registerMultiDateSlots,
+    unregisterSlot,
     updateAppointmentStatus
   }
 }
