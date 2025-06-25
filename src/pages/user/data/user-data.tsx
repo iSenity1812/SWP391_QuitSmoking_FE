@@ -3,6 +3,7 @@ import type { User } from "@/types/user-types"
 export const userData: User = {
     name: "Nguyễn Văn A",
     email: "nguyenvana@example.com",
+    role: "PREMIUM_MEMBER", // Changed to match the Role type
     avatar: "/placeholder.svg?height=100&width=100",
     joinDate: "15/04/2023",
     daysSmokeFreee: 45,
@@ -334,7 +335,7 @@ export const userData: User = {
             category: "mindfulness",
             targetValue: 7,
             currentValue: 0,
-            status: "not-started",
+            status: "Active",
             isPremium: true,
             icon: "shield",
         },
@@ -347,7 +348,7 @@ export const userData: User = {
             category: "financial",
             targetValue: 1000000,
             currentValue: 0,
-            status: "not-started",
+            status: "Completed",
             isPremium: true,
             icon: "coins",
         },
@@ -360,7 +361,7 @@ export const userData: User = {
             category: "health",
             targetValue: 30,
             currentValue: 0,
-            status: "in-progress", // Example of an in-progress challenge
+            status: "Active", // Example of an in-progress challenge
             isPremium: true,
             icon: "activity",
         },
@@ -373,7 +374,7 @@ export const userData: User = {
             category: "social",
             targetValue: 50,
             currentValue: 45,
-            status: "in-progress",
+            status: "Completed",
             isPremium: true,
             icon: "users",
         },
@@ -386,7 +387,7 @@ export const userData: User = {
             category: "streak",
             targetValue: 90,
             currentValue: 0,
-            status: "not-started",
+            status: "Active",
             isPremium: true,
             icon: "flame",
         },

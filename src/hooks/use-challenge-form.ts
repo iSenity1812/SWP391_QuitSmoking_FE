@@ -1,20 +1,23 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import type { CreateChallengeFormData, ChallengeRequest, ChallengeValidationErrors } from "../types/challenge"
+import type { CreateChallengeFormData, ChallengeValidationErrors, ChallengeRequest } from "../types/challenge"
 
 interface UseChallengeFormReturn {
     formData: CreateChallengeFormData
     errors: ChallengeValidationErrors
     isValid: boolean
+    isSubmitting: boolean
 
     updateField: (field: keyof CreateChallengeFormData, value: string) => void
     updateFormData: (data: Partial<CreateChallengeFormData>) => void
     validateForm: () => boolean
+    validateField: (field: keyof CreateChallengeFormData) => void
     resetForm: () => void
     getSubmitData: () => ChallengeRequest
     setErrors: (errors: ChallengeValidationErrors) => void
     clearErrors: () => void
+    setSubmitting: (submitting: boolean) => void
 }
 
 const initialFormData: CreateChallengeFormData = {
@@ -29,6 +32,113 @@ const initialFormData: CreateChallengeFormData = {
 export const useChallengeForm = (): UseChallengeFormReturn => {
     const [formData, setFormData] = useState<CreateChallengeFormData>(initialFormData)
     const [errors, setErrors] = useState<ChallengeValidationErrors>({})
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const validateField = useCallback(
+        (field: keyof CreateChallengeFormData) => {
+            const newErrors = { ...errors }
+
+            switch (field) {
+                case "challengeName":
+                    if (!formData.challengeName.trim()) {
+                        newErrors.challengeName = "Tên thử thách không được để trống"
+                    } else if (formData.challengeName.trim().length < 3) {
+                        newErrors.challengeName = "Tên thử thách phải có ít nhất 3 ký tự"
+                    } else if (formData.challengeName.trim().length > 100) {
+                        newErrors.challengeName = "Tên thử thách không được quá 100 ký tự"
+                    } else {
+                        delete newErrors.challengeName
+                    }
+                    break
+
+                case "description":
+                    if (formData.description && formData.description.length > 500) {
+                        newErrors.description = "Mô tả không được quá 500 ký tự"
+                    } else {
+                        delete newErrors.description
+                    }
+                    break
+
+                case "startDate":
+                    if (formData.startDate) {
+                        const startDate = new Date(formData.startDate)
+                        const today = new Date()
+                        today.setHours(0, 0, 0, 0)
+
+                        // Check if start date is in the past
+                        if (startDate < today) {
+                            newErrors.startDate = "Ngày bắt đầu không được là quá khứ"
+                        } else if (formData.endDate) {
+                            // Check if start date is after end date
+                            const endDate = new Date(formData.endDate)
+                            if (startDate >= endDate) {
+                                newErrors.startDate = "Ngày bắt đầu phải trước ngày kết thúc"
+                            } else {
+                                delete newErrors.startDate
+                            }
+                        } else {
+                            delete newErrors.startDate
+                        }
+                    } else {
+                        delete newErrors.startDate
+                    }
+                    break
+
+                case "endDate":
+                    if (!formData.endDate) {
+                        newErrors.endDate = "Ngày kết thúc không được để trống"
+                    } else {
+                        const endDate = new Date(formData.endDate)
+                        const today = new Date()
+                        today.setHours(0, 0, 0, 0)
+
+                        if (endDate <= today) {
+                            newErrors.endDate = "Ngày kết thúc phải sau ngày hôm nay"
+                        } else {
+                            delete newErrors.endDate
+                            // Also revalidate start date if it exists
+                            if (formData.startDate) {
+                                const startDate = new Date(formData.startDate)
+                                if (startDate < today) {
+                                    newErrors.startDate = "Ngày bắt đầu không được là quá khứ"
+                                } else if (startDate >= endDate) {
+                                    newErrors.startDate = "Ngày bắt đầu phải trước ngày kết thúc"
+                                } else {
+                                    delete newErrors.startDate
+                                }
+                            }
+                        }
+                    }
+                    break
+
+                case "targetValue":
+                    if (!formData.targetValue.trim()) {
+                        newErrors.targetValue = "Giá trị mục tiêu không được để trống"
+                    } else {
+                        const targetValue = Number.parseFloat(formData.targetValue)
+                        if (isNaN(targetValue) || targetValue <= 0) {
+                            newErrors.targetValue = "Giá trị mục tiêu phải là số dương"
+                        } else if (targetValue > 1000000) {
+                            newErrors.targetValue = "Giá trị mục tiêu không được quá 1,000,000"
+                        } else {
+                            delete newErrors.targetValue
+                        }
+                    }
+                    break
+
+                case "unit":
+                    if (!formData.unit.trim()) {
+                        newErrors.unit = "Đơn vị không được để trống"
+                    } else {
+                        delete newErrors.unit
+                    }
+                    break
+            }
+
+            setErrors(newErrors)
+        },
+        [formData, errors],
+    )
 
     const updateField = useCallback(
         (field: keyof CreateChallengeFormData, value: string) => {
@@ -39,10 +149,9 @@ export const useChallengeForm = (): UseChallengeFormReturn => {
 
             // Clear error for this field when user starts typing
             if (errors[field]) {
-                setErrors((prev) => ({
-                    ...prev,
-                    [field]: undefined,
-                }))
+                const newErrors = { ...errors }
+                delete newErrors[field]
+                setErrors(newErrors)
             }
         },
         [errors],
@@ -61,44 +170,62 @@ export const useChallengeForm = (): UseChallengeFormReturn => {
         // Validate challenge name
         if (!formData.challengeName.trim()) {
             newErrors.challengeName = "Tên thử thách không được để trống"
-        } else if (formData.challengeName.length > 100) {
+        } else if (formData.challengeName.trim().length < 3) {
+            newErrors.challengeName = "Tên thử thách phải có ít nhất 3 ký tự"
+        } else if (formData.challengeName.trim().length > 100) {
             newErrors.challengeName = "Tên thử thách không được quá 100 ký tự"
         }
 
-        // Validate end date
+        // Validate description
+        if (formData.description && formData.description.length > 500) {
+            newErrors.description = "Mô tả không được quá 500 ký tự"
+        }
+
+        // Validate dates
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        // Validate end date first
         if (!formData.endDate) {
             newErrors.endDate = "Ngày kết thúc không được để trống"
+        } else {
+            const endDate = new Date(formData.endDate)
+            if (endDate <= today) {
+                newErrors.endDate = "Ngày kết thúc phải sau ngày hôm nay"
+            }
+        }
+
+        // Validate start date if provided
+        if (formData.startDate) {
+            const startDate = new Date(formData.startDate)
+
+            // Check if start date is in the past
+            if (startDate < today) {
+                newErrors.startDate = "Ngày bắt đầu không được là quá khứ"
+            } else if (formData.endDate && !newErrors.endDate) {
+                // Only check start vs end if end date is valid
+                const endDate = new Date(formData.endDate)
+                if (startDate >= endDate) {
+                    newErrors.startDate = "Ngày bắt đầu phải trước ngày kết thúc"
+                }
+            }
         }
 
         // Validate target value
-        const targetValue = Number.parseFloat(formData.targetValue)
-        if (!formData.targetValue || isNaN(targetValue) || targetValue <= 0) {
-            newErrors.targetValue = "Giá trị mục tiêu phải là số dương"
+        if (!formData.targetValue.trim()) {
+            newErrors.targetValue = "Giá trị mục tiêu không được để trống"
+        } else {
+            const targetValue = Number.parseFloat(formData.targetValue)
+            if (isNaN(targetValue) || targetValue <= 0) {
+                newErrors.targetValue = "Giá trị mục tiêu phải là số dương"
+            } else if (targetValue > 1000000) {
+                newErrors.targetValue = "Giá trị mục tiêu không được quá 1,000,000"
+            }
         }
 
         // Validate unit
         if (!formData.unit.trim()) {
             newErrors.unit = "Đơn vị không được để trống"
-        }
-
-        // Validate dates relationship
-        if (formData.startDate && formData.endDate) {
-            const startDate = new Date(formData.startDate)
-            const endDate = new Date(formData.endDate)
-            const now = new Date()
-
-            if (startDate < now && formData.startDate) {
-                // Only validate if startDate is explicitly set
-                const today = new Date()
-                today.setHours(0, 0, 0, 0)
-                if (startDate < today) {
-                    newErrors.startDate = "Ngày bắt đầu không thể ở quá khứ"
-                }
-            }
-
-            if (startDate >= endDate) {
-                newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu"
-            }
         }
 
         setErrors(newErrors)
@@ -108,47 +235,55 @@ export const useChallengeForm = (): UseChallengeFormReturn => {
     const resetForm = useCallback(() => {
         setFormData(initialFormData)
         setErrors({})
+        setIsSubmitting(false)
     }, [])
-
-    const getSubmitData = useCallback((): ChallengeRequest => {
-        const submitData: ChallengeRequest = {
-            challengeName: formData.challengeName.trim(),
-            description: formData.description.trim() || undefined,
-            endDate: formData.endDate,
-            targetValue: Number.parseFloat(formData.targetValue),
-            unit: formData.unit,
-        }
-
-        // Only include startDate if it's set
-        if (formData.startDate) {
-            submitData.startDate = formData.startDate
-        }
-
-        return submitData
-    }, [formData])
 
     const clearErrors = useCallback(() => {
         setErrors({})
     }, [])
 
+    const setSubmitting = useCallback((submitting: boolean) => {
+        setIsSubmitting(submitting)
+    }, [])
+
+    const getSubmitData = useCallback((): ChallengeRequest => {
+        // Convert date strings to ISO format with time for backend compatibility
+        const formatDateForBackend = (dateString: string): string => {
+            if (!dateString) return ""
+            // Add time component to make it compatible with LocalDateTime
+            return `${dateString}T00:00:00`
+        }
+
+        return {
+            challengeName: formData.challengeName.trim(),
+            description: formData.description.trim() || undefined,
+            startDate: formData.startDate ? formatDateForBackend(formData.startDate) : undefined,
+            endDate: formatDateForBackend(formData.endDate),
+            targetValue: Number.parseFloat(formData.targetValue),
+            unit: formData.unit.trim(),
+        }
+    }, [formData])
+
     const isValid =
         Object.keys(errors).length === 0 &&
         formData.challengeName.trim() !== "" &&
         formData.endDate !== "" &&
-        formData.targetValue !== "" &&
-        !isNaN(Number.parseFloat(formData.targetValue)) &&
-        Number.parseFloat(formData.targetValue) > 0
+        formData.targetValue.trim() !== "" &&
+        formData.unit.trim() !== ""
 
     return {
         formData,
         errors,
         isValid,
+        isSubmitting,
         updateField,
         updateFormData,
         validateForm,
+        validateField,
         resetForm,
         getSubmitData,
         setErrors,
         clearErrors,
+        setSubmitting,
     }
 }

@@ -13,16 +13,32 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState, useEffect } from "react"
-import { Crown, Shield, Coins, Activity, Users, Flame, XCircle, CheckCircle, Play, Eye, Info, Plus } from "lucide-react"
-import type { User, Challenge, statusType } from "../../../types/user-types"
-// import type { Challenge } from "@/types/challenge"
 import { Textarea } from "@/components/ui/textarea"
-// Removed: import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useEffect } from "react"
+import {
+    Crown,
+    Shield,
+    Coins,
+    Activity,
+    Users,
+    Flame,
+    XCircle,
+    CheckCircle,
+    Eye,
+    Info,
+    Plus,
+    Loader2,
+    AlertCircle,
+} from "lucide-react"
+import type { User } from "../../../types/user-types"
+import type { ChallengeResponse } from "../../../types/challenge"
+import { useChallenge } from "../../../hooks/use-challenge"
+import { useChallengeForm } from "../../../hooks/use-challenge-form"
+import { useAuth } from "../../../hooks/useAuth"
 
 interface PremiumChallengesProps {
     user: User
-    onUpdateUserChallenges: (updatedChallenges: Challenge[]) => void
+    onUpdateUserChallenges?: (updatedChallenges: any[]) => void
 }
 
 const getChallengeIcon = (iconName: string) => {
@@ -42,102 +58,155 @@ const getChallengeIcon = (iconName: string) => {
     }
 }
 
+const getChallengeStatusInVietnamese = (status: string) => {
+    switch (status.toLowerCase()) {
+        case "active":
+            return "Đang thực hiện"
+        case "completed":
+            return "Đã hoàn thành"
+        case "given up":
+            return "Đã từ bỏ"
+        default:
+            return "Chưa bắt đầu"
+    }
+}
+
+const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+        case "active":
+            return "text-blue-600"
+        case "completed":
+            return "text-green-600"
+        case "given up":
+            return "text-red-600"
+        default:
+            return "text-gray-600"
+    }
+}
+
 export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChallengesProps) {
     const [isPremium, setIsPremium] = useState(false)
-    const [challenges, setChallenges] = useState<Challenge[]>(user.challenges || [])
-    const [openProgressDialog, setOpenProgressDialog] = useState(false)
     const [openCreateDialog, setOpenCreateDialog] = useState(false)
-    const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null)
-    const [progressInput, setProgressInput] = useState("")
-    const [newChallengeForm, setNewChallengeForm] = useState({
-        name: "",
-        description: "",
-        requirements: "",
-        reward: "",
-        category: "other", // Default category
-        targetValue: 0,
-        icon: "info", // Default icon
-    })
+
+    // Get auth context to verify user data
+
+    // Use challenge hooks
+    const {
+        challenges,
+        isLoading,
+        error,
+        validationErrors,
+        createChallenge,
+        getMyChallenges,
+        clearError,
+        clearValidationErrors,
+    } = useChallenge()
+
+    const {
+        formData,
+        errors: formErrors,
+        isValid,
+        isSubmitting,
+        updateField,
+        validateForm,
+        validateField,
+        resetForm,
+        getSubmitData,
+        clearErrors: clearFormErrors,
+        setErrors: setFormErrors,
+        setSubmitting,
+    } = useChallengeForm()
 
     useEffect(() => {
         setIsPremium(user.role === "PREMIUM_MEMBER")
-        setChallenges(user.challenges || [])
-    }, [user])
-
-    const handleStartChallenge = (challengeId: string) => {
-        const updatedChallenges = challenges.map(
-            (c): Challenge => (c.id === challengeId ? { ...c, status: "Active" as statusType, currentValue: 0 } : c),
-        )
-        setChallenges(updatedChallenges)
-        onUpdateUserChallenges(updatedChallenges)
-    }
-
-    const handleUpdateProgress = () => {
-        if (selectedChallenge && progressInput !== "") {
-            const newCurrentValue = Number.parseFloat(progressInput)
-            const updatedChallenges = challenges.map(
-                (c): Challenge =>
-                    c.id === selectedChallenge.id
-                        ? {
-                            ...c,
-                            currentValue: newCurrentValue,
-                            status: newCurrentValue >= c.targetValue : "Completed"
-                        }
-                        : c,
-            )
-            setChallenges(updatedChallenges)
-            onUpdateUserChallenges(updatedChallenges)
-            setOpenProgressDialog(false)
-            setProgressInput("")
+        if (user.role === "PREMIUM_MEMBER") {
+            getMyChallenges()
         }
-    }
+    }, [user, getMyChallenges])
 
-    const handleMarkFailed = (challengeId: string) => {
-        const updatedChallenges = challenges.map((c): Challenge => (c.id === challengeId ? { ...c, status: "failed" } : c))
-        setChallenges(updatedChallenges)
-        onUpdateUserChallenges(updatedChallenges)
-    }
+    const handleCreateChallenge = async () => {
+        console.log("=== Starting challenge creation ===")
 
-    const openProgressUpdateDialog = (challenge: Challenge) => {
-        setSelectedChallenge(challenge)
-        setProgressInput(challenge.currentValue.toString())
-        setOpenProgressDialog(true)
-    }
+        // Set submitting state
+        setSubmitting(true)
 
-    const handleCreateUserChallenge = () => {
-        if (!newChallengeForm.name || !newChallengeForm.description || newChallengeForm.targetValue <= 0) {
-            alert("Please fill in all required fields and ensure target value is greater than 0.")
+        // Clear previous backend errors
+        clearValidationErrors()
+        clearError()
+
+        // Validate form first
+        const isFormValid = validateForm()
+        console.log("Form validation result:", isFormValid)
+        console.log("Form errors:", formErrors)
+
+        if (!isFormValid) {
+            console.log("Form validation failed, stopping submission")
+            setSubmitting(false)
             return
         }
 
-        const newChallenge: Challenge = {
-            id: `user-challenge-${Date.now()}`, // Unique ID for user-created challenges
-            isPremium: true, // User-created challenges are inherently premium
-            isUserCreated: true, // Mark as user-created
-            currentValue: 0,
-            status: "not-started",
-            name: newChallengeForm.name,
-            description: newChallengeForm.description,
-            requirements: newChallengeForm.requirements,
-            reward: newChallengeForm.reward,
-            category: newChallengeForm.category as "health" | "mindfulness" | "social" | "streak" | "financial" | "other", // Explicitly cast category
-            targetValue: Number(newChallengeForm.targetValue), // Ensure targetValue is a number
-            icon: newChallengeForm.icon,
-        }
+        const submitData = getSubmitData()
+        console.log("Submitting challenge data:", submitData)
 
-        const updatedChallenges = [...challenges, newChallenge]
-        setChallenges(updatedChallenges)
-        onUpdateUserChallenges(updatedChallenges)
-        setOpenCreateDialog(false)
-        setNewChallengeForm({
-            name: "",
-            description: "",
-            requirements: "",
-            reward: "",
-            category: "other",
-            targetValue: 0,
-            icon: "info",
-        })
+        try {
+            const success = await createChallenge(submitData)
+            console.log("Create challenge result:", success)
+
+            if (success) {
+                console.log("Challenge created successfully")
+                setOpenCreateDialog(false)
+                resetForm()
+                clearFormErrors()
+                clearValidationErrors()
+                clearError()
+
+                // Optionally notify parent component
+                if (onUpdateUserChallenges) {
+                    onUpdateUserChallenges(challenges)
+                }
+            }
+        } catch (err) {
+            console.error("Error in handleCreateChallenge:", err)
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    const handleDialogClose = (open: boolean) => {
+        if (!open) {
+            // Clear all states when closing dialog
+            resetForm()
+            clearFormErrors()
+            clearValidationErrors()
+            clearError()
+        }
+        setOpenCreateDialog(open)
+    }
+
+    const handleFieldBlur = (field: keyof typeof formData) => {
+        validateField(field)
+    }
+
+    const handleFieldChange = (field: keyof typeof formData, value: string) => {
+        updateField(field, value)
+        // Validate related fields when dates change
+        if (field === "startDate" || field === "endDate") {
+            setTimeout(() => {
+                validateField("startDate")
+                validateField("endDate")
+            }, 0)
+        }
+    }
+
+    const calculateProgress = (challenge: ChallengeResponse) => {
+        // Since backend doesn't have currentValue, we'll simulate it
+        // In real implementation, you might need to track progress separately
+        return 0 // Default to 0 for now
+    }
+
+    const getProgressPercentage = (challenge: ChallengeResponse) => {
+        const currentValue = calculateProgress(challenge)
+        return (currentValue / challenge.targetValue) * 100
     }
 
     if (!isPremium) {
@@ -160,8 +229,8 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Thử thách Premium</h1>
-                <Button onClick={() => setOpenCreateDialog(true)}>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white mt-6">Thử thách Premium</h1>
+                <Button className="mt-8" onClick={() => setOpenCreateDialog(true)} disabled={isLoading}>
                     <Plus className="h-4 w-4 mr-2" /> Tạo thử thách mới
                 </Button>
             </div>
@@ -169,35 +238,73 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
                 Hoàn thành các thử thách độc quyền để nhận huy hiệu và điểm thưởng đặc biệt!
             </p>
 
+            {/* Error Display - Only show if not in dialog */}
+            {error && !openCreateDialog && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                    <p className="text-red-600 dark:text-red-400">{error}</p>
+                    <Button variant="outline" size="sm" onClick={clearError} className="mt-2">
+                        Đóng
+                    </Button>
+                </div>
+            )}
+
+            {/* Loading State */}
+            {isLoading && (
+                <div className="flex items-center justify-center p-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+                    <span className="ml-2 text-slate-600 dark:text-slate-400">Đang tải...</span>
+                </div>
+            )}
+
+            {/* Challenges Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {challenges.length === 0 && (
+                {!isLoading && challenges.length === 0 && (
                     <p className="col-span-full text-center text-slate-500 dark:text-slate-400">
-                        Hiện chưa có thử thách Premium nào.
+                        Hiện chưa có thử thách Premium nào. Hãy tạo thử thách đầu tiên của bạn!
                     </p>
                 )}
+
                 {challenges.map((challenge) => {
-                    const IconComponent = getChallengeIcon(challenge.icon)
-                    const progressPercentage = (challenge.currentValue / challenge.targetValue) * 100
+                    const IconComponent = getChallengeIcon("activity") // Default icon since backend doesn't store icon
+                    const progressPercentage = getProgressPercentage(challenge)
+                    const currentValue = calculateProgress(challenge)
 
                     return (
-                        <Card key={challenge.id} className="flex flex-col">
+                        <Card key={challenge.challengeID} className="flex flex-col">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-lg font-medium">{challenge.name}</CardTitle>
+                                <CardTitle className="text-lg font-medium">{challenge.challengeName}</CardTitle>
                                 <IconComponent className="h-6 w-6 text-emerald-500" />
                             </CardHeader>
                             <CardContent className="flex-1">
                                 <CardDescription className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-                                    {challenge.description}
+                                    {challenge.description || "Không có mô tả"}
                                 </CardDescription>
 
+                                <div className="space-y-2 mb-4">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-slate-600 dark:text-slate-400">Trạng thái:</span>
+                                        <span className={`font-medium ${getStatusColor(challenge.status)}`}>
+                                            {getChallengeStatusInVietnamese(challenge.status)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-slate-600 dark:text-slate-400">Mục tiêu:</span>
+                                        <span className="font-medium">
+                                            {challenge.targetValue} {challenge.unit}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-slate-600 dark:text-slate-400">Kết thúc:</span>
+                                        <span className="font-medium">{new Date(challenge.endDate).toLocaleDateString("vi-VN")}</span>
+                                    </div>
+                                </div>
 
-                                {challenge.status === "in-progress" && (
+                                {challenge.status.toLowerCase() === "active" && (
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400">
                                             <span>Tiến độ:</span>
                                             <span>
-                                                {challenge.currentValue} / {challenge.targetValue}{" "}
-                                                {challenge.category === "financial" ? "VND" : challenge.category === "streak" ? "ngày" : ""}
+                                                {currentValue} / {challenge.targetValue} {challenge.unit}
                                             </span>
                                         </div>
                                         <Progress value={progressPercentage} className="h-2" />
@@ -205,39 +312,25 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
                                 )}
                             </CardContent>
                             <CardFooter className="flex justify-between gap-2 pt-4">
-                                {challenge.status === "not-started" && (
+                                {challenge.status.toLowerCase() === "active" && (
                                     <Button
-                                        onClick={() => handleStartChallenge(challenge.id)}
-                                        className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
+                                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                                        onClick={() => {
+                                            // Handle progress update - you might want to implement this
+                                            console.log("Update progress for challenge:", challenge.challengeID)
+                                        }}
                                     >
-                                        <Play className="h-4 w-4 mr-2" /> Bắt đầu
+                                        <Eye className="h-4 w-4 mr-2" /> Cập nhật tiến độ
                                     </Button>
                                 )}
-                                {challenge.status === "in-progress" && (
-                                    <>
-                                        <Button
-                                            onClick={() => openProgressUpdateDialog(challenge)}
-                                            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-                                        >
-                                            <Eye className="h-4 w-4 mr-2" /> Xem tiến độ
-                                        </Button>
-                                        <Button
-                                            onClick={() => handleMarkFailed(challenge.id)}
-                                            variant="outline"
-                                            className="flex-1 text-rose-500 border-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20"
-                                        >
-                                            <XCircle className="h-4 w-4 mr-2" /> Đánh dấu thất bại
-                                        </Button>
-                                    </>
-                                )}
-                                {challenge.status === "completed" && (
+                                {challenge.status.toLowerCase() === "completed" && (
                                     <Button disabled className="flex-1 bg-green-500 text-white">
                                         <CheckCircle className="h-4 w-4 mr-2" /> Đã hoàn thành
                                     </Button>
                                 )}
-                                {challenge.status === "failed" && (
+                                {challenge.status.toLowerCase() === "given up" && (
                                     <Button disabled className="flex-1 bg-red-500 text-white">
-                                        <XCircle className="h-4 w-4 mr-2" /> Đã thất bại
+                                        <XCircle className="h-4 w-4 mr-2" /> Đã từ bỏ
                                     </Button>
                                 )}
                             </CardFooter>
@@ -246,133 +339,183 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
                 })}
             </div>
 
-            {/* Progress Update Dialog */}
-            {selectedChallenge && (
-                <Dialog open={openProgressDialog} onOpenChange={setOpenProgressDialog}>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Cập nhật tiến độ: {selectedChallenge.name}</DialogTitle>
-                            <DialogDescription>Nhập giá trị hiện tại của bạn cho thử thách này.</DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="progress" className="text-right">
-                                    Tiến độ hiện tại
-                                </Label>
-                                <Input
-                                    id="progress"
-                                    type="number"
-                                    value={progressInput}
-                                    onChange={(e) => setProgressInput(e.target.value)}
-                                    className="col-span-3"
-                                />
-                            </div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 text-center">
-                                Mục tiêu: {selectedChallenge.targetValue}{" "}
-                                {selectedChallenge.category === "financial"
-                                    ? "VND"
-                                    : selectedChallenge.category === "streak"
-                                        ? "ngày"
-                                        : ""}
-                            </p>
-                        </div>
-                        <DialogFooter>
-                            <Button onClick={handleUpdateProgress}>Cập nhật</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            )}
-
             {/* Create New Challenge Dialog */}
-            <Dialog open={openCreateDialog} onOpenChange={setOpenCreateDialog}>
+            <Dialog open={openCreateDialog} onOpenChange={handleDialogClose}>
                 <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Tạo Thử thách Mới</DialogTitle>
                         <DialogDescription>Tạo một thử thách cá nhân để giúp bạn đạt được mục tiêu cai thuốc.</DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
+                        {/* Challenge Name */}
                         <div className="grid gap-2">
-                            <Label htmlFor="new-challenge-name">Tên thử thách</Label>
+                            <Label htmlFor="challengeName">
+                                Tên thử thách <span className="text-red-500">*</span>
+                            </Label>
                             <Input
-                                id="new-challenge-name"
-                                value={newChallengeForm.name}
-                                onChange={(e) => setNewChallengeForm({ ...newChallengeForm, name: e.target.value })}
+                                id="challengeName"
+                                value={formData.challengeName}
+                                onChange={(e) => handleFieldChange("challengeName", e.target.value)}
+                                onBlur={() => handleFieldBlur("challengeName")}
                                 placeholder="Ví dụ: 7 ngày không hút thuốc"
+                                className={formErrors.challengeName ? "border-red-500 focus:border-red-500" : ""}
                             />
+                            {formErrors.challengeName && (
+                                <div className="flex items-center gap-2 text-sm text-red-600">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <span>{formErrors.challengeName}</span>
+                                </div>
+                            )}
                         </div>
+
+                        {/* Description */}
                         <div className="grid gap-2">
-                            <Label htmlFor="new-challenge-description">Mô tả</Label>
+                            <Label htmlFor="description">Mô tả</Label>
                             <Textarea
-                                id="new-challenge-description"
-                                value={newChallengeForm.description}
-                                onChange={(e) => setNewChallengeForm({ ...newChallengeForm, description: e.target.value })}
+                                id="description"
+                                value={formData.description}
+                                onChange={(e) => handleFieldChange("description", e.target.value)}
+                                onBlur={() => handleFieldBlur("description")}
                                 placeholder="Mô tả chi tiết về thử thách này..."
-                                className="min-h-[80px]"
+                                className={`min-h-[80px] ${formErrors.description ? "border-red-500 focus:border-red-500" : ""}`}
                             />
+                            {formErrors.description && (
+                                <div className="flex items-center gap-2 text-sm text-red-600">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <span>{formErrors.description}</span>
+                                </div>
+                            )}
+                            <p className="text-xs text-slate-500">{formData.description.length}/500 ký tự</p>
                         </div>
+
+                        {/* Date Fields */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="new-challenge-category">Danh mục</Label>
-                                <select
-                                    id="new-challenge-category"
-                                    value={newChallengeForm.category}
-                                    onChange={(e) =>
-                                        setNewChallengeForm({
-                                            ...newChallengeForm,
-                                            category: e.target.value as
-                                                | "health"
-                                                | "mindfulness"
-                                                | "social"
-                                                | "streak"
-                                                | "financial"
-                                                | "other",
-                                        })
-                                    }
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    <option value="health">Sức khỏe</option>
-                                    <option value="mindfulness">Chánh niệm</option>
-                                    <option value="social">Xã hội</option>
-                                    <option value="streak">Chuỗi ngày</option>
-                                    <option value="financial">Tài chính</option>
-                                    <option value="other">Khác</option>
-                                </select>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="new-challenge-target-value">Giá trị mục tiêu</Label>
+                                <Label htmlFor="startDate">Ngày bắt đầu</Label>
                                 <Input
-                                    id="new-challenge-target-value"
-                                    type="number"
-                                    value={newChallengeForm.targetValue}
-                                    onChange={(e) =>
-                                        setNewChallengeForm({ ...newChallengeForm, targetValue: Number(e.target.value) || 0 })
-                                    }
-                                    placeholder="Ví dụ: 7 (cho 7 ngày)"
+                                    id="startDate"
+                                    type="date"
+                                    value={formData.startDate}
+                                    onChange={(e) => handleFieldChange("startDate", e.target.value)}
+                                    onBlur={() => handleFieldBlur("startDate")}
+                                    className={formErrors.startDate ? "border-red-500 focus:border-red-500" : ""}
                                 />
+                                {formErrors.startDate && (
+                                    <div className="flex items-center gap-2 text-sm text-red-600">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <span>{formErrors.startDate}</span>
+                                    </div>
+                                )}
+                                <p className="text-xs text-slate-500">Để trống nếu muốn bắt đầu ngay hôm nay</p>
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="endDate">
+                                    Ngày kết thúc <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="endDate"
+                                    type="date"
+                                    value={formData.endDate}
+                                    onChange={(e) => handleFieldChange("endDate", e.target.value)}
+                                    onBlur={() => handleFieldBlur("endDate")}
+                                    className={formErrors.endDate ? "border-red-500 focus:border-red-500" : ""}
+                                />
+                                {formErrors.endDate && (
+                                    <div className="flex items-center gap-2 text-sm text-red-600">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <span>{formErrors.endDate}</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="new-challenge-icon">Biểu tượng (Lucide React name)</Label>
-                            <select
-                                id="new-challenge-icon"
-                                value={newChallengeForm.icon}
-                                onChange={(e) => setNewChallengeForm({ ...newChallengeForm, icon: e.target.value })}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                <option value="shield">Shield</option>
-                                <option value="coins">Coins</option>
-                                <option value="activity">Activity</option>
-                                <option value="users">Users</option>
-                                <option value="flame">Flame</option>
-                                <option value="info">Info (Mặc định)</option>
-                            </select>
+
+                        {/* Target Value and Unit */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="targetValue">
+                                    Giá trị mục tiêu <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="targetValue"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={formData.targetValue}
+                                    onChange={(e) => handleFieldChange("targetValue", e.target.value)}
+                                    onBlur={() => handleFieldBlur("targetValue")}
+                                    placeholder="Ví dụ: 7"
+                                    className={formErrors.targetValue ? "border-red-500 focus:border-red-500" : ""}
+                                />
+                                {formErrors.targetValue && (
+                                    <div className="flex items-center gap-2 text-sm text-red-600">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <span>{formErrors.targetValue}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="grid gap-2">
+                                <Label htmlFor="unit">
+                                    Đơn vị <span className="text-red-500">*</span>
+                                </Label>
+                                <select
+                                    id="unit"
+                                    value={formData.unit}
+                                    onChange={(e) => handleFieldChange("unit", e.target.value)}
+                                    onBlur={() => handleFieldBlur("unit")}
+                                    className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${formErrors.unit ? "border-red-500 focus:border-red-500" : ""
+                                        }`}
+                                >
+                                    <option value="cigarettes">Điếu thuốc</option>
+                                    <option value="days">Ngày</option>
+                                    <option value="VND">VND</option>
+                                </select>
+                                {formErrors.unit && (
+                                    <div className="flex items-center gap-2 text-sm text-red-600">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <span>{formErrors.unit}</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
+
+                        {/* Backend validation errors */}
+                        {validationErrors.general && (
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                                <div className="flex items-center gap-2">
+                                    <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                    <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.general}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Individual backend validation errors */}
+                        {Object.entries(validationErrors).map(([field, message]) => {
+                            if (field === "general" || !message) return null
+                            return (
+                                <div
+                                    key={field}
+                                    className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                        <p className="text-sm text-red-600 dark:text-red-400">
+                                            <strong>{field}:</strong> {message}
+                                        </p>
+                                    </div>
+                                </div>
+                            )
+                        })}
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setOpenCreateDialog(false)}>
+                        <Button variant="outline" onClick={() => handleDialogClose(false)} disabled={isSubmitting}>
                             Hủy
                         </Button>
-                        <Button onClick={handleCreateUserChallenge}>Tạo thử thách</Button>
+                        <Button onClick={handleCreateChallenge} disabled={isSubmitting || !isValid}>
+                            {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                            {isSubmitting ? "Đang tạo..." : "Tạo thử thách"}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
