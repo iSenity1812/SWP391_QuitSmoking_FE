@@ -19,7 +19,7 @@ interface StreakTrackerProps {
 export const StreakTracker: React.FC<StreakTrackerProps> = ({
     streakData,
     onCheckIn,
-    canCheckIn,
+
     motivationalMessage,
     getDaysUntilNextMilestone,
 }) => {
@@ -109,54 +109,7 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({
             </div>
 
             {/* Optional Note Adding */}
-            {canCheckIn && (
-                <div className="space-y-4">
-                    {!isAddingNote ? (
-                        <Button
-                            onClick={() => setIsAddingNote(true)}
-                            variant="outline"
-                            className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-600 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
-                        >
-                            Thêm Ghi Chú Cho Hôm Nay
-                        </Button>
-                    ) : (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="space-y-4 bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-700"
-                        >
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Ghi chú cho ngày hôm nay:
-                                </label>
-                                <Textarea
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    placeholder="Cảm nhận, thành tựu, hoặc thử thách của bạn hôm nay..."
-                                    className="min-h-[100px]"
-                                />
-                            </div>
 
-                            <div className="flex gap-2">
-                                <Button onClick={handleAddNote} className="flex-1">
-                                    Lưu Ghi Chú
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                        setIsAddingNote(false)
-                                        setNotes("")
-                                    }}
-                                    className="flex-1"
-                                >
-                                    Hủy
-                                </Button>
-                            </div>
-                        </motion.div>
-                    )}
-                </div>
-            )}
 
             {/* Progress to Next Milestone */}
             {daysUntilNextMilestone && (

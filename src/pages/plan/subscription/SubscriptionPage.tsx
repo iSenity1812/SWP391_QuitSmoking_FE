@@ -4,9 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Check, Crown, Star, Shield, Smartphone, Building, ChevronLeft, Sparkles } from "lucide-react"
+import { Check, Crown, Star, Shield, ChevronLeft, Sparkles, QrCode } from "lucide-react" // Removed Smartphone, Building; Added QrCode
 
 interface PlanOption {
     id: string
@@ -92,16 +90,10 @@ const premiumPlans: PlanOption[] = [
 
 const paymentMethods = [
     {
-        id: "momo",
-        name: "MoMo",
-        icon: Smartphone,
-        description: "Thanh toán qua ví điện tử MoMo",
-    },
-    {
-        id: "banking",
-        name: "Chuyển khoản ngân hàng",
-        icon: Building,
-        description: "Chuyển khoản qua ngân hàng",
+        id: "vnpay",
+        name: "VNPay",
+        icon: QrCode,
+        description: "Thanh toán qua mã QR VNPay",
     },
 ]
 
@@ -121,7 +113,7 @@ export default function SubscriptionPage() {
         if (plan.id === "free") {
             // Handle free plan selection - could redirect back or show confirmation
             alert("Bạn đã chọn gói miễn phí!")
-            window.location.href = "/profile"
+            window.location.href = "/"
         } else {
             setSelectedPlan(plan)
             setStep("payment-method")
@@ -152,8 +144,8 @@ export default function SubscriptionPage() {
                 }),
             )
 
-            // Redirect to profile with booking tab active
-            window.location.href = "/profile?tab=booking"
+
+            window.location.href = "/"
         }, 2000)
     }
 
@@ -220,8 +212,8 @@ export default function SubscriptionPage() {
                                         <Card
                                             key={plan.id}
                                             className={`relative border-2 transition-all duration-300 hover:scale-105 hover:-translate-y-1 ${plan.popular
-                                                    ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-xl"
-                                                    : "border-gray-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600"
+                                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-xl"
+                                                : "border-gray-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600"
                                                 }`}
                                         >
                                             {plan.popular && (
@@ -275,8 +267,8 @@ export default function SubscriptionPage() {
                                                     <Button
                                                         onClick={() => handlePlanSelect(plan)}
                                                         className={`w-full ${plan.popular
-                                                                ? "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
-                                                                : "bg-emerald-500 hover:bg-emerald-600"
+                                                            ? "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
+                                                            : "bg-emerald-500 hover:bg-emerald-600"
                                                             }`}
                                                     >
                                                         Chọn Gói Này
@@ -333,8 +325,8 @@ export default function SubscriptionPage() {
                                     <Card
                                         key={method.id}
                                         className={`cursor-pointer border-2 transition-all duration-300 hover:shadow-lg ${selectedPaymentMethod === method.id
-                                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
-                                                : "border-gray-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600"
+                                            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
+                                            : "border-gray-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600"
                                             }`}
                                         onClick={() => handlePaymentMethodSelect(method.id)}
                                     >
@@ -386,26 +378,15 @@ export default function SubscriptionPage() {
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                        {selectedPaymentMethod === "momo" && (
-                                            <div>
-                                                <Label htmlFor="phoneNumber">Số điện thoại MoMo</Label>
-                                                <Input
-                                                    id="phoneNumber"
-                                                    placeholder="0123456789"
-                                                    value={paymentDetails.phoneNumber}
-                                                    onChange={(e) => setPaymentDetails((prev) => ({ ...prev, phoneNumber: e.target.value }))}
-                                                />
-                                            </div>
-                                        )}
-
-                                        {selectedPaymentMethod === "banking" && (
+                                        {selectedPaymentMethod === "vnpay" && (
                                             <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                                <p className="font-medium mb-2">Thông tin chuyển khoản:</p>
-                                                <p className="text-sm">Ngân hàng: Vietcombank</p>
-                                                <p className="text-sm">STK: 1234567890</p>
-                                                <p className="text-sm">Chủ TK: CONG TY QUIT TOGETHER</p>
+                                                <p className="font-medium mb-2">Quét mã QR để thanh toán qua VNPay:</p>
+                                                <img src="/placeholder.svg?height=200&width=200" alt="VNPay QR Code" className="mx-auto my-4" />
                                                 <p className="text-sm font-medium text-blue-600">
                                                     Nội dung: PREMIUM {selectedPlan.id.toUpperCase()}
+                                                </p>
+                                                <p className="text-sm text-slate-600 dark:text-slate-300 mt-2">
+                                                    Vui lòng quét mã QR và nhập đúng nội dung chuyển khoản.
                                                 </p>
                                             </div>
                                         )}

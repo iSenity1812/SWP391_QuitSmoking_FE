@@ -156,10 +156,6 @@ export const StreakCalendar: React.FC<StreakCalendarProps> = ({ streakData }) =>
                     <span className="text-xs text-slate-700 dark:text-slate-300">Thành công</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-amber-100 dark:bg-amber-900/30"></div>
-                    <span className="text-xs text-slate-700 dark:text-slate-300">Một phần</span>
-                </div>
-                <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded-full bg-red-100 dark:bg-red-900/30"></div>
                     <span className="text-xs text-slate-700 dark:text-slate-300">Thất bại</span>
                 </div>
