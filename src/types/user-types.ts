@@ -19,6 +19,10 @@ export interface Achievement {
     isSpecial?: boolean
 }
 
+export type Role = 'NORMAL_MEMBER' | 'PREMIUM_MEMBER' | 'SUPER_ADMIN' | 'CONTENT_ADMIN' | 'COACH';
+
+export type statusType = "Active" | "Completed" | "Give up";
+
 export interface AchievementCategory {
     id: string
     name: string
@@ -72,7 +76,7 @@ export interface Challenge {
     category: "health" | "mindfulness" | "social" | "streak" | "financial" | "other"
     targetValue: number
     currentValue: number
-    status: "not-started" | "in-progress" | "completed" | "failed"
+    status: statusType
     isPremium: true
     icon: string // Icon name for Lucide React
     isUserCreated?: boolean // New: To distinguish user-created challenges
@@ -81,6 +85,7 @@ export interface Challenge {
 export interface User {
     name: string
     email: string
+    role: Role
     avatar: string
     joinDate: string
     daysSmokeFreee: number

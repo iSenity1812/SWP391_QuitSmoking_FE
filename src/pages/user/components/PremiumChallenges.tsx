@@ -15,7 +15,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState, useEffect } from "react"
 import { Crown, Shield, Coins, Activity, Users, Flame, XCircle, CheckCircle, Play, Eye, Info, Plus } from "lucide-react"
-import type { Challenge, User } from "../../../types/user-types"
+import type { User, Challenge, statusType } from "../../../types/user-types"
+// import type { Challenge } from "@/types/challenge"
 import { Textarea } from "@/components/ui/textarea"
 // Removed: import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -59,13 +60,13 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
     })
 
     useEffect(() => {
-        setIsPremium(user.subscription?.type === "premium")
+        setIsPremium(user.role === "PREMIUM_MEMBER")
         setChallenges(user.challenges || [])
     }, [user])
 
     const handleStartChallenge = (challengeId: string) => {
         const updatedChallenges = challenges.map(
-            (c): Challenge => (c.id === challengeId ? { ...c, status: "in-progress", currentValue: 0 } : c),
+            (c): Challenge => (c.id === challengeId ? { ...c, status: "Active" as statusType, currentValue: 0 } : c),
         )
         setChallenges(updatedChallenges)
         onUpdateUserChallenges(updatedChallenges)
@@ -80,7 +81,7 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
                         ? {
                             ...c,
                             currentValue: newCurrentValue,
-                            status: newCurrentValue >= c.targetValue ? "completed" : "in-progress",
+                            status: newCurrentValue >= c.targetValue : "Completed"
                         }
                         : c,
             )

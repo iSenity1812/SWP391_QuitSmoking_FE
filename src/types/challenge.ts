@@ -29,6 +29,23 @@ export interface CreateChallengeFormData {
     unit: string
 }
 
+export type statusType = "Active" | "Completed" | "Given Up";
+
+export interface Challenge {
+    id: string
+    name: string
+    description: string
+    requirements: string
+    reward: string
+    category: "health" | "mindfulness" | "social" | "streak" | "financial" | "other"
+    targetValue: number
+    currentValue: number
+    status: statusType
+    isPremium: true
+    icon: string // Icon name for Lucide React
+    isUserCreated?: boolean // New: To distinguish user-created challenges
+}
+
 // API Response wrapper
 export interface ApiResponse<T> {
     status: number
