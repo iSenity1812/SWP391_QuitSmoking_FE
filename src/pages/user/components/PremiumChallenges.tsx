@@ -188,12 +188,7 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
                                 <CardDescription className="text-sm text-slate-500 dark:text-slate-400 mb-3">
                                     {challenge.description}
                                 </CardDescription>
-                                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                    Yêu cầu: {challenge.requirements}
-                                </p>
-                                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">
-                                    Phần thưởng: {challenge.reward}
-                                </p>
+
 
                                 {challenge.status === "in-progress" && (
                                     <div className="space-y-2">
@@ -312,24 +307,6 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
                                 onChange={(e) => setNewChallengeForm({ ...newChallengeForm, description: e.target.value })}
                                 placeholder="Mô tả chi tiết về thử thách này..."
                                 className="min-h-[80px]"
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="new-challenge-requirements">Yêu cầu</Label>
-                            <Input
-                                id="new-challenge-requirements"
-                                value={newChallengeForm.requirements}
-                                onChange={(e) => setNewChallengeForm({ ...newChallengeForm, requirements: e.target.value })}
-                                placeholder="Ví dụ: Không hút thuốc trong 7 ngày liên tiếp"
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="new-challenge-reward">Phần thưởng</Label>
-                            <Input
-                                id="new-challenge-reward"
-                                value={newChallengeForm.reward}
-                                onChange={(e) => setNewChallengeForm({ ...newChallengeForm, reward: e.target.value })}
-                                placeholder="Ví dụ: Huy hiệu 'Chiến Thắng 7 Ngày'"
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
