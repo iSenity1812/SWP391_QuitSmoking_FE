@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { toast } from "react-toastify"
 
 // Helper function to convert status to Vietnamese
 const getStatusText = (status: BlogStatus) => {
@@ -220,18 +221,6 @@ export function BlogManagement() {
                             Xem chi tiết
                         </Button>
 
-                        {canEditPost(post) && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEditPost(post)}
-                                className="flex items-center gap-1"
-                            >
-                                <Edit className="w-4 h-4" />
-                                Sửa
-                            </Button>
-                        )}
-
                         {canDeletePost(post) && (
                             <Button
                                 variant="outline"
@@ -339,9 +328,9 @@ export function BlogManagement() {
                     ? "Bài viết đã được tạo thành công! Bài viết đang chờ phê duyệt."
                     : "Bài viết đã được tạo và xuất bản thành công!"
 
-            alert(successMessage)
+            toast.success(successMessage)
         } catch (error: any) {
-            alert(`Lỗi khi tạo bài viết: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi tạo bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
@@ -381,9 +370,9 @@ export function BlogManagement() {
             setIsEditDialogOpen(false)
             refetchBlogs()
             refetchMyPosts()
-            alert("Bài viết đã được cập nhật thành công!")
+            toast.success("Bài viết đã được cập nhật thành công!")
         } catch (error: any) {
-            alert(`Lỗi khi cập nhật bài viết: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi cập nhật bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
@@ -415,9 +404,9 @@ export function BlogManagement() {
             setIsDeleteConfirmOpen(false)
             refetchBlogs()
             refetchMyPosts()
-            alert("Bài viết đã được xóa thành công!")
+            toast.success("Bài viết đã được xóa thành công!")
         } catch (error: any) {
-            alert(`Lỗi khi xóa bài viết: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi xóa bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
@@ -441,7 +430,7 @@ export function BlogManagement() {
 
         setReportingPost(null)
         setIsReportDialogOpen(false)
-        alert("Báo cáo đã được gửi thành công! Đội ngũ quản trị sẽ xem xét báo cáo của bạn.")
+        toast.success("Báo cáo đã được gửi thành công! Đội ngũ quản trị sẽ xem xét báo cáo của bạn.")
     }
 
     // Admin action handlers
@@ -469,9 +458,9 @@ export function BlogManagement() {
             setIsApproveDialogOpen(false)
             setActioningPost(null)
             refetchBlogs()
-            alert("Bài viết đã được duyệt thành công!")
+            toast.success("Bài viết đã được duyệt thành công!")
         } catch (error: any) {
-            alert(`Lỗi khi duyệt bài viết: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi duyệt bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
@@ -490,9 +479,9 @@ export function BlogManagement() {
             setActioningPost(null)
             setRejectNotes("")
             refetchBlogs()
-            alert("Bài viết đã được từ chối!")
+            toast.success("Bài viết đã được từ chối!")
         } catch (error: any) {
-            alert(`Lỗi khi từ chối bài viết: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi từ chối bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
@@ -530,13 +519,13 @@ export function BlogManagement() {
                     })
                 }
 
-                alert("Bình luận đã được thêm thành công!")
+                toast.success("Bình luận đã được thêm thành công!")
             } else {
                 throw new Error(response.message || "Failed to add comment")
             }
         } catch (error: any) {
             console.error("Error adding comment:", error)
-            alert(`Lỗi khi thêm bình luận: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi thêm bình luận: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
@@ -623,6 +612,7 @@ export function BlogManagement() {
             </div>
 
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm">
+
                 <UserAuthSection
                     currentUser={currentUser}
                     handleCreateBlogClick={handleCreateBlogClick}
@@ -693,6 +683,7 @@ export function BlogManagement() {
                         )}
                     </div>
                 )}
+
             </div>
 
             {/* Dialogs */}

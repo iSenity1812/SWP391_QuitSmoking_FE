@@ -7,7 +7,7 @@ import { useBlogPosts, useBlogActions, useMyBlogs } from "@/hooks/use-blogs"
 import { commentService } from "@/services/commentService"
 import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser } from "@/types/blog"
 import type { CommentRequestDTO, CommentResponseDTO, CommentApiResponse } from "@/types/comment"
-import type { AccountResponse } from "@/types/auth"
+import { toast } from "react-toastify";
 
 // Components
 import BlogHeader from "./components/BlogHeader"
@@ -34,7 +34,7 @@ interface ReportFormData {
     reportType: string
     reportedContentType: string
 }
-export type Role = 'NORMAL_MEMBER' | 'PREMIUM_MEMBER' | 'SUPER_ADMIN' | 'CONTENT_ADMIN' | 'COACH';
+export type Role = "NORMAL_MEMBER" | "PREMIUM_MEMBER" | "SUPER_ADMIN" | "CONTENT_ADMIN" | "COACH"
 
 type ViewMode = "list" | "detail" | "myPosts"
 
@@ -50,27 +50,26 @@ const BlogPage: React.FC = () => {
 
     // Set mock user on component mount
     useEffect(() => {
-        const userInfoString = localStorage.getItem("user_info");
+        const userInfoString = localStorage.getItem("user_info")
         if (userInfoString) {
             try {
-                const accountData = JSON.parse(userInfoString);
+                const accountData = JSON.parse(userInfoString)
                 const user: BlogUser = {
                     id: accountData.userId, // Đảm bảo khớp với JSON trong localStorage
                     username: accountData.username,
                     role: accountData.role,
-
-                };
-                setCurrentUser(user);
-                console.log("DEBUG: currentUser loaded from localStorage. ID:", user.id);
+                }
+                setCurrentUser(user)
+                console.log("DEBUG: currentUser loaded from localStorage. ID:", user.id)
             } catch (e) {
-                console.error("Error parsing user info from localStorage", e);
-                setCurrentUser(null);
+                console.error("Error parsing user info from localStorage", e)
+                setCurrentUser(null)
             }
         } else {
-            console.log("DEBUG: No user info found in localStorage.");
-            setCurrentUser(null);
+            console.log("DEBUG: No user info found in localStorage.")
+            setCurrentUser(null)
         }
-    }, []);
+    }, [])
 
     // Dialog states
     const [isLoginPromptOpen, setIsLoginPromptOpen] = useState(false)
@@ -97,7 +96,7 @@ const BlogPage: React.FC = () => {
     })
 
     // My posts hook - only fetch when user is logged in and viewing my posts
-    console.log("Rendering component. currentUser.id passed to useMyBlogs:", currentUser?.id || "");
+    console.log("Rendering component. currentUser.id passed to useMyBlogs:", currentUser?.id || "")
     const {
         data: myPostsData,
         loading: myPostsLoading,
@@ -113,7 +112,7 @@ const BlogPage: React.FC = () => {
 
     // Get blog posts from API response
     const blogPosts = blogsData?.content || []
-    const myPosts = myPostsData?.content || [];
+    const myPosts = myPostsData?.content || []
 
     // Filter posts based on search term (additional client-side filtering if needed)
     const filteredPosts = blogPosts.filter((post) => {
@@ -178,11 +177,6 @@ const BlogPage: React.FC = () => {
             return
         }
 
-        if (currentUser.role === "CONTENT_ADMIN") {
-            alert("Content Admin không quyền tạo bài viết.")
-            return
-        }
-
         setIsCreateDialogOpen(true)
     }
 
@@ -208,9 +202,9 @@ const BlogPage: React.FC = () => {
                     ? "Bài viết đã được tạo thành công! Bài viết đang chờ phê duyệt."
                     : "Bài viết đã được tạo và xuất bản thành công!"
 
-            alert(successMessage)
+            toast.success(successMessage)
         } catch (error: any) {
-            alert(`Lỗi khi tạo bài viết: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi tạo bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
@@ -251,9 +245,9 @@ const BlogPage: React.FC = () => {
             setIsEditDialogOpen(false)
             refetchBlogs()
             refetchMyPosts() // Also refresh my posts
-            alert("Bài viết đã được cập nhật thành công!")
+            toast.success("Bài viết đã được cập nhật thành công!")
         } catch (error: any) {
-            alert(`Lỗi khi cập nhật bài viết: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi cập nhật bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
@@ -286,9 +280,9 @@ const BlogPage: React.FC = () => {
             setIsDeleteConfirmOpen(false)
             refetchBlogs()
             refetchMyPosts() // Also refresh my posts
-            alert("Bài viết đã được xóa thành công!")
+            toast.success("Bài viết đã được xóa thành công!")
         } catch (error: any) {
-            alert(`Lỗi khi xóa bài viết: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi xóa bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
@@ -313,7 +307,7 @@ const BlogPage: React.FC = () => {
 
         setReportingPost(null)
         setIsReportDialogOpen(false)
-        alert("Báo cáo đã được gửi thành công! Đội ngũ quản trị sẽ xem xét báo cáo của bạn.")
+        toast.success("Báo cáo đã được gửi thành công! Đội ngũ quản trị sẽ xem xét báo cáo của bạn.")
     }
 
     const handleAddComment = async (blogId: number, content: string, parentCommentId?: number) => {
@@ -353,13 +347,13 @@ const BlogPage: React.FC = () => {
                     })
                 }
 
-                alert("Bình luận đã được thêm thành công!")
+                toast.success("Bình luận đã được thêm thành công!")
             } else {
                 throw new Error(response.message || "Failed to add comment")
             }
         } catch (error: any) {
             console.error("Error adding comment:", error)
-            alert(`Lỗi khi thêm bình luận: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi thêm bình luận: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 

@@ -14,7 +14,7 @@ import BlogPostDetail from "@/pages/blog/components/BlogPostDetail"
 import UserAuthSection from "@/pages/blog/components/UserAuthSection"
 import MyPostsList from "@/pages/blog/components/MyPostList"
 import { Input } from "@/components/ui/input"
-
+import { toast } from "react-toastify"
 // Dialogs
 import LoginPromptDialog from "@/pages/blog/dialogs/LoginPromptDialog"
 import BlogFormDialog from "@/pages/blog/dialogs/BlogFormDialog"
@@ -168,12 +168,6 @@ export function CoachBlogManagement() {
             setIsLoginPromptOpen(true)
             return
         }
-
-        if (currentUser.role === "CONTENT_ADMIN") {
-            alert("Content Admin không có quyền tạo bài viết.")
-            return
-        }
-
         setIsCreateDialogOpen(true)
     }
 
@@ -199,9 +193,9 @@ export function CoachBlogManagement() {
                     ? "Bài viết đã được tạo thành công! Bài viết đang chờ phê duyệt."
                     : "Bài viết đã được tạo và xuất bản thành công!"
 
-            alert(successMessage)
+            toast.success(successMessage)
         } catch (error: any) {
-            alert(`Lỗi khi tạo bài viết: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi tạo bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
@@ -241,9 +235,9 @@ export function CoachBlogManagement() {
             setIsEditDialogOpen(false)
             refetchBlogs()
             refetchMyPosts()
-            alert("Bài viết đã được cập nhật thành công!")
+            toast.success("Bài viết đã được cập nhật thành công!")
         } catch (error: any) {
-            alert(`Lỗi khi cập nhật bài viết: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi cập nhật bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
@@ -275,9 +269,9 @@ export function CoachBlogManagement() {
             setIsDeleteConfirmOpen(false)
             refetchBlogs()
             refetchMyPosts()
-            alert("Bài viết đã được xóa thành công!")
+            toast.success("Bài viết đã được xóa thành công!")
         } catch (error: any) {
-            alert(`Lỗi khi xóa bài viết: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi xóa bài viết: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
@@ -301,7 +295,7 @@ export function CoachBlogManagement() {
 
         setReportingPost(null)
         setIsReportDialogOpen(false)
-        alert("Báo cáo đã được gửi thành công! Đội ngũ quản trị sẽ xem xét báo cáo của bạn.")
+        toast.success("Báo cáo đã được gửi thành công! Đội ngũ quản trị sẽ xem xét báo cáo của bạn.")
     }
 
     const handleAddComment = async (blogId: number, content: string, parentCommentId?: number) => {
@@ -338,13 +332,13 @@ export function CoachBlogManagement() {
                     })
                 }
 
-                alert("Bình luận đã được thêm thành công!")
+                toast.success("Bình luận đã được thêm thành công!")
             } else {
                 throw new Error(response.message || "Failed to add comment")
             }
         } catch (error: any) {
             console.error("Error adding comment:", error)
-            alert(`Lỗi khi thêm bình luận: ${error.message || "Có lỗi xảy ra"}`)
+            toast.error(`Lỗi khi thêm bình luận: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
 
