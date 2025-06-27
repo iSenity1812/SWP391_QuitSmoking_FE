@@ -23,6 +23,8 @@ import ContentAdminPage from "@/pages/admin/content/ContentAdminPage"
 
 // Test components (remove in production)
 import { RouteTestDashboard } from "@/components/auth/RouteTestDashboard"
+import BookingPage from "@/pages/booking/BookingPage"
+import PlanPagePref from "@/pages/plan/PlanPagePref"
 
 export function AppRoutes() {
   return (
@@ -62,7 +64,21 @@ export function AppRoutes() {
             <BlogPage />
           </ProtectedRoute>
         }
-      />{/* Auth routes - prevent authenticated users from accessing */}
+      />
+
+      <Route
+        path="/booking"
+        element={
+          <ProtectedRoute
+            allowedRoles={['PREMIUM_MEMBER']}
+            requireAuth={true}
+          >
+            <BookingPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Auth routes - prevent authenticated users from accessing */}
       <Route path="/login" element={<AuthRedirect><LoginPage /></AuthRedirect>} />
       <Route path="/register" element={<AuthRedirect><RegisterPage /></AuthRedirect>} />
       <Route path="/onboarding" element={<OnboardingPage />} />
@@ -86,7 +102,8 @@ export function AppRoutes() {
             allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
             requireAuth={true}
           >
-            <PlanPage />
+            {/* <PlanPage /> */}
+            <PlanPagePref />
           </ProtectedRoute>
         }
       />

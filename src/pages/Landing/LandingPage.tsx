@@ -8,6 +8,7 @@ import { CoachAndAchievement } from "@/pages/landing/components/CoachAndAchievem
 import { SubscriptionsSection } from "@/pages/landing/components/SubscriptionsSection";
 import { motion } from "framer-motion";
 import { TestimonialSlider } from "./components/TestimonialSlider";
+// import { WhoIsThisFor } from "./components/WhoIsThisForSection";
 // import SplashCursor from "@/components/ui/SplashCursor";
 
 const pageVariants = {
@@ -44,6 +45,7 @@ export function LandingPage() {
             <SubscriptionsSection />
             <TestimonialSlider />
             <MotivationSection />
+            {/* <WhoIsThisFor /> */}
           </main>
           <Footer />
         </div>

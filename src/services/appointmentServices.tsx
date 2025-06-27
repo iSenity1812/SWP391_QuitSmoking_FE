@@ -57,7 +57,8 @@ export const appointmentService = {
   updateAppointmentStatus: async (
     appointmentId: number,
     newStatus: AppointmentStatusType
-  ): Promise<AppointmentResponseDTO> => {    const response = await axiosInstance.put<ApiResponse<AppointmentResponseDTO>>(
+  ): Promise<AppointmentResponseDTO> => {
+    const response = await axiosInstance.put<ApiResponse<AppointmentResponseDTO>>(
       `/appointments/${appointmentId}/status?newStatus=${newStatus}`
     )
 

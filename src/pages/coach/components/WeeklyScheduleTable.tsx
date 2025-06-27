@@ -33,7 +33,7 @@ import {
 import { useTimeSlots } from "@/hooks/useTimeSlots"
 import { useWeeklySchedule, useCurrentCoachId } from "@/hooks/useWeeklySchedule"
 import { useAppointmentStatus } from "@/hooks/useAppointmentStatus"
-import { AppointmentStatus, type AppointmentStatusType } from "@/services/appointmentService"
+import { AppointmentStatus, type AppointmentStatusType } from "@/services/appointmentServices"
 import type { TimeSlot, WeeklyScheduleSlot, WeeklyScheduleResponse } from "@/types/api"
 import { DataTransformer } from "@/utils/dataTransformers"
 

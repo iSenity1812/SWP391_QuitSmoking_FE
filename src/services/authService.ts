@@ -41,4 +41,8 @@ export const authService = {
       delete axiosConfig.defaults.headers.common['Authorization']; // Xoá token khỏi header
     }
   },
+
+  getToken: (): string | null => {
+    return localStorage.getItem(AUTH_TOKEN);
+  },
 }
