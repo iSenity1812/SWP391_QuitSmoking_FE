@@ -1,8 +1,9 @@
-import { Calendar, CalendarDays, Clock, Loader2, Mail, RefreshCcw, User } from "lucide-react"
+import { Calendar, CalendarDays, Clock, Loader2, Mail, RefreshCcw, User, Video } from "lucide-react"
 import { useUpcomingAppointment } from "../hooks/useUpcomingAppointment"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 
 interface AppointmentCardProps {
   appointment: {
@@ -80,6 +81,21 @@ const AppointmentCard = ({ appointment, getStatusText, getStatusColor, formatDat
         ">
           <span className="font-semibold text-emerald-800 dark:text-emerald-300 block mb-1">Ghi chú:</span>
           <p className="text-slate-700 dark:text-slate-300 leading-snug">{appointment.note}</p> {/* leading-snug để khoảng cách dòng vừa phải */}
+        </div>
+      )}
+
+      {/* Meeting */}
+      {appointment.status === 'CONFIRMED' && (
+        <div className="mt-4 flex justify-end">
+          <Link
+            to={`/meeting/${appointment.appointmentId}`}
+            className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+            target="_blank">
+            <Button variant="outline" size="sm" className="flex items-center space-x-2">
+              <Video className="w-4 h-4 mr-2" />
+              <span>Tham gia cuộc gọi</span>
+            </Button>
+          </Link>
         </div>
       )}
     </div>
@@ -162,7 +178,7 @@ export const UpcomingAppointments = () => {
             <p className="text-slate-500 dark:text-slate-400">Bạn chưa có lịch hẹn nào sắp tới.</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[590px] overflow-y-auto pr-4 custom-scrollbar">
             {Object.entries(groupedAppointments).map(([date, appointments]) => (
               <div key={date}>
                 <h3 className="font-semibold text-md text-slate-600 dark:text-slate-400 mb-2">{formatDate(date)}</h3>

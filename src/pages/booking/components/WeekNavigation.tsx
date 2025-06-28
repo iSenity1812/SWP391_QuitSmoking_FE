@@ -42,31 +42,31 @@ export function WeekNavigation({ currentWeekStart, onWeekChange, selectedSlots, 
   return (
     <div className="flex items-center justify-between mb-6">
       <div className="flex items-center space-x-4">
-        <Button variant="outline" size="sm" onClick={goToPreviousWeek}>
+        <Button variant="outline" size="sm" onClick={goToPreviousWeek} className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700">
           <ChevronLeft className="w-4 h-4" />
         </Button>
 
-        <div className="text-lg font-semibold text-slate-900">{formatWeekRange(currentWeekStart)}</div>
+        <div className="text-lg font-semibold text-slate-900 dark:text-slate-200">{formatWeekRange(currentWeekStart)}</div>
 
-        <Button variant="outline" size="sm" onClick={goToNextWeek}>
+        <Button variant="outline" size="sm" onClick={goToNextWeek} className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700">
           <ChevronRight className="w-4 h-4" />
         </Button>
 
-        <Button variant="outline" size="sm" onClick={goToCurrentWeek}>
+        <Button variant="outline" size="sm" onClick={goToCurrentWeek} className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700">
           Tuần này
         </Button>
       </div>
 
       <div className="flex items-center space-x-2">
         {selectedSlots.size > 0 && (
-          <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
+          <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
             {selectedSlots.size} slot đã chọn
           </Badge>
         )}
         <Button
           variant="outline"
           size="sm"
-          className="bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-200 hover:from-emerald-100 hover:to-emerald-200"
+          className="bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-200 hover:from-emerald-100 hover:to-emerald-200 dark:from-slate-700 dark:to-slate-600 dark:border-slate-500 dark:text-slate-200 dark:hover:from-slate-600 dark:hover:to-slate-500"
           onClick={onSlotSelectionChange}
         >
           <Settings className="w-4 h-4 mr-2" />

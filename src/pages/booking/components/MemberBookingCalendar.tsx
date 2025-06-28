@@ -2,9 +2,7 @@
 
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar, Loader2, AlertCircle, CheckCircle } from "lucide-react"
-
-// Import components
+import { Calendar, Loader2, AlertCircle, CheckCircle, RefreshCcw } from "lucide-react"
 import { WeekNavigation } from "./WeekNavigation"
 import { FilterSidebar } from "./FilterSidebar"
 import { TimeSlotCell } from "./TimeSlotCell"
@@ -15,8 +13,9 @@ import { toast } from "react-toastify"
 // Import custom hooks
 import { useBookingCalendar } from "@/hooks/useBookingCalendar"
 import { useAppointmentBooking } from "@/hooks/useAppointmentBooking"
-import type { TimeSlot, Coach } from "@/services/timeSlotService"
 import { UpcomingAppointments } from "./UpcomingAppointments"
+import { Button } from "@/components/ui/button"
+import type { Coach, TimeSlot } from "@/services/timeSlotService"
 
 export function MemberBookingCalendar() {
   const {
@@ -148,9 +147,20 @@ export function MemberBookingCalendar() {
           <div className="lg:col-span-3">
             <Card className="bg-white/80 backdrop-blur-sm border-emerald-300 dark:border-slate-700 dark:bg-slate-800 shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Calendar className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  <span className="dark:text-white">Lịch Tuần</span>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    <span className="dark:text-white">Lịch Tuần</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={refreshSchedules}
+                    className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-slate-700"
+                  >
+                    <RefreshCcw className="w-4 h-4" />
+                    <span className="sr-only">Làm mới</span>
+                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -162,7 +172,7 @@ export function MemberBookingCalendar() {
                     </div>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full border-collapse dark:border-slate-700">
                       {/* Table Header */}
                       <thead>

@@ -22,8 +22,6 @@ import {
   X,
   Calendar,
   Settings,
-  Phone,
-  MapPin,
   CheckCircle2,
   Loader2,
   AlertCircle
@@ -727,12 +725,7 @@ function TimeSlotCell({
               {status === 'completed' && 'Đã hoàn thành'}
               {status === 'missed' && 'Đã bỏ lỡ'}
             </div>
-            {primaryAppointment.method === 'phone' && (
-              <Phone className="w-3 h-3 mx-auto mt-1 opacity-60" />
-            )}
-            {primaryAppointment.method === 'in-person' && (
-              <MapPin className="w-3 h-3 mx-auto mt-1 opacity-60" />
-            )}
+
             {/* Show appointment count if multiple */}
             {slotData?.appointments && slotData.appointments.length > 1 && (
               <div className="text-xs opacity-60 mt-1">
@@ -1204,7 +1197,7 @@ export function WeeklyScheduleTable() {// Get current coach ID from auth context
                               {appointment.status === 'missed' && 'Đã bỏ lỡ'}
                             </Badge>
                           </div>
-                          <div><strong>Phương thức:</strong> {appointment.method === 'phone' ? 'Điện thoại' : 'Trực tiếp'}</div>
+                          <div><strong>Phương thức:</strong> Online</div>
                           {appointment.notes && (
                             <div><strong>Ghi chú:</strong> {appointment.notes}</div>
                           )}

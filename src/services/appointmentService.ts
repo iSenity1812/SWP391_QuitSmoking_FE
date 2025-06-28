@@ -123,6 +123,43 @@ class AppointmentService {
       throw error
     }
   }
+
+  /**
+   * Update the status of an appointment
+   */
+  async updateAppointmentStatus(appointmentId: number, status: 'CONFIRMED' | 'MISSED' | 'CANCELLED' | 'COMPLETED'): Promise<AppointmentData> {
+    try {
+      console.log(`🔄 Updating appointment ${appointmentId} to status ${status}`)
+
+      const response = await axios.put<CreateAppointmentResponse>(`${this.baseURL}/${appointmentId}/status`, null, {
+        params: { newStatus: status },
+      })
+
+      console.log('✅ Appointment status updated successfully:', response.data)
+
+      if (response.data.status === 200 && response.data.data) {
+        return response.data.data
+      } else {
+        throw new Error(response.data.message || 'Failed to update appointment status')
+      }
+    } catch (error: unknown) {
+      console.error('❌ Error updating appointment status:', error)
+
+      // Handle different types of errors
+      if (isAxiosError(error) && error.response) {
+        // Server responded with error status
+        const errorMessage = error.response.data?.message || 'Server error occurred'
+        throw new Error(errorMessage)
+      } else if (isAxiosError(error) && error.request) {
+        // Request was made but no response received
+        throw new Error('Không thể kết nối đến server. Vui lòng thử lại.')
+      } else {
+        // Something else happened
+        const message = isAxiosError(error) && error.message ? error.message : 'Đã xảy ra lỗi không xác định'
+        throw new Error(message)
+      }
+    }
+  }
 }
 
 // Export singleton instance

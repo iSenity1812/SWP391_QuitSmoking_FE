@@ -25,6 +25,7 @@ import ContentAdminPage from "@/pages/admin/content/ContentAdminPage"
 import { RouteTestDashboard } from "@/components/auth/RouteTestDashboard"
 import BookingPage from "@/pages/booking/BookingPage"
 import PlanPagePref from "@/pages/plan/PlanPagePref"
+import { MeetingPage } from "@/pages/meeting/MeetingPage"
 
 export function AppRoutes() {
   return (
@@ -107,6 +108,20 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Route cho meeting page */}
+      <Route
+        path="/meeting/:appointmentId"
+        element={
+          <ProtectedRoute
+            allowedRoles={['PREMIUM_MEMBER', 'COACH']}
+            requireAuth={true}
+          >
+            <MeetingPage />
+          </ProtectedRoute>
+        }
+      >
+      </Route>
 
       <Route
         path="/subscription"

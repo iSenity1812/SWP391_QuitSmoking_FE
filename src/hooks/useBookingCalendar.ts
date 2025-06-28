@@ -297,9 +297,9 @@ export function useBookingCalendar() {
     )
   }
 
-  const refreshSchedules = () => {
+  const refreshSchedules = useCallback(() => {
     fetchCoachSchedules()
-  }
+  }, [fetchCoachSchedules])
 
   return {
     // State
