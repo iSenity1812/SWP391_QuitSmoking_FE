@@ -34,7 +34,17 @@ import type { User } from "../../../types/user-types"
 import type { ChallengeResponse } from "../../../types/challenge"
 import { useChallenge } from "../../../hooks/use-challenge"
 import { useChallengeForm } from "../../../hooks/use-challenge-form"
-import { useAuth } from "../../../hooks/useAuth"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { toast } from "react-toastify"
 
 interface PremiumChallengesProps {
     user: User
@@ -87,8 +97,11 @@ const getStatusColor = (status: string) => {
 export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChallengesProps) {
     const [isPremium, setIsPremium] = useState(false)
     const [openCreateDialog, setOpenCreateDialog] = useState(false)
-
-    // Get auth context to verify user data
+    const [openProgressDialog, setOpenProgressDialog] = useState(false)
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
+    const [selectedChallenge, setSelectedChallenge] = useState<ChallengeResponse | null>(null)
+    const [progressValue, setProgressValue] = useState("")
+    const [challengeProgress, setChallengeProgress] = useState<Record<number, number>>({})
 
     // Use challenge hooks
     const {
@@ -100,6 +113,7 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
         getMyChallenges,
         clearError,
         clearValidationErrors,
+        deleteChallenge,
     } = useChallenge()
 
     const {
@@ -160,6 +174,16 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
                 clearValidationErrors()
                 clearError()
 
+                // Show success toast
+                toast.success("Thử thách mới đã được tạo thành công! 🎯", {
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                })
+
                 // Optionally notify parent component
                 if (onUpdateUserChallenges) {
                     onUpdateUserChallenges(challenges)
@@ -167,6 +191,14 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
             }
         } catch (err) {
             console.error("Error in handleCreateChallenge:", err)
+            toast.error("Không thể tạo thử thách. Vui lòng thử lại! ❌", {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            })
         } finally {
             setSubmitting(false)
         }
@@ -198,15 +230,117 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
         }
     }
 
+    const handleUpdateProgress = (challenge: ChallengeResponse) => {
+        setSelectedChallenge(challenge)
+        setProgressValue(calculateProgress(challenge).toString())
+        setOpenProgressDialog(true)
+    }
+
+    const handleDeleteChallenge = (challenge: ChallengeResponse) => {
+        setSelectedChallenge(challenge)
+        setOpenDeleteDialog(true)
+    }
+
+    const handleConfirmUpdateProgress = () => {
+        if (!selectedChallenge) return
+
+        const newProgress = Number.parseFloat(progressValue) || 0
+
+        // Validate progress value
+        if (newProgress < 0) {
+            toast.error("Tiến độ không thể âm! ⚠️", {
+                position: "top-right",
+                autoClose: 3000,
+            })
+            return
+        }
+
+        if (newProgress > selectedChallenge.targetValue) {
+            toast.error(
+                `Tiến độ không thể vượt quá mục tiêu (${selectedChallenge.targetValue} ${selectedChallenge.unit})! ⚠️`,
+                {
+                    position: "top-right",
+                    autoClose: 3000,
+                },
+            )
+            return
+        }
+
+        setChallengeProgress((prev) => ({
+            ...prev,
+            [selectedChallenge.challengeID]: newProgress,
+        }))
+
+        // Check if challenge is completed
+        if (newProgress >= selectedChallenge.targetValue) {
+            toast.success(`🎉 Chúc mừng! Bạn đã hoàn thành thử thách "${selectedChallenge.challengeName}"! 🏆`, {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            })
+        } else {
+            toast.success(`Tiến độ thử thách "${selectedChallenge.challengeName}" đã được cập nhật! ✅`, {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            })
+        }
+
+        setOpenProgressDialog(false)
+        setSelectedChallenge(null)
+        setProgressValue("")
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!selectedChallenge) return
+
+        const success = await deleteChallenge(selectedChallenge.challengeID)
+        if (success) {
+            setOpenDeleteDialog(false)
+            setSelectedChallenge(null)
+
+            // Remove from progress tracking
+            setChallengeProgress((prev) => {
+                const newProgress = { ...prev }
+                delete newProgress[selectedChallenge.challengeID]
+                return newProgress
+            })
+
+            // Show success toast
+            toast.success(`Thử thách "${selectedChallenge.challengeName}" đã được xóa thành công! 🗑️`, {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            })
+        } else {
+            // Show error toast
+            toast.error("Không thể xóa thử thách. Vui lòng thử lại! ❌", {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            })
+        }
+    }
+
     const calculateProgress = (challenge: ChallengeResponse) => {
-        // Since backend doesn't have currentValue, we'll simulate it
-        // In real implementation, you might need to track progress separately
-        return 0 // Default to 0 for now
+        return challengeProgress[challenge.challengeID] || 0
     }
 
     const getProgressPercentage = (challenge: ChallengeResponse) => {
         const currentValue = calculateProgress(challenge)
-        return (currentValue / challenge.targetValue) * 100
+        return Math.min((currentValue / challenge.targetValue) * 100, 100)
     }
 
     if (!isPremium) {
@@ -313,15 +447,17 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
                             </CardContent>
                             <CardFooter className="flex justify-between gap-2 pt-4">
                                 {challenge.status.toLowerCase() === "active" && (
-                                    <Button
-                                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
-                                        onClick={() => {
-                                            // Handle progress update - you might want to implement this
-                                            console.log("Update progress for challenge:", challenge.challengeID)
-                                        }}
-                                    >
-                                        <Eye className="h-4 w-4 mr-2" /> Cập nhật tiến độ
-                                    </Button>
+                                    <>
+                                        <Button
+                                            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                                            onClick={() => handleUpdateProgress(challenge)}
+                                        >
+                                            <Eye className="h-4 w-4 mr-2" /> Cập nhật tiến độ
+                                        </Button>
+                                        <Button variant="destructive" className="flex-1" onClick={() => handleDeleteChallenge(challenge)}>
+                                            <XCircle className="h-4 w-4 mr-2" /> Bỏ cuộc
+                                        </Button>
+                                    </>
                                 )}
                                 {challenge.status.toLowerCase() === "completed" && (
                                     <Button disabled className="flex-1 bg-green-500 text-white">
@@ -468,7 +604,6 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
                                         }`}
                                 >
                                     <option value="cigarettes">Điếu thuốc</option>
-                                    <option value="days">Ngày</option>
                                     <option value="VND">VND</option>
                                 </select>
                                 {formErrors.unit && (
@@ -519,6 +654,66 @@ export function PremiumChallenges({ user, onUpdateUserChallenges }: PremiumChall
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Update Progress Dialog */}
+            <Dialog open={openProgressDialog} onOpenChange={setOpenProgressDialog}>
+                <DialogContent className="sm:max-w-[400px]">
+                    <DialogHeader>
+                        <DialogTitle>Cập nhật tiến độ</DialogTitle>
+                        <DialogDescription>
+                            Cập nhật tiến độ hiện tại cho thử thách: {selectedChallenge?.challengeName}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="progress">Tiến độ hiện tại ({selectedChallenge?.unit})</Label>
+                            <Input
+                                id="progress"
+                                type="number"
+                                min="0"
+                                max={selectedChallenge?.targetValue}
+                                step="0.01"
+                                value={progressValue}
+                                onChange={(e) => setProgressValue(e.target.value)}
+                                placeholder={`Tối đa: ${selectedChallenge?.targetValue}`}
+                            />
+                            <p className="text-xs text-slate-500">
+                                Mục tiêu: {selectedChallenge?.targetValue} {selectedChallenge?.unit}
+                            </p>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setOpenProgressDialog(false)}>
+                            Hủy
+                        </Button>
+                        <Button onClick={handleConfirmUpdateProgress}>Cập nhật</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Bạn có chắc chắn muốn bỏ cuộc?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Thao tác này sẽ xóa vĩnh viễn thử thách "{selectedChallenge?.challengeName}" và không thể hoàn tác. Tất cả
+                            tiến độ hiện tại sẽ bị mất.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Hủy</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleConfirmDelete}
+                            className="bg-red-600 hover:bg-red-700"
+                            disabled={isLoading}
+                        >
+                            {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                            Bỏ cuộc
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
