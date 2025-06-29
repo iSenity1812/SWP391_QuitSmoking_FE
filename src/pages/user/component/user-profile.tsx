@@ -15,7 +15,8 @@ import { BookingTab } from "../components/tabs/BookingtTab"
 import CertificationTab from "../components/tabs/CertificationTab"
 import type { AchievementNotification, User } from "../types/user-types"
 import DiaryTab from "../components/tabs/DiaryTab"
-import { PremiumChallenges } from "../components/PremiumChallenges" // Import PremiumChallenges
+import { PremiumChallenges } from "../components/PremiumChallenges"
+import { LearningProgramTab } from "../components/tabs/LearningProgramTab" // Import the new LearningProgramTab
 
 export default function UserProfile() {
     const [activeTab, setActiveTab] = useState("overview")
@@ -104,8 +105,10 @@ export default function UserProfile() {
                 return <CertificationTab />
             case "diary":
                 return <DiaryTab />
-            case "challenges": // New case for challenges
+            case "challenges":
                 return <PremiumChallenges user={user} onUpdateUserChallenges={handleUpdateUserChallenges} />
+            case "learning": // New case for learning program
+                return <LearningProgramTab />
             default:
                 return <OverviewTab user={user} onTestAchievement={handleTestAchievement} />
         }

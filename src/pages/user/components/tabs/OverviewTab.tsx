@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Target, Trophy, MessageCircle, Download, Users, Heart, Share2, Settings } from "lucide-react"
+import { Target, Trophy, Users, Heart, Share2, Settings } from "lucide-react"
 import type { User } from "../../types/user-types"
 import { useState } from "react"
 import { ProgressSharing } from "../ProgressSharing"
@@ -81,14 +81,6 @@ export function OverviewTab({ user, onTestAchievement }: OverviewTabProps) {
                             <Button className="w-full justify-start" variant="outline" onClick={() => setShowShareDialog(true)}>
                                 <Share2 className="h-4 w-4 mr-3" />
                                 Chia sẻ tiến trình
-                            </Button>
-                            <Button className="w-full justify-start" variant="outline">
-                                <MessageCircle className="h-4 w-4 mr-3" />
-                                Nhận hỗ trợ
-                            </Button>
-                            <Button className="w-full justify-start" variant="outline">
-                                <Download className="h-4 w-4 mr-3" />
-                                Xuất báo cáo
                             </Button>
                             <Button className="w-full justify-start" variant="outline" onClick={onTestAchievement}>
                                 <Trophy className="h-4 w-4 mr-3" />

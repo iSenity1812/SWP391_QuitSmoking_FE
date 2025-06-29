@@ -43,11 +43,15 @@ export interface WeeklyProgress {
     mood: number
 }
 
+// Updated to support follow system
 export interface Friend {
     name: string
     avatar: string
     streak: number
     status: "online" | "offline"
+    isFollowing?: boolean // Added to track follow status
+    followersCount?: number // Added follower count
+    followingCount?: number // Added following count
 }
 
 export interface RecentActivity {
@@ -95,9 +99,12 @@ export interface User {
     nextMilestone: NextMilestone
     healthBenefits: HealthBenefit[]
     weeklyProgress: WeeklyProgress[]
-    friends: Friend[]
+    friends: Friend[] // Keep original friends array but with follow functionality
     recentActivities: RecentActivity[]
     challenges: Challenge[]
+    // Add follow counts
+    followersCount?: number
+    followingCount?: number
 }
 
 export interface UserProfileProps {

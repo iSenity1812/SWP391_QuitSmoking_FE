@@ -11,15 +11,16 @@ export const userData: User = {
     healthImprovement: 65,
     level: "Bạc",
     streak: 45,
+    followersCount: 12,
+    followingCount: 8,
     subscription: {
-        // Added subscription for testing premium features
         type: "premium",
         startDate: new Date("2024-01-01"),
         endDate: new Date("2025-01-01"),
         plan: "Yearly Premium",
     },
     achievements: [
-        // Thời gian (Time-based achievements)
+        // Thời gian (Time-based achievements) - KEEP
         {
             id: 1,
             name: "Good Start",
@@ -84,7 +85,7 @@ export const userData: User = {
             daysRequired: 365,
         },
 
-        // Tiết kiệm (Money-based achievements)
+        // Tiết kiệm (Money-based achievements) - KEEP
         {
             id: 7,
             name: "Pocket Saver",
@@ -139,7 +140,7 @@ export const userData: User = {
             moneyRequired: 5000000,
         },
 
-        // Số lượng (Quantity-based achievements)
+        // Số lượng (Quantity-based achievements) - KEEP
         {
             id: 12,
             name: "Great Effort",
@@ -183,8 +184,18 @@ export const userData: User = {
             icon: "shield",
             cigarettesAvoided: 500,
         },
+        {
+            id: 25,
+            name: "Thousand Master",
+            description: "Tránh được 1000 điếu thuốc",
+            category: "quantity",
+            completed: false,
+            points: 800,
+            icon: "target",
+            cigarettesAvoided: 1000,
+        },
 
-        // Comeback & Resilience
+        // Comeback & Resilience - KEEP
         {
             id: 16,
             name: "Comeback King",
@@ -205,94 +216,62 @@ export const userData: User = {
             icon: "sunrise",
             comebackStreak: 30,
         },
-
-        // Sức khỏe (Health-based achievements)
         {
-            id: 18,
-            name: "Breath of Fresh Air",
-            description: "Chức năng phổi cải thiện 25%",
-            category: "health",
+            id: 26,
+            name: "Never Give Up",
+            description: "Quay lại và duy trì streak 60 ngày sau thất bại",
+            category: "resilience",
+            completed: false,
+            points: 1500,
+            icon: "shield",
+            comebackStreak: 60,
+        },
+
+        // Streak-based achievements - KEEP
+        {
+            id: 27,
+            name: "Streak Starter",
+            description: "Duy trì streak 3 ngày liên tiếp",
+            category: "streak",
             completed: true,
-            date: "20/05/2023",
-            points: 400,
-            icon: "heart",
-            healthImprovement: 25,
+            date: "24/04/2023",
+            points: 75,
+            icon: "flame",
+            daysRequired: 3,
         },
         {
-            id: 19,
-            name: "Healthy Heart",
-            description: "Sức khỏe tim mạch cải thiện 50%",
-            category: "health",
+            id: 28,
+            name: "Streak Champion",
+            description: "Duy trì streak 50 ngày liên tiếp",
+            category: "streak",
             completed: false,
-            points: 600,
-            icon: "activity",
-            healthImprovement: 50,
+            points: 1000,
+            icon: "flame",
+            daysRequired: 50,
+        },
+        {
+            id: 29,
+            name: "Streak Legend",
+            description: "Duy trì streak 100 ngày liên tiếp",
+            category: "streak",
+            completed: false,
+            points: 2500,
+            icon: "flame",
+            daysRequired: 100,
         },
 
-        // Cộng đồng (Social achievements)
-        {
-            id: 20,
-            name: "Motivator",
-            description: "Giúp đỡ 5 người bạn trong hành trình cai thuốc",
-            category: "social",
-            completed: false,
-            points: 300,
-            icon: "users",
-            friendsHelped: 5,
-        },
-        {
-            id: 21,
-            name: "Community Leader",
-            description: "Chia sẻ kinh nghiệm và nhận 50 lượt thích",
-            category: "social",
-            completed: false,
-            points: 400,
-            icon: "heart",
-            likesReceived: 50,
-        },
-
-        // Đặc biệt (Special achievements)
-        {
-            id: 22,
-            name: "New Year, New Me",
-            description: "Bắt đầu hành trình cai thuốc vào đầu năm",
-            category: "special",
-            completed: false,
-            points: 200,
-            icon: "sparkles",
-            isSpecial: true,
-        },
-        {
-            id: 23,
-            name: "Birthday Gift",
-            description: "Không hút thuốc trong ngày sinh nhật",
-            category: "special",
-            completed: false,
-            points: 150,
-            icon: "gift",
-            isSpecial: true,
-        },
-        {
-            id: 24,
-            name: "Weekend Warrior",
-            description: "Hoàn thành 10 cuối tuần không hút thuốc",
-            category: "special",
-            completed: false,
-            points: 350,
-            icon: "calendar-days",
-            weekendsCompleted: 10,
-        },
+        // REMOVED: All health, social (community), and special achievements
     ],
     achievementCategories: [
-        { id: "all", name: "Tất cả", count: 24 },
+        { id: "all", name: "Tất cả", count: 19 }, // Updated count
         { id: "time", name: "Thời gian", count: 6 },
         { id: "saving", name: "Tiết kiệm", count: 5 },
         { id: "quantity", name: "Số lượng", count: 3 },
-        { id: "health", name: "Sức khỏe", count: 2 },
-        { id: "social", name: "Cộng đồng", count: 2 },
-        { id: "resilience", name: "Kiên cường", count: 2 },
-        { id: "special", name: "Đặc biệt", count: 3 },
+        { id: "resilience", name: "Kiên cường", count: 3 },
+        { id: "streak", name: "Chuỗi ngày", count: 3 },
         { id: "daily", name: "Hàng ngày", count: 1 },
+        { id: "progress", name: "Tiến bộ", count: 1 },
+        // REMOVED: health, social, special categories
     ],
     nextMilestone: {
         name: "50 ngày không hút thuốc",
@@ -313,18 +292,41 @@ export const userData: User = {
         { day: "T6", cigarettes: 0, mood: 10 },
     ],
     friends: [
-        { name: "Trần Thị B", avatar: "/placeholder.svg", streak: 32, status: "online" },
-        { name: "Lê Văn C", avatar: "/placeholder.svg", streak: 67, status: "offline" },
-        { name: "Phạm Thị D", avatar: "/placeholder.svg", streak: 21, status: "online" },
+        {
+            name: "Trần Thị B",
+            avatar: "/placeholder.svg",
+            streak: 32,
+            status: "online",
+            isFollowing: true,
+            followersCount: 15,
+            followingCount: 8,
+        },
+        {
+            name: "Lê Văn C",
+            avatar: "/placeholder.svg",
+            streak: 67,
+            status: "offline",
+            isFollowing: true,
+            followersCount: 23,
+            followingCount: 12,
+        },
+        {
+            name: "Phạm Thị D",
+            avatar: "/placeholder.svg",
+            streak: 21,
+            status: "online",
+            isFollowing: false,
+            followersCount: 9,
+            followingCount: 5,
+        },
     ],
     recentActivities: [
         { type: "achievement", message: "Đạt được thành tựu 'Một tháng không hút thuốc'", time: "2 giờ trước" },
         { type: "milestone", message: "Hoàn thành 45 ngày không hút thuốc", time: "1 ngày trước" },
-        { type: "social", message: "Trần Thị B đã thích bài viết của bạn", time: "2 ngày trước" },
-        { type: "health", message: "Sức khỏe tim mạch cải thiện 5%", time: "3 ngày trước" },
+        { type: "social", message: "Trần Thị B đã theo dõi bạn", time: "2 ngày trước" },
+        { type: "achievement", message: "Đạt được thành tựu 'Streak Starter'", time: "3 ngày trước" }, // Updated to non-health activity
     ],
     challenges: [
-        // Added challenges array
         {
             id: "pc-1",
             name: "Thử Thách 7 Ngày Không Thèm Thuốc",
@@ -352,32 +354,6 @@ export const userData: User = {
             icon: "coins",
         },
         {
-            id: "pc-3",
-            name: "Thử Thách 30 Ngày Tập Thể Dục",
-            description: "Hoàn thành ít nhất 30 phút tập thể dục mỗi ngày trong 30 ngày liên tiếp.",
-            requirements: "Ghi nhận 30 ngày tập thể dục liên tục.",
-            reward: "Huy hiệu 'Sức Khỏe Vàng' & 400 điểm thưởng.",
-            category: "health",
-            targetValue: 30,
-            currentValue: 0,
-            status: "in-progress", // Example of an in-progress challenge
-            isPremium: true,
-            icon: "activity",
-        },
-        {
-            id: "pc-4",
-            name: "Thử Thách Hỗ Trợ Cộng Đồng",
-            description: "Tương tác tích cực (thích, bình luận, chia sẻ) 50 bài viết của người dùng khác.",
-            requirements: "50 tương tác tích cực.",
-            reward: "Huy hiệu 'Người Kết Nối' & 250 điểm thưởng.",
-            category: "social",
-            targetValue: 50,
-            currentValue: 45,
-            status: "in-progress",
-            isPremium: true,
-            icon: "users",
-        },
-        {
             id: "pc-5",
             name: "Thử Thách 90 Ngày Không Thuốc",
             description: "Duy trì chuỗi 90 ngày không hút thuốc.",
@@ -387,6 +363,19 @@ export const userData: User = {
             targetValue: 90,
             currentValue: 0,
             status: "not-started",
+            isPremium: true,
+            icon: "flame",
+        },
+        {
+            id: "pc-6",
+            name: "Thử Thách Streak Master",
+            description: "Duy trì chuỗi 30 ngày không hút thuốc mà không bị gián đoạn.",
+            requirements: "30 ngày streak liên tục.",
+            reward: "Huy hiệu 'Streak Master' & 400 điểm thưởng.",
+            category: "streak",
+            targetValue: 30,
+            currentValue: 25,
+            status: "in-progress",
             isPremium: true,
             icon: "flame",
         },

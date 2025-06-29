@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils" // Added this import
+import { cn } from "@/lib/utils"
 import {
     LogOut,
     X,
@@ -44,7 +44,13 @@ const sidebarItems: Array<{
             icon: Crown,
             premium: true,
             description: "Tham gia các thử thách độc quyền",
-        }, // Added premium challenges
+        },
+        {
+            id: "learning", // New learning program item
+            label: "Chương trình học tập",
+            icon: BookOpen,
+            description: "Tìm hiểu về cách bỏ thuốc, cải thiện sức khỏe và tiết kiệm tiền",
+        },
     ]
 
 export function UserProfileSidebar({

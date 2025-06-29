@@ -1,78 +1,28 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-    Users,
-    Trophy,
-    Target,
-    DollarSign,
-    Cigarette,
-    Calendar,
-    Heart,
-    Send,
-    Globe,
-    UserCheck,
-    Crown,
-    CheckCircle,
-} from "lucide-react"
+import { Trophy, Target, DollarSign, Cigarette, Calendar, Heart, CheckCircle, Clipboard, LinkIcon } from "lucide-react"
+import { Input } from "@/components/ui/input"
 import type { User } from "../types/user-types"
 
 interface ProgressSharingProps {
     user: User
     isOpen: boolean
     onClose: () => void
-    onShare?: (shareData: ShareData) => void // New callback for sharing
 }
 
-interface ShareData {
-    user: User
-    content: string
-    audience: string
-    shareType: string
-    timestamp: Date
-}
-
-export function ProgressSharing({ user, isOpen, onClose, onShare }: ProgressSharingProps) {
-    const [selectedAudience, setSelectedAudience] = useState("community")
+export function ProgressSharing({ user, isOpen, onClose }: ProgressSharingProps) {
     const [customMessage, setCustomMessage] = useState("")
     const [shareType, setShareType] = useState<"achievement" | "milestone" | "stats">("stats")
     const [isSharing, setIsSharing] = useState(false)
+    const [generatedShareLink, setGeneratedShareLink] = useState<string | null>(null)
     const [shareSuccess, setShareSuccess] = useState(false)
-
-    const audienceOptions = [
-        {
-            id: "community",
-            name: "Cộng đồng",
-            description: "Chia sẻ với tất cả thành viên trong cộng đồng",
-            icon: Globe,
-            color: "bg-blue-500",
-            count: "10,000+ thành viên",
-        },
-        {
-            id: "friends",
-            name: "Bạn bè",
-            description: "Chỉ chia sẻ với bạn bè của bạn",
-            icon: UserCheck,
-            color: "bg-green-500",
-            count: `${user.friends?.length || 0} bạn bè`,
-        },
-        {
-            id: "coaches",
-            name: "Chuyên gia",
-            description: "Chia sẻ với các chuyên gia và huấn luyện viên",
-            icon: Crown,
-            color: "bg-purple-500",
-            count: "Chuyên gia",
-        },
-    ]
 
     const generateShareContent = () => {
         const daysSmokeFreee = Number(user.daysSmokeFreee) || 0
@@ -91,78 +41,76 @@ export function ProgressSharing({ user, isOpen, onClose, onShare }: ProgressShar
         }
     }
 
-    const handleShare = async (e: React.MouseEvent) => {
+    const handleGenerateLink = async (e: React.MouseEvent) => {
         e.preventDefault()
         e.stopPropagation()
 
         if (isSharing) return
 
         setIsSharing(true)
+        setGeneratedShareLink(null)
 
         try {
-            // Create share data object
-            const shareData: ShareData = {
-                user,
-                content: generateShareContent(),
-                audience: selectedAudience,
-                shareType,
-                timestamp: new Date(),
-            }
+            const uniqueId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+            const linkContent = encodeURIComponent(generateShareContent())
+            // Removed recipient parameter from the link
+            const link = `https://your-app.com/share/progress/${uniqueId}?content=${linkContent}`
 
-            // Call the onShare callback if provided
-            if (onShare) {
-                await onShare(shareData)
-            }
-
-            // Simulate API call to post to chat/social feed
             await new Promise((resolve) => setTimeout(resolve, 1500))
 
-            // Add to global chat/social feed (you can implement this based on your chat system)
-            if (typeof window !== "undefined") {
-                // Dispatch custom event for other components to listen
-                window.dispatchEvent(
-                    new CustomEvent("progressShared", {
-                        detail: shareData,
-                    }),
-                )
-
-                // Store in localStorage for persistence (optional)
-                const existingShares = JSON.parse(localStorage.getItem("sharedProgress") || "[]")
-                existingShares.unshift(shareData)
-                localStorage.setItem("sharedProgress", JSON.stringify(existingShares.slice(0, 50))) // Keep last 50 shares
-            }
-
+            setGeneratedShareLink(link)
             setIsSharing(false)
             setShareSuccess(true)
-
-            // Auto close after success
-            setTimeout(() => {
-                setShareSuccess(false)
-                onClose()
-            }, 2000)
         } catch (error) {
-            console.error("Share failed:", error)
+            console.error("Failed to generate share link:", error)
             setIsSharing(false)
+            setShareSuccess(false)
+        }
+    }
+
+    const handleCopyLink = () => {
+        if (generatedShareLink) {
+            navigator.clipboard.writeText(generatedShareLink)
+            // Optionally, add a toast notification for "Copied!"
         }
     }
 
     const handleClose = () => {
         if (!isSharing) {
+            setCustomMessage("")
+            setShareType("stats")
+            setGeneratedShareLink(null)
+            setShareSuccess(false)
             onClose()
         }
     }
 
-    if (shareSuccess) {
+    if (shareSuccess && generatedShareLink) {
         return (
             <Dialog open={isOpen} onOpenChange={handleClose}>
                 <DialogContent className="max-w-md">
                     <div className="text-center py-8">
                         <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold mb-2">Chia sẻ thành công!</h3>
-                        <p className="text-slate-600 dark:text-slate-400">
-                            Tiến trình của bạn đã được chia sẻ với{" "}
-                            {audienceOptions.find((a) => a.id === selectedAudience)?.name.toLowerCase()}
+                        <h3 className="text-xl font-semibold mb-2">Liên kết đã được tạo!</h3>
+                        <p className="text-slate-600 dark:text-slate-400 mb-4">
+                            Sao chép liên kết dưới đây để chia sẻ tiến trình của bạn.
                         </p>
+                        <div className="flex items-center space-x-2 mb-6">
+                            <Input
+                                type="text"
+                                value={generatedShareLink}
+                                readOnly
+                                className="flex-1"
+                                onClick={(e) => (e.target as HTMLInputElement).select()}
+                            />
+                            <Button size="icon" onClick={handleCopyLink} className="flex-shrink-0">
+                                <Clipboard className="h-4 w-4" />
+                                <span className="sr-only">Sao chép liên kết</span>
+                            </Button>
+                        </div>
+                        <Button onClick={handleClose} className="w-full">
+                            Hoàn tất
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -174,15 +122,15 @@ export function ProgressSharing({ user, isOpen, onClose, onShare }: ProgressShar
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        <Users className="h-5 w-5" />
-                        Chia sẻ tiến trình trong cộng đồng
+                        <LinkIcon className="h-5 w-5" />
+                        Tạo liên kết chia sẻ tiến trình
                     </DialogTitle>
                 </DialogHeader>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Preview Card */}
                     <div className="space-y-4">
-                        <h3 className="font-semibold">Xem trước bài đăng</h3>
+                        <h3 className="font-semibold">Xem trước nội dung chia sẻ</h3>
                         <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
                             <CardContent className="p-6">
                                 <div className="space-y-4">
@@ -194,7 +142,7 @@ export function ProgressSharing({ user, isOpen, onClose, onShare }: ProgressShar
                                         </Avatar>
                                         <div>
                                             <p className="font-semibold">{user.name || "Người dùng"}</p>
-                                            <p className="text-sm opacity-80">Vừa xong</p>
+                                            <p className="text-sm opacity-80">Bây giờ</p>
                                         </div>
                                     </div>
 
@@ -228,16 +176,6 @@ export function ProgressSharing({ user, isOpen, onClose, onShare }: ProgressShar
                                     <div className="text-center">
                                         <p className="whitespace-pre-line text-sm">{generateShareContent()}</p>
                                     </div>
-
-                                    {/* Engagement */}
-                                    <div className="flex items-center justify-between pt-2 border-t border-white/20">
-                                        <div className="flex items-center gap-4 text-sm opacity-80">
-                                            <span>❤️ 24</span>
-                                            <span>👏 12</span>
-                                            <span>💪 8</span>
-                                        </div>
-                                        <div className="text-sm opacity-80">5 bình luận</div>
-                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -247,7 +185,7 @@ export function ProgressSharing({ user, isOpen, onClose, onShare }: ProgressShar
                     <div className="space-y-6">
                         {/* Share Type */}
                         <div>
-                            <h3 className="font-semibold mb-3">Loại chia sẻ</h3>
+                            <h3 className="font-semibold mb-3">Loại nội dung chia sẻ</h3>
                             <div className="flex gap-2 flex-wrap">
                                 <Button
                                     variant={shareType === "stats" ? "default" : "outline"}
@@ -279,41 +217,16 @@ export function ProgressSharing({ user, isOpen, onClose, onShare }: ProgressShar
                             </div>
                         </div>
 
-                        {/* Audience Selection */}
-                        <div>
-                            <h3 className="font-semibold mb-3">Chia sẻ với</h3>
-                            <div className="space-y-3">
-                                {audienceOptions.map((option) => (
-                                    <button
-                                        key={option.id}
-                                        type="button"
-                                        disabled={isSharing}
-                                        className={`w-full p-4 rounded-lg border-2 cursor-pointer transition-all text-left ${selectedAudience === option.id
-                                            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
-                                            : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
-                                            } ${isSharing ? "opacity-50 cursor-not-allowed" : ""}`}
-                                        onClick={() => !isSharing && setSelectedAudience(option.id)}
-                                    >
-                                        <div className="flex items-start gap-3">
-                                            <div
-                                                className={`w-10 h-10 rounded-full ${option.color} flex items-center justify-center flex-shrink-0`}
-                                            >
-                                                <option.icon className="h-5 w-5 text-white" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between">
-                                                    <h4 className="font-medium">{option.name}</h4>
-                                                    <Badge variant="secondary" className="text-xs">
-                                                        {option.count}
-                                                    </Badge>
-                                                </div>
-                                                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{option.description}</p>
-                                            </div>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        {/* Removed Recipient Input */}
+                        {/* <div>
+                                  <h3 className="font-semibold mb-3">Gửi liên kết cho ai?</h3>
+                                  <Input
+                                      placeholder="Nhập tên người dùng hoặc ID"
+                                      value={recipientIdentifier}
+                                      onChange={(e) => setRecipientIdentifier(e.target.value)}
+                                      disabled={isSharing}
+                                  />
+                              </div> */}
 
                         {/* Custom Message */}
                         <div>
@@ -333,20 +246,20 @@ export function ProgressSharing({ user, isOpen, onClose, onShare }: ProgressShar
                                 Hủy
                             </Button>
                             <Button
-                                onClick={handleShare}
+                                onClick={handleGenerateLink}
                                 className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-                                disabled={isSharing}
+                                disabled={isSharing} // No longer depends on recipientIdentifier
                                 type="button"
                             >
                                 {isSharing ? (
                                     <>
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                        Đang chia sẻ...
+                                        Đang tạo liên kết...
                                     </>
                                 ) : (
                                     <>
-                                        <Send className="h-4 w-4 mr-2" />
-                                        Chia sẻ ngay
+                                        <LinkIcon className="h-4 w-4 mr-2" />
+                                        Tạo liên kết chia sẻ
                                     </>
                                 )}
                             </Button>
