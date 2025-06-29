@@ -23,6 +23,7 @@ import ContentAdminPage from "@/pages/admin/content/ContentAdminPage"
 
 // Test components (remove in production)
 import { RouteTestDashboard } from "@/components/auth/RouteTestDashboard"
+import { TaskPage } from "@/pages/task/TaskPage"
 
 export function AppRoutes() {
     return (
@@ -62,6 +63,7 @@ export function AppRoutes() {
                         <BlogPage />
                     </ProtectedRoute>
                 }
+
             />{/* Auth routes - prevent authenticated users from accessing */}
             <Route path="/login" element={<AuthRedirect><LoginPage /></AuthRedirect>} />
             <Route path="/register" element={<AuthRedirect><RegisterPage /></AuthRedirect>} />
@@ -91,6 +93,20 @@ export function AppRoutes() {
                 }
             />
 
+            {/* Member Routes - NORMAL_MEMBER & PREMIUM_MEMBER */}
+            <Route
+                path="/task"
+                element={
+                    <ProtectedRoute
+                        allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER', 'COACH']}
+                        requireAuth={false}
+                    >
+                        <TaskPage />
+                    </ProtectedRoute>
+                }
+
+            />
+
             <Route
                 path="/subscription"
                 element={
@@ -101,7 +117,9 @@ export function AppRoutes() {
                         <SubscriptionPage />
                     </ProtectedRoute>
                 }
-            />      {/* Admin Routes - SUPER_ADMIN only */}
+            />
+
+            {/* Admin Routes - SUPER_ADMIN only */}
             <Route
                 path="/admin/*"
                 element={

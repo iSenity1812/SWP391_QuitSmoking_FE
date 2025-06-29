@@ -27,6 +27,8 @@ import { AchievementsManagement } from "./components/AchievementsManagement"
 import { PremiumPrograms } from "./components/PremiumPrograms"
 import { ContentReports } from "./components/ContentReports"
 import { BlogManagement } from "./components/BlogManagement"
+import { QuizManagement } from "./components/QuizManagement"
+import { TipManagement } from "./components/TipManagement"
 
 export default function ContentAdminPage() {
     const [activeTab, setActiveTab] = useState("dashboard")
@@ -37,6 +39,8 @@ export default function ContentAdminPage() {
     const navItems = [
         { id: "dashboard", label: "Tổng Quan", icon: BarChart3 },
         { id: "reviews", label: "Đánh Giá", icon: MessageSquare },
+        { id: "quizzes", label: "Quản Lý Quiz", icon: Flag },
+        { id: "tips", label: "Quản Lý Tips", icon: FileText },
         { id: "blogs", label: "Blog", icon: FileText },
         { id: "content", label: "Thư Viện", icon: FileText },
         { id: "achievements", label: "Thành Tựu", icon: Trophy },
@@ -48,6 +52,10 @@ export default function ContentAdminPage() {
         switch (activeTab) {
             case "dashboard":
                 return <ContentDashboard />
+            case "quizzes":
+                return <QuizManagement />
+            case "tips":
+                return <TipManagement />
             case "reviews":
                 return <ReviewsManagement />
             case "blogs":

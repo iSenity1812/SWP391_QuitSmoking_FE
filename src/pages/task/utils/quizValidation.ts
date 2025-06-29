@@ -1,6 +1,6 @@
-import type { Quiz, Option } from "@/types/task"
+import type { QuizResponseDTO, OptionResponseDTO } from "@/types/task"
 
-export const validateQuizData = (quiz: Quiz): { isValid: boolean; errors: string[] } => {
+export const validateQuizData = (quiz: QuizResponseDTO): { isValid: boolean; errors: string[] } => {
     const errors: string[] = []
 
     if (!quiz.title || quiz.title.trim().length === 0) {
@@ -31,7 +31,7 @@ export const validateQuizData = (quiz: Quiz): { isValid: boolean; errors: string
 
 export const validateOptionSelection = (
     selectedOptionId: number | null,
-    options: Option[],
+    options: OptionResponseDTO[],
 ): { isValid: boolean; error?: string } => {
     if (selectedOptionId === null) {
         return { isValid: false, error: "Vui lòng chọn một đáp án" }

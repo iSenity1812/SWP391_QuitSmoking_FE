@@ -11,7 +11,7 @@ import { BookOpen } from "lucide-react";
 import { NavItem } from "@/components/ui/nav-item";
 // import { useTheme } from "@/context/ThemeContext";
 import { ThemeToggle } from "./ThemeToggle";
-import { Link, useLocation } from "react-router-dom";
+import { href, Link, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "@/hooks/useAuth";
 import { UserDropdown } from "@/pages/auth/components/UserDropdown";
@@ -21,6 +21,7 @@ const navLinks = [
   { href: "/blog", label: "Blog", icon: BookOpen },
   { href: "plan/", label: "Plan", icon: Gem },
   { href: "/about", label: "About", icon: Info },
+  { href: "/task", label: "Task", icon: Info }
 ];
 
 function shouldHideNavbar(pathname: string) {
