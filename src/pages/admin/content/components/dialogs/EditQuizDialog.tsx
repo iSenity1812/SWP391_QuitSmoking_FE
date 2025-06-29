@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { CheckCircle, Plus } from "lucide-react"
 import { TaskService } from "@/services/taskService"
 import type { QuizResponseDTO, QuizCreationRequestDTO } from "@/types/task"
+import { toast } from "react-toastify"
 
 interface EditQuizDialogProps {
     quiz: QuizResponseDTO | null
@@ -100,18 +101,18 @@ export function EditQuizDialog({ quiz, isOpen, onClose, onQuizUpdated }: EditQui
         try {
             // Validation
             if (!formData.title.trim()) {
-                alert("Vui lòng nhập tiêu đề quiz")
+                toast.error("Vui lòng nhập tiêu đề quiz")
                 return
             }
 
             if (formData.options.some((option) => !option.content.trim())) {
-                alert("Vui lòng điền đầy đủ tất cả các lựa chọn")
+                toast.error("Vui lòng điền đầy đủ tất cả các lựa chọn")
                 return
             }
 
             const hasCorrectAnswer = formData.options.some((option) => option.isCorrect)
             if (!hasCorrectAnswer) {
-                alert("Vui lòng chọn ít nhất một đáp án đúng")
+                toast.error("Vui lòng chọn ít nhất một đáp án đúng")
                 return
             }
 
@@ -119,11 +120,11 @@ export function EditQuizDialog({ quiz, isOpen, onClose, onQuizUpdated }: EditQui
             await TaskService.updateQuiz(quiz.quizId, formData)
 
             // Success
-            alert("Cập nhật quiz thành công!")
+            toast.success("Cập nhật quiz thành công!")
             onClose()
             onQuizUpdated()
         } catch (err: any) {
-            alert(`Lỗi cập nhật quiz: ${err.message}`)
+            toast.error(`Lỗi cập nhật quiz: ${err.message}`)
         } finally {
             setIsSubmitting(false)
         }

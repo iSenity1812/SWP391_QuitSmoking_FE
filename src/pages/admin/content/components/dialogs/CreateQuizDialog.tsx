@@ -1,251 +1,239 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback } from "react"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import {
     Dialog,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog"
-import { Plus, CheckCircle } from "lucide-react"
+} from "@/components/ui/dialog-task"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Plus, Brain, Trash2 } from "lucide-react"
 import { TaskService } from "@/services/taskService"
-import type { QuizCreationRequestDTO } from "@/types/task"
+import { toast } from "react-toastify"
+
 
 interface CreateQuizDialogProps {
     onQuizCreated: () => void
 }
 
+interface QuizOption {
+    content: string
+    isCorrect: boolean
+}
+
 export function CreateQuizDialog({ onQuizCreated }: CreateQuizDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
+    const [title, setTitle] = useState("")
+    const [description, setDescription] = useState("")
+    const [scorePossible, setScorePossible] = useState(10)
+    const [options, setOptions] = useState<QuizOption[]>([
+        { content: "", isCorrect: false },
+        { content: "", isCorrect: false },
+    ])
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [formData, setFormData] = useState<QuizCreationRequestDTO>({
-        title: "",
-        description: "",
-        scorePossible: 10,
-        options: [
-            { content: "", isCorrect: false },
-            { content: "", isCorrect: false },
-            { content: "", isCorrect: false },
-            { content: "", isCorrect: false },
-        ],
-    })
 
-    const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData((prev) => ({ ...prev, title: e.target.value }))
-    }, [])
-
-    const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setFormData((prev) => ({ ...prev, description: e.target.value }))
-    }, [])
-
-    const handleScoreChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = Number.parseInt(e.target.value) || 10
-        setFormData((prev) => ({ ...prev, scorePossible: Math.max(1, Math.min(100, value)) }))
-    }, [])
-
-    const handleOptionChange = useCallback((index: number, value: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            options: prev.options.map((option, i) => (i === index ? { ...option, content: value } : option)),
-        }))
-    }, [])
-
-    const handleCorrectAnswerChange = useCallback((index: number) => {
-        setFormData((prev) => ({
-            ...prev,
-            options: prev.options.map((option, i) => ({ ...option, isCorrect: i === index })),
-        }))
-    }, [])
-
-    const addOption = useCallback(() => {
-        if (formData.options.length < 6) {
-            setFormData((prev) => ({
-                ...prev,
-                options: [...prev.options, { content: "", isCorrect: false }],
-            }))
+    const addOption = () => {
+        if (options.length < 6) {
+            setOptions([...options, { content: "", isCorrect: false }])
         }
-    }, [formData.options.length])
+    }
 
-    const removeOption = useCallback(
-        (index: number) => {
-            if (formData.options.length > 2) {
-                setFormData((prev) => ({
-                    ...prev,
-                    options: prev.options.filter((_, i) => i !== index),
-                }))
-            }
-        },
-        [formData.options.length],
-    )
+    const removeOption = (index: number) => {
+        if (options.length > 2) {
+            setOptions(options.filter((_, i) => i !== index))
+        }
+    }
 
-    const resetForm = useCallback(() => {
-        setFormData({
-            title: "",
-            description: "",
-            scorePossible: 10,
-            options: [
-                { content: "", isCorrect: false },
-                { content: "", isCorrect: false },
-                { content: "", isCorrect: false },
-                { content: "", isCorrect: false },
-            ],
-        })
-    }, [])
+    const updateOption = (index: number, field: keyof QuizOption, value: string | boolean) => {
+        const newOptions = [...options]
+        newOptions[index] = { ...newOptions[index], [field]: value }
+        setOptions(newOptions)
+    }
 
-    const handleSubmit = async () => {
+    const setCorrectAnswer = (index: number) => {
+        const newOptions = options.map((option, i) => ({
+            ...option,
+            isCorrect: i === index,
+        }))
+        setOptions(newOptions)
+    }
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        if (!title.trim()) {
+            toast.error("Vui lòng nhập tiêu đề quiz!")
+            return
+        }
+
+        const validOptions = options.filter((opt) => opt.content.trim())
+        if (validOptions.length !== 4) {
+            toast.error("Quiz phải có đúng 4 lựa chọn")
+            return
+        }
+
+        const hasCorrectAnswer = validOptions.some((opt) => opt.isCorrect)
+        if (!hasCorrectAnswer) {
+            toast.error("Vui lòng chọn đáp án đúng!")
+            return
+        }
+
         try {
-            // Validation
-            if (!formData.title.trim()) {
-                alert("Vui lòng nhập tiêu đề quiz")
-                return
-            }
-
-            if (formData.options.some((option) => !option.content.trim())) {
-                alert("Vui lòng điền đầy đủ tất cả các lựa chọn")
-                return
-            }
-
-            const hasCorrectAnswer = formData.options.some((option) => option.isCorrect)
-            if (!hasCorrectAnswer) {
-                alert("Vui lòng chọn ít nhất một đáp án đúng")
-                return
-            }
-
             setIsSubmitting(true)
-            await TaskService.createQuiz(formData)
 
-            // Success
-            alert("Tạo quiz thành công!")
+            const quizData = {
+                title: title.trim(),
+                description: description.trim() || undefined,
+                scorePossible,
+                options: validOptions.map((opt) => ({
+                    content: opt.content.trim(),
+                    isCorrect: opt.isCorrect,
+                })),
+            }
+
+            await TaskService.createQuiz(quizData)
+
+            // Reset form
+            setTitle("")
+            setDescription("")
+            setScorePossible(10)
+            setOptions([
+                { content: "", isCorrect: false },
+                { content: "", isCorrect: false },
+            ])
             setIsOpen(false)
-            resetForm()
+
+            // Refresh the quizzes list
             onQuizCreated()
-        } catch (err: any) {
-            alert(`Lỗi tạo quiz: ${err.message}`)
+
+            toast.success("Tạo quiz thành công!")
+        } catch (error: any) {
+            toast.error(`Lỗi tạo quiz: ${error.message}`)
         } finally {
             setIsSubmitting(false)
         }
     }
 
-    const handleCancel = useCallback(() => {
-        setIsOpen(false)
-        resetForm()
-    }, [resetForm])
-
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                <Button className="bg-purple-600 hover:bg-purple-700">
                     <Plus className="w-4 h-4 mr-2" />
                     Tạo Quiz Mới
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Tạo Quiz Mới</DialogTitle>
-                    <DialogDescription>Tạo một quiz mới cho hệ thống cai thuốc lá</DialogDescription>
+                    <DialogTitle className="flex items-center space-x-2">
+                        <Brain className="w-5 h-5 text-purple-500" />
+                        <span>Tạo Quiz Mới</span>
+                    </DialogTitle>
+                    <DialogDescription>Tạo một quiz để kiểm tra kiến thức của người dùng về cai thuốc lá</DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-6">
-                    <div>
-                        <Label htmlFor="quiz-title">Tiêu đề Quiz *</Label>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="title">Tiêu đề quiz *</Label>
                         <Input
-                            id="quiz-title"
-                            value={formData.title}
-                            onChange={handleTitleChange}
-                            placeholder="Nhập tiêu đề cho quiz..."
-                            className="mt-1"
+                            id="title"
+                            placeholder="Nhập tiêu đề quiz..."
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
                         />
                     </div>
 
-                    <div>
-                        <Label htmlFor="quiz-description">Mô tả</Label>
+                    <div className="space-y-2">
+                        <Label htmlFor="description">Mô tả (tùy chọn)</Label>
                         <Textarea
-                            id="quiz-description"
-                            value={formData.description}
-                            onChange={handleDescriptionChange}
-                            placeholder="Nhập mô tả cho quiz (tùy chọn)..."
-                            className="mt-1"
-                            rows={3}
+                            id="description"
+                            placeholder="Nhập mô tả quiz..."
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            rows={2}
                         />
                     </div>
 
-                    <div>
-                        <Label htmlFor="quiz-score">Điểm số (1-100)</Label>
+                    <div className="space-y-2">
+                        <Label htmlFor="score">Điểm tối đa</Label>
                         <Input
-                            id="quiz-score"
+                            id="score"
                             type="number"
                             min="1"
                             max="100"
-                            value={formData.scorePossible}
-                            onChange={handleScoreChange}
-                            className="mt-1"
+                            value={scorePossible}
+                            onChange={(e) => setScorePossible(Number.parseInt(e.target.value) || 10)}
                         />
                     </div>
 
-                    <div>
-                        <div className="flex items-center justify-between mb-3">
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
                             <Label>Các lựa chọn *</Label>
-                            {formData.options.length < 6 && (
-                                <Button type="button" variant="outline" size="sm" onClick={addOption}>
-                                    <Plus className="w-4 h-4 mr-1" />
-                                    Thêm lựa chọn
-                                </Button>
-                            )}
+                            <Button type="button" variant="outline" size="sm" onClick={addOption} disabled={options.length >= 6}>
+                                <Plus className="w-4 h-4 mr-1" />
+                                Thêm lựa chọn
+                            </Button>
                         </div>
 
-                        <div className="space-y-3">
-                            {formData.options.map((option, index) => (
-                                <div key={index} className="flex items-center space-x-3">
+                        {options.map((option, index) => (
+                            <div key={index} className="flex items-center space-x-2 p-3 border rounded-lg">
+                                <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium bg-slate-200 text-slate-700">
+                                    {String.fromCharCode(65 + index)}
+                                </span>
+                                <Input
+                                    placeholder={`Lựa chọn ${String.fromCharCode(65 + index)}`}
+                                    value={option.content}
+                                    onChange={(e) => updateOption(index, "content", e.target.value)}
+                                    className="flex-1"
+                                />
+                                <Button
+                                    type="button"
+                                    variant={option.isCorrect ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => setCorrectAnswer(index)}
+                                    className={option.isCorrect ? "bg-green-600 hover:bg-green-700" : ""}
+                                >
+                                    {option.isCorrect ? "Đúng" : "Chọn"}
+                                </Button>
+                                {options.length > 2 && (
                                     <Button
                                         type="button"
-                                        variant={option.isCorrect ? "default" : "outline"}
+                                        variant="outline"
                                         size="sm"
-                                        onClick={() => handleCorrectAnswerChange(index)}
-                                        className={`min-w-[40px] ${option.isCorrect ? "bg-green-600 hover:bg-green-700" : "hover:bg-green-50 hover:border-green-300"
-                                            }`}
+                                        onClick={() => removeOption(index)}
+                                        className="text-red-600 hover:text-red-700"
                                     >
-                                        {option.isCorrect ? <CheckCircle className="w-4 h-4" /> : String.fromCharCode(65 + index)}
+                                        <Trash2 className="w-4 h-4" />
                                     </Button>
-                                    <Input
-                                        value={option.content}
-                                        onChange={(e) => handleOptionChange(index, e.target.value)}
-                                        placeholder={`Lựa chọn ${String.fromCharCode(65 + index)}`}
-                                        className="flex-1"
-                                    />
-                                    {formData.options.length > 2 && (
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => removeOption(index)}
-                                            className="text-red-600 hover:text-red-700"
-                                        >
-                                            ×
-                                        </Button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                        <p className="text-sm text-slate-500 mt-2">Click vào chữ cái để chọn đáp án đúng</p>
+                                )}
+                            </div>
+                        ))}
                     </div>
 
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={handleCancel} disabled={isSubmitting}>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isSubmitting}>
                             Hủy
                         </Button>
-                        <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting || !title.trim()}
+                            className="bg-purple-600 hover:bg-purple-700"
+                        >
                             {isSubmitting ? "Đang tạo..." : "Tạo Quiz"}
                         </Button>
-                    </div>
-                </div>
+                    </DialogFooter>
+                </form>
             </DialogContent>
         </Dialog>
     )
 }
+
+export default CreateQuizDialog

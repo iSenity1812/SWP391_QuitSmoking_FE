@@ -1,21 +1,24 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback } from "react"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import {
     Dialog,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog"
-import { Plus } from "lucide-react"
+} from "@/components/ui/dialog-task"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Plus, Lightbulb } from "lucide-react"
 import { TaskService } from "@/services/taskService"
-import type { TipCreationRequestDTO } from "@/types/task"
+import { toast } from "react-toastify"
+
 
 interface CreateTipDialogProps {
     onTipCreated: () => void
@@ -23,90 +26,83 @@ interface CreateTipDialogProps {
 
 export function CreateTipDialog({ onTipCreated }: CreateTipDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
+    const [content, setContent] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [formData, setFormData] = useState<TipCreationRequestDTO>({
-        content: "",
-    })
 
-    const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setFormData({ content: e.target.value })
-    }, [])
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
 
-    const resetForm = useCallback(() => {
-        setFormData({ content: "" })
-    }, [])
+        if (!content.trim()) {
+            toast.error("Vui lòng nhập nội dung tip!")
+            return
+        }
 
-    const handleSubmit = async () => {
         try {
-            // Validation
-            if (!formData.content.trim()) {
-                alert("Vui lòng nhập nội dung tip")
-                return
-            }
-
-            if (formData.content.length > 2000) {
-                alert("Nội dung tip không được vượt quá 2000 ký tự")
-                return
-            }
-
             setIsSubmitting(true)
-            await TaskService.createTipByAdmin(formData)
+            await TaskService.createTipByAdmin({ content: content.trim() })
 
-            // Success
-            alert("Tạo tip thành công!")
+            // Reset form
+            setContent("")
             setIsOpen(false)
-            resetForm()
+
+            // Refresh the tips list
             onTipCreated()
-        } catch (err: any) {
-            alert(`Lỗi tạo tip: ${err.message}`)
+
+            toast.success("Tạo tip thành công!")
+        } catch (error: any) {
+            toast.error(`Lỗi tạo tip: ${error.message}`)
         } finally {
             setIsSubmitting(false)
         }
     }
 
-    const handleCancel = useCallback(() => {
-        setIsOpen(false)
-        resetForm()
-    }, [resetForm])
-
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600">
+                <Button className="bg-green-600 hover:bg-green-700">
                     <Plus className="w-4 h-4 mr-2" />
                     Tạo Tip Mới
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Tạo Tip Mới</DialogTitle>
-                    <DialogDescription>Tạo một tip hữu ích cho hệ thống cai thuốc lá</DialogDescription>
+                    <DialogTitle className="flex items-center space-x-2">
+                        <Lightbulb className="w-5 h-5 text-yellow-500" />
+                        <span>Tạo Tip Mới</span>
+                    </DialogTitle>
+                    <DialogDescription>Tạo một tip hữu ích để giúp người dùng trong hành trình cai thuốc lá</DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-4">
-                    <div>
-                        <Label htmlFor="tip-content">Nội dung Tip *</Label>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="content">Nội dung tip *</Label>
                         <Textarea
-                            id="tip-content"
-                            value={formData.content}
-                            onChange={handleContentChange}
-                            placeholder="Nhập nội dung tip hữu ích cho việc cai thuốc lá..."
-                            className="mt-1 min-h-[120px]"
-                            rows={6}
+                            id="content"
+                            placeholder="Nhập nội dung tip hữu ích..."
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                            rows={4}
+                            className="resize-none"
                         />
-                        <div className="text-right text-sm text-slate-500 mt-1">{formData.content.length}/2000 ký tự</div>
+                        <div className="text-sm text-slate-500">{content.length} ký tự</div>
                     </div>
 
-                    <div className="flex justify-end space-x-2 pt-4">
-                        <Button type="button" variant="outline" onClick={handleCancel} disabled={isSubmitting}>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isSubmitting}>
                             Hủy
                         </Button>
-                        <Button type="button" onClick={handleSubmit} disabled={isSubmitting}>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting || !content.trim()}
+                            className="bg-green-600 hover:bg-green-700"
+                        >
                             {isSubmitting ? "Đang tạo..." : "Tạo Tip"}
                         </Button>
-                    </div>
-                </div>
+                    </DialogFooter>
+                </form>
             </DialogContent>
         </Dialog>
     )
 }
+
+export default CreateTipDialog

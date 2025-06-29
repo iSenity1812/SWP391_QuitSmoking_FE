@@ -21,6 +21,8 @@ import { TaskService } from "@/services/taskService"
 import type { TipResponseDTO } from "@/types/task"
 import { CreateTipDialog } from "./dialogs/CreateTipDialog"
 import { EditTipDialog } from "./dialogs/EditTipDialog"
+import { toast } from "react-toastify"
+
 
 export function TipManagement() {
     const [tips, setTips] = useState<TipResponseDTO[]>([])
@@ -51,9 +53,9 @@ export function TipManagement() {
         try {
             await TaskService.deleteTip(tipId)
             await loadTips()
-            alert("Xóa tip thành công!")
+            toast.success("Xóa tip thành công!")
         } catch (err: any) {
-            alert(`Lỗi xóa tip: ${err.message}`)
+            toast.error(`Lỗi xóa tip: ${err.message}`)
         }
     }
 

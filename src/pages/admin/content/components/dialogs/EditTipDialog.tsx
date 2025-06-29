@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { TaskService } from "@/services/taskService"
 import type { TipResponseDTO, TipCreationRequestDTO } from "@/types/task"
+import { toast } from "react-toastify"
+
 
 interface EditTipDialogProps {
     tip: TipResponseDTO | null
@@ -40,12 +42,12 @@ export function EditTipDialog({ tip, isOpen, onClose, onTipUpdated }: EditTipDia
         try {
             // Validation
             if (!formData.content.trim()) {
-                alert("Vui lòng nhập nội dung tip")
+                toast.error("Vui lòng nhập nội dung tip")
                 return
             }
 
             if (formData.content.length > 2000) {
-                alert("Nội dung tip không được vượt quá 2000 ký tự")
+                toast.error("Nội dung tip không được vượt quá 2000 ký tự")
                 return
             }
 
@@ -53,11 +55,11 @@ export function EditTipDialog({ tip, isOpen, onClose, onTipUpdated }: EditTipDia
             await TaskService.updateTip(tip.tipId, formData)
 
             // Success
-            alert("Cập nhật tip thành công!")
+            toast.success("Cập nhật tip thành công!")
             onClose()
             onTipUpdated()
         } catch (err: any) {
-            alert(`Lỗi cập nhật tip: ${err.message}`)
+            toast.error(`Lỗi cập nhật tip: ${err.message}`)
         } finally {
             setIsSubmitting(false)
         }

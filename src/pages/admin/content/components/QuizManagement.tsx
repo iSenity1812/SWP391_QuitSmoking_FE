@@ -21,6 +21,9 @@ import { TaskService } from "@/services/taskService"
 import type { QuizResponseDTO } from "@/types/task"
 import { CreateQuizDialog } from "./dialogs/CreateQuizDialog"
 import { EditQuizDialog } from "./dialogs/EditQuizDialog"
+import { toast } from "react-toastify"
+
+
 
 export function QuizManagement() {
     const [quizzes, setQuizzes] = useState<QuizResponseDTO[]>([])
@@ -119,7 +122,6 @@ export function QuizManagement() {
                     </div>
                 </CardContent>
             </Card>
-
 
             {/* Error State */}
             {error && (
