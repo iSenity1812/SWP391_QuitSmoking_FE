@@ -1,5 +1,6 @@
 import axiosConfig from "@/config/axiosConfig";
 import { isAxiosError } from "axios";
+import { toast } from "react-toastify";
 
 export interface AgoraTokenResponse {
   agoraAppId: string
@@ -44,6 +45,12 @@ class AgoraService {
       }
     } catch (error: unknown) {
       console.error('Error getting Agora token:', error);
+      // Lấy lỗi từ backend và hiển thị thông báo lỗi
+      let errorMessage = 'Lỗi không xác định';
+      if (isAxiosError(error) && error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      toast.error(`Không thể kết nối đến cuộc gọi video. Vui lòng thử lại sau. ${errorMessage}`);
 
       // Handle different types of errors
       if (isAxiosError(error) && error.response) {

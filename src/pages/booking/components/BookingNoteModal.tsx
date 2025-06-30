@@ -85,7 +85,7 @@ export function BookingNoteModal({
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-semibold text-slate-900">
+            <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-white flex items-center space-x-2">
               Xác nhận đặt lịch tư vấn
             </DialogTitle>
             <Button
@@ -100,31 +100,31 @@ export function BookingNoteModal({
           </div>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 ">
           {/* Booking Summary */}
-          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-3">
-            <h3 className="font-medium text-emerald-800">Thông tin đặt lịch</h3>
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-3 dark:bg-emerald-900 dark:border-emerald-700 ">
+            <h3 className="font-medium text-emerald-800 dark:text-white">Thông tin đặt lịch</h3>
 
             <div className="space-y-2 text-sm">
-              <div className="flex items-center space-x-2 text-slate-700">
+              <div className="flex items-center space-x-2 text-slate-700 dark:text-white">
                 <User className="w-4 h-4 text-emerald-600" />
                 <span className="font-medium">Coach:</span>
                 <span>{coach.fullName}</span>
               </div>
 
-              <div className="flex items-center space-x-2 text-slate-700">
+              <div className="flex items-center space-x-2 text-slate-700 dark:text-white">
                 <Calendar className="w-4 h-4 text-emerald-600" />
                 <span className="font-medium">Ngày:</span>
                 <span>{formatDate(scheduleDate)}</span>
               </div>
 
-              <div className="flex items-center space-x-2 text-slate-700">
+              <div className="flex items-center space-x-2 text-slate-700 dark:text-white">
                 <Clock className="w-4 h-4 text-emerald-600" />
-                <span className="font-medium">Giờ:</span>
+                <span className="font-medium ">Giờ:</span>
                 <span>{timeSlot.startTime} - {timeSlot.endTime}</span>
               </div>
 
-              {coach.rating && (
+              {/* {coach.rating && (
                 <div className="flex items-center space-x-2 text-slate-700">
                   <span className="font-medium">Đánh giá:</span>
                   <div className="flex items-center space-x-1">
@@ -132,7 +132,7 @@ export function BookingNoteModal({
                     <span>{coach.rating.toFixed(1)}/5</span>
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
 

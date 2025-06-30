@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useContext, useCallback } from 'react'
 import AgoraRTC from 'agora-rtc-sdk-ng'
 import type {
   IAgoraRTCClient,
@@ -7,8 +7,14 @@ import type {
   ICameraVideoTrack,
   IRemoteVideoTrack
 } from 'agora-rtc-sdk-ng'
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Loader2 } from 'lucide-react'
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Loader2, User2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
+import { AuthContext } from '@/context/AuthContext'
+
+interface CustomRemoteUser extends IAgoraRTCRemoteUser {
+  isSpeaking: boolean;
+}
 
 interface VideoCallProps {
   appId: string;
@@ -17,13 +23,42 @@ interface VideoCallProps {
   uid: string;
 }
 
+const VideoPlayer = ({ track, isSpeaking, showAvatar = false }: { track: ICameraVideoTrack | IRemoteVideoTrack | undefined, isSpeaking: boolean, showAvatar?: boolean }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (ref.current && track) {
+      track.play(ref.current); // Phát video vào phần tử div
+    }
+    return () => {
+      track?.stop(); // Dừng phát video khi component unmount
+    }
+  }, [track]);
+  const speakingClass = isSpeaking ? 'border-4 border-blue-500' : 'border-4 border-transparent';
+
+  return (
+    <div ref={ref} className={`w-full h-full bg-black rounded-lg overflow-hidden relative transition-all duration-200 ${speakingClass}`}>
+      {showAvatar && (
+        <div className="w-full h-full flex items-center justify-center bg-slate-700">
+          <User2 className="w-24 h-24 text-slate-500" />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function VideoCall({ appId, channelName, token, uid }: VideoCallProps) {
   const client = useRef<IAgoraRTCClient | null>(null)
-  const [remoteUsers, setRemoteUsers] = useState<IAgoraRTCRemoteUser[]>([])
+  const [remoteUsers, setRemoteUsers] = useState<CustomRemoteUser[]>([])
   const [localTracks, setLocalTracks] = useState<[IMicrophoneAudioTrack, ICameraVideoTrack] | null>(null)
   const [isMicOn, setIsMicOn] = useState(true)
   const [isVideoOn, setIsVideoOn] = useState(true)
   const [isJoining, setIsJoining] = useState(true)
+  const navigate = useNavigate()
+  const authContext = useContext(AuthContext) // Giả sử bạn có AuthContext để lấy thông tin người dùng
+  const user = authContext?.user
+
+  // Thêm state cho localIsSpeaking
+  const [localIsSpeaking, setLocalIsSpeaking] = useState(false)
 
 
   // khởi tạo client và tham gia kênh
@@ -34,13 +69,60 @@ export function VideoCall({ appId, channelName, token, uid }: VideoCallProps) {
     }
 
     const initAgora = async () => {
-      client.current = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' })
+      client.current = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+      client.current.enableAudioVolumeIndicator(); // Bật tính năng đo âm lượng;
+
+      client.current.on('volume-indicator', (volumes) => {
+        volumes.forEach((volume) => {
+          console.log(`VOLUME: User ${volume.uid} is speaking at level ${volume.level}`)
+          // Cai đặt trạng thái speaking cho người dùng cục bộ
+          if (volume.uid.toString() === uid) {
+            setLocalIsSpeaking(volume.level >= 50); // Nếu mức âm lượng lớn hơn 10, đặt localIsSpeaking là true, lọc nhiễu
+          } else {
+            // Cập nhật trạng thái speaking cho người dùng từ xa
+            setRemoteUsers((prevUsers) => {
+              return prevUsers.map((user) => {
+                if (user.uid === volume.uid) {
+                  return { ...user, isSpeaking: volume.level >= 50 }; // Cập nhật trạng thái speaking
+                }
+                return user;
+              });
+            });
+          }
+        });
+      });
 
       // Lắng nghe sự kiện người dùng được published
       const handleUserPublished = async (user: IAgoraRTCRemoteUser, mediaType: 'audio' | 'video') => {
         await client.current?.subscribe(user, mediaType)
         if (mediaType === 'video') {
-          setRemoteUsers((prevUsers) => [...prevUsers, user])
+          setRemoteUsers((prevUsers) => {
+            // Check if user already exists
+            if (prevUsers.some((u) => u.uid === user.uid)) {
+              // If user exists, update their track. Create a new object to ensure re-render.
+              return prevUsers.map((existingUser) =>
+                existingUser.uid === user.uid
+                  ? { ...existingUser, videoTrack: user.videoTrack, hasVideo: user.hasVideo }
+                  : existingUser,
+              )
+            }
+            // If new user, add them to the state. Create a new plain object.
+            return [
+              ...prevUsers,
+              {
+                uid: user.uid,
+                videoTrack: user.videoTrack,
+                audioTrack: user.audioTrack,
+                hasVideo: user.hasVideo,
+                hasAudio: user.hasAudio,
+                isSpeaking: false,
+              },
+            ]
+          })
+        }
+
+        if (mediaType === 'audio') {
+          user.audioTrack?.play() // Phát track âm thanh của người dùng
         }
       }
 
@@ -91,27 +173,39 @@ export function VideoCall({ appId, channelName, token, uid }: VideoCallProps) {
     }
   }
 
-  const handleLeaveCall = async () => {
-    if (client.current) {
-      await client.current.leave() // Rời khỏi kênh
-      setLocalTracks(null) // Đặt lại các track cục bộ
-      setRemoteUsers([]) // Xóa danh sách người dùng từ xa
-      setIsJoining(false) // Đặt trạng thái tham gia là false
-    }
-  }
+  const handleLeaveCall = useCallback(async () => {
+    try {
+      if (localTracks) {
+        await localTracks[0].stop();
+        await localTracks[1].stop();
+        await localTracks[0].close();
+        await localTracks[1].close();
+        setLocalTracks(null);
+      }
 
-  const VideoPlayer = ({ track }: { track: ICameraVideoTrack | IRemoteVideoTrack | undefined }) => {
-    const ref = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-      if (ref.current && track) {
-        track.play(ref.current); // Phát video vào phần tử div
+      if (client.current) {
+        await client.current.leave();
+        client.current.removeAllListeners(); // Xóa tất cả listener
+        client.current = null; // Reset client sau khi rời
+        console.log("Left Agora channel successfully.");
       }
-      return () => {
-        track?.stop(); // Dừng phát video khi component unmount
+      setRemoteUsers([]); // Xóa tất cả remote users khi rời
+
+      // Redirect back (Premium -> /booking, Coach -> dashboard)
+      if (user?.role === 'COACH') { // Kiểm tra user?.role để tránh lỗi nếu user là null
+        navigate('/coach/dashboard');
+      } else if (user?.role === 'PREMIUM_MEMBER') {
+        navigate('/booking');
+      } else {
+        console.warn("Unknown user role or role not found. Redirecting to home.");
+        navigate('/');
       }
-    }, [track]);
-    return <div ref={ref} className="w-full h-full bg-black rounded-lg overflow-hidden"></div>;
-  }
+
+    } catch (error) {
+      console.error('Error leaving call:', error);
+      alert("There was an error leaving the call. Please try again.");
+    }
+  }, [localTracks, user, navigate]);
 
 
   // Render giao diện video call
@@ -130,14 +224,14 @@ export function VideoCall({ appId, channelName, token, uid }: VideoCallProps) {
         {/* localVideo */}
         <div id="local-player" className="bg-black rounded-lg overflow-hidden relative">
           <p className="absolute top-2 left-2 z-10 bg-black/50 text-white px-2 py-1 rounded">Bạn</p>
-          {localTracks && <VideoPlayer track={localTracks[1]} />}
+          {localTracks && <VideoPlayer track={localTracks[1]} isSpeaking={localIsSpeaking} showAvatar={!isVideoOn} />}
         </div>
 
         {/* Remote Users */}
         {remoteUsers.map((user) => (
           <div key={user.uid} id={`remote-player-${user.uid}`} className="bg-black rounded-lg overflow-hidden relative">
             <p className="absolute top-2 left-2 z-10 bg-black/50 text-white px-2 py-1 rounded">Đối tác</p>
-            {user.videoTrack && <VideoPlayer track={user.videoTrack} />}
+            {user.videoTrack && <VideoPlayer track={user.videoTrack} isSpeaking={user.isSpeaking} showAvatar={!user.hasVideo} />}
           </div>
         ))}
 

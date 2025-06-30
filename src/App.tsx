@@ -23,6 +23,7 @@ function shouldHideNavbar(pathname: string) {
     "/plan-selection",
     "/profile",
     "/subscription",
+    '/meeting',
   ]
 
   // Dùng startsWith để hỗ trợ cả các route như /admin/dashboard

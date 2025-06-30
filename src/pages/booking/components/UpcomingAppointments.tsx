@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 interface AppointmentCardProps {
   appointment: {
@@ -27,6 +28,43 @@ interface AppointmentCardProps {
   formatDate: (date: string) => string
 }
 const AppointmentCard = ({ appointment, getStatusText, getStatusColor, formatDate }: AppointmentCardProps) => {
+  const [isJoinable, setIsJoinable] = useState(false);
+
+  useEffect(() => {
+    const checkJoinability = () => {
+      // Nút chỉ hiển thị cho các cuộc hẹn đã 'CONFIRMED'
+      if (appointment.status !== 'CONFIRMED') {
+        setIsJoinable(false);
+        return;
+      }
+
+      const now = new Date();
+      const appointmentStart = new Date(`${appointment.scheduleDate}T${appointment.timeSlot.startTime}`);
+      const appointmentEnd = new Date(`${appointment.scheduleDate}T${appointment.timeSlot.endTime}`);
+
+      // Tính thời điểm 10 phút trước khi cuộc hẹn bắt đầu
+      const tenMinutesBefore = new Date(appointmentStart.getTime() - 10 * 60 * 1000);
+      // Thời gian kết thúc của cuộc hẹn + 5 phút
+      const fiveMinutesAfter = new Date(appointmentEnd.getTime() + 5 * 60 * 1000);
+
+      // Nút sẽ hiển thị trong khoảng từ 10 phút trước giờ hẹn cho đến khi kết thúc
+      const shouldBeJoinable = now >= tenMinutesBefore && now <= fiveMinutesAfter;
+
+      // Chỉ cập nhật state nếu giá trị thay đổi để tránh re-render không cần thiết
+      if (isJoinable !== shouldBeJoinable) {
+        setIsJoinable(shouldBeJoinable);
+      }
+    };
+
+    // Kiểm tra ngay khi component được mount
+    checkJoinability();
+
+    // Sau đó kiểm tra lại mỗi 30 giây để cập nhật trạng thái nút
+    const intervalId = setInterval(checkJoinability, 30000); // 30 giây
+
+    // Dọn dẹp interval khi component bị unmount
+    return () => clearInterval(intervalId);
+  }, [appointment, isJoinable]);
 
   // Hàm tiện ích mới để cắt bỏ giây từ chuỗi thời gian (nếu chưa có ở đâu khác)
   const formatTime = (timeString: string): string => {
@@ -85,7 +123,7 @@ const AppointmentCard = ({ appointment, getStatusText, getStatusColor, formatDat
       )}
 
       {/* Meeting */}
-      {appointment.status === 'CONFIRMED' && (
+      {isJoinable && (
         <div className="mt-4 flex justify-end">
           <Link
             to={`/meeting/${appointment.appointmentId}`}

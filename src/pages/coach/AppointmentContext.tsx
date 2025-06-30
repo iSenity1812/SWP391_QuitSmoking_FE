@@ -24,6 +24,7 @@ interface AppointmentContextType {
     deleteAppointment: (id: number) => void
     getTodayAppointments: () => Appointment[]
     getUpcomingAppointments: () => Appointment[]
+    fetchAppointments: () => Promise<Appointment[]>;
 }
 
 const AppointmentContext = createContext<AppointmentContextType | undefined>(undefined)
@@ -135,6 +136,14 @@ export function AppointmentProvider({ children }: { children: ReactNode }) {
                 deleteAppointment,
                 getTodayAppointments,
                 getUpcomingAppointments,
+                fetchAppointments: async () => {
+                    // Simulate fetching appointments from an API
+                    return new Promise((resolve) => {
+                        setTimeout(() => {
+                            resolve(appointments)
+                        }, 1000)
+                    })
+                },
             }}
         >
             {children}
