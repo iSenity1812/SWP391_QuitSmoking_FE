@@ -86,8 +86,25 @@ export class CommentService {
     async addComment(commentData: CommentRequestDTO): Promise<CommentApiResponse<CommentResponseDTO>> {
         try {
             const response = await axiosConfig.post("/comments", commentData)
+
+            // Check for successful status codes (200, 201)
+            if (response.status === 200 || response.status === 201) {
+                // If response has data structure with success field
+                if (response.data && typeof response.data === "object" && "success" in response.data) {
+                    return response.data as CommentApiResponse<CommentResponseDTO>
+                }
+
+                // If response data is the comment directly, wrap it in success structure
+                return {
+                    success: true,
+                    message: "Thêm bình luận thành công",
+                    data: response.data,
+                } as CommentApiResponse<CommentResponseDTO>
+            }
+
             return response.data
         } catch (error: any) {
+            console.error("Error in addComment:", error)
             throw error
         }
     }

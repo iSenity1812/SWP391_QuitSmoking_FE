@@ -38,14 +38,10 @@ export default function ContentAdminPage() {
 
     const navItems = [
         { id: "dashboard", label: "Tổng Quan", icon: BarChart3 },
-        { id: "reviews", label: "Đánh Giá", icon: MessageSquare },
         { id: "quizzes", label: "Quản Lý Quiz", icon: Flag },
         { id: "tips", label: "Quản Lý Tips", icon: FileText },
         { id: "blogs", label: "Blog", icon: FileText },
-        { id: "content", label: "Thư Viện", icon: FileText },
-        { id: "achievements", label: "Thành Tựu", icon: Trophy },
-        { id: "premium", label: "Premium", icon: Crown },
-        { id: "reports", label: "Báo Cáo", icon: Flag },
+
     ]
 
     const renderContent = () => {

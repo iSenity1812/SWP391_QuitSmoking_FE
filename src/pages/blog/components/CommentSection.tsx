@@ -33,14 +33,15 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 
     const rootComments = comments.filter((comment) => comment.blogId === blogId && !comment.parentCommentId)
 
-    const handleSubmitComment = () => {
+    const handleSubmitComment = async () => {
         if (!currentUser) {
             setIsLoginPromptOpen(true)
             return
         }
 
         if (commentText.trim()) {
-            handleAddComment(blogId, commentText)
+            console.log("🔵 [COMMENT SECTION] Submitting parent comment:", commentText)
+            await handleAddComment(blogId, commentText)
             setCommentText("")
         }
     }
@@ -53,14 +54,15 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         setReplyingTo(commentId)
     }
 
-    const handleSubmitReply = (commentId: number) => {
+    const handleSubmitReply = async (commentId: number) => {
         if (!currentUser) {
             setIsLoginPromptOpen(true)
             return
         }
 
         if (replyText.trim()) {
-            handleAddComment(blogId, replyText, commentId)
+            console.log("🔵 [COMMENT SECTION] Submitting reply comment:", replyText, "to parent:", commentId)
+            await handleAddComment(blogId, replyText, commentId)
             setReplyText("")
             setReplyingTo(null)
         }
@@ -96,8 +98,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 </Button>
             </div>
 
-
-
             {/* Danh sách bình luận */}
             <div className="w-full space-y-4">
                 {rootComments.length === 0 ? (
@@ -111,9 +111,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2">
                                     <Avatar className="w-8 h-8">
-                                        <AvatarFallback>
-                                            {(comment.user?.username || "U").slice(0, 2).toUpperCase()}
-                                        </AvatarFallback>
+                                        <AvatarFallback>{(comment.user?.username || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
                                     </Avatar>
                                     <div>
                                         <p className="text-sm font-semibold text-slate-800 dark:text-white">
@@ -170,9 +168,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                                             <div className="flex items-center justify-between mb-1">
                                                 <div className="flex items-center gap-2">
                                                     <Avatar className="w-6 h-6">
-                                                        <AvatarFallback>
-                                                            {(reply.user?.username || "U").slice(0, 2).toUpperCase()}
-                                                        </AvatarFallback>
+                                                        <AvatarFallback>{(reply.user?.username || "U").slice(0, 2).toUpperCase()}</AvatarFallback>
                                                     </Avatar>
                                                     <div>
                                                         <p className="text-xs font-semibold text-slate-800 dark:text-white">

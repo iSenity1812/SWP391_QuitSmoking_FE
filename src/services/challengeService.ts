@@ -142,8 +142,10 @@ export class ChallengeService {
 
             console.log("Raw delete challenge response:", response.data)
 
-            if (response.data.status !== 204 && response.data.status !== 200) {
-                throw new Error(response.data.message || "Không thể xóa thử thách")
+            // For DELETE operations, 204 (No Content) is the standard success response
+            // The response might not have a data.status field, so check the HTTP status code instead
+            if (response.status !== 204 && response.status !== 200) {
+                throw new Error(response.data?.message || "Không thể xóa thử thách")
             }
         } catch (error: any) {
             console.error(`Error deleting challenge ${challengeId}:`, error)

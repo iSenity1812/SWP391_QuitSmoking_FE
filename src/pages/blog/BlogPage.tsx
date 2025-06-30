@@ -7,7 +7,7 @@ import { useBlogPosts, useBlogActions, useMyBlogs } from "@/hooks/use-blogs"
 import { commentService } from "@/services/commentService"
 import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser } from "@/types/blog"
 import type { CommentRequestDTO, CommentResponseDTO, CommentApiResponse } from "@/types/comment"
-import { toast } from "react-toastify";
+import { toast } from "react-toastify"
 
 // Components
 import BlogHeader from "./components/BlogHeader"
@@ -44,6 +44,7 @@ const BlogPage: React.FC = () => {
     const [selectedPost, setSelectedPost] = useState<BackendBlogPost | null>(null)
     const [selectedPostComments, setSelectedPostComments] = useState<CommentResponseDTO[]>([])
     const [viewMode, setViewMode] = useState<ViewMode>("list")
+    const [pendingCommentUpdate, setPendingCommentUpdate] = useState<number | null>(null)
 
     // User state (null for guest) - In real app, get from AuthContext
     const [currentUser, setCurrentUser] = useState<BlogUser | null>(null)
@@ -114,6 +115,25 @@ const BlogPage: React.FC = () => {
     const blogPosts = blogsData?.content || []
     const myPosts = myPostsData?.content || []
 
+    // Effect to update selected post when blogs data changes after comment addition
+    useEffect(() => {
+        if (pendingCommentUpdate && selectedPost && blogsData?.content) {
+            console.log("🔵 [COMMENT DEBUG] Checking for updated blog post after refetch...")
+            const updatedBlogPost = blogsData.content.find((post: BackendBlogPost) => post.blogId === pendingCommentUpdate)
+
+            if (updatedBlogPost && selectedPost.blogId === pendingCommentUpdate) {
+                console.log(
+                    "🔵 [COMMENT DEBUG] Found updated blog post with new comments:",
+                    updatedBlogPost.comments?.length || 0,
+                )
+                setSelectedPost(updatedBlogPost)
+                setSelectedPostComments(updatedBlogPost.comments || [])
+                setPendingCommentUpdate(null) // Clear pending update
+                console.log("🔵 [COMMENT DEBUG] Updated selectedPost and selectedPostComments from refetched data")
+            }
+        }
+    }, [blogsData, pendingCommentUpdate, selectedPost])
+
     // Filter posts based on search term (additional client-side filtering if needed)
     const filteredPosts = blogPosts.filter((post) => {
         if (!searchTerm) return true
@@ -154,6 +174,7 @@ const BlogPage: React.FC = () => {
         setSelectedPost(null)
         setSelectedPostComments([])
         setViewMode("list")
+        setPendingCommentUpdate(null) // Clear any pending updates
         window.scrollTo(0, 0)
     }
 
@@ -323,36 +344,33 @@ const BlogPage: React.FC = () => {
                 parentCommentId,
             }
 
-            console.log("Adding comment:", commentData)
+            console.log("🔵 [COMMENT DEBUG] Starting to add comment:", commentData)
+            console.log("🔵 [COMMENT DEBUG] Current selectedPost before adding comment:", selectedPost)
+            console.log("🔵 [COMMENT DEBUG] Current selectedPostComments before adding comment:", selectedPostComments.length)
+
             const response: CommentApiResponse<CommentResponseDTO> = await commentService.addComment(commentData)
-            console.log("Comment API response:", response)
+            console.log("🔵 [COMMENT DEBUG] Comment API response:", response)
 
             if (response.success && response.data) {
                 const newComment = response.data
-                console.log("New comment:", newComment)
+                console.log("🔵 [COMMENT DEBUG] New comment created:", newComment)
+
+                // Set pending update flag
+                setPendingCommentUpdate(blogId)
+                console.log("🔵 [COMMENT DEBUG] Set pending comment update for blog:", blogId)
 
                 // Refresh the blog data to get updated comments
-                refetchBlogs()
-
-                // For immediate UI update, add the new comment to current state
-                if (selectedPost?.blogId === blogId) {
-                    const updatedComments: CommentResponseDTO[] = [...selectedPostComments, newComment]
-                    setSelectedPostComments(updatedComments)
-
-                    // Also update the selected post's comment count
-                    setSelectedPost({
-                        ...selectedPost,
-                        commentCount: (selectedPost.commentCount || 0) + 1,
-                        comments: updatedComments,
-                    })
-                }
+                console.log("🔵 [COMMENT DEBUG] Calling refetchBlogs()...")
+                await refetchBlogs()
+                console.log("🔵 [COMMENT DEBUG] refetchBlogs() completed")
 
                 toast.success("Bình luận đã được thêm thành công!")
             } else {
                 throw new Error(response.message || "Failed to add comment")
             }
         } catch (error: any) {
-            console.error("Error adding comment:", error)
+            console.error("🔴 [COMMENT DEBUG] Error adding comment:", error)
+            setPendingCommentUpdate(null) // Clear pending update on error
             toast.error(`Lỗi khi thêm bình luận: ${error.message || "Có lỗi xảy ra"}`)
         }
     }
