@@ -29,11 +29,18 @@ export interface CommentResponseDTO {
     replies?: CommentResponseDTO[] // Nested replies
 }
 
-// API Response types
+// API Response types - Updated to match actual backend response
 export interface CommentApiResponse<T> {
     success: boolean
     message: string
-    data: T
+    data: {
+        status: number
+        message: string
+        data: T
+        error: any
+        errorCode: any
+        timestamp: string
+    }
 }
 
 export interface CommentPageResponse {

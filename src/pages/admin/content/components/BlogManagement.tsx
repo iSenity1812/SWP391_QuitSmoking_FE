@@ -1,11 +1,10 @@
 "use client"
 import { useState, useEffect } from "react"
-import { AnimatedSection } from "@/components/ui/AnimatedSection"
 import { useAdminBlogs, useBlogActions, useMyBlogs, useAdminBlogActions } from "@/hooks/use-blogs"
 import { commentService } from "@/services/commentService"
 import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser, BlogStatus } from "@/types/blog"
 import type { CommentRequestDTO, CommentResponseDTO, CommentApiResponse } from "@/types/comment"
-import { Search, CheckCircle, XCircle, Clock, Eye, Edit, Trash2 } from "lucide-react"
+import { Search, CheckCircle, XCircle, Clock, Eye, Trash2 } from "lucide-react"
 import BlogPostDetail from "@/pages/blog/components/BlogPostDetail"
 import UserAuthSection from "@/pages/blog/components/UserAuthSection"
 import MyPostsList from "@/pages/blog/components/MyPostList"
@@ -498,16 +497,18 @@ export function BlogManagement() {
                 parentCommentId,
             }
 
-            console.log("Adding comment:", commentData)
+            console.log("🔵 [COMMENT DEBUG] Starting to add comment:", commentData)
+            console.log("🔵 [COMMENT DEBUG] Current selectedPost before adding comment:", selectedPost)
+            console.log("🔵 [COMMENT DEBUG] Current selectedPostComments before adding comment:", selectedPostComments.length)
+
             const response: CommentApiResponse<CommentResponseDTO> = await commentService.addComment(commentData)
-            console.log("Comment API response:", response)
+            console.log("🔵 [COMMENT DEBUG] Comment API response:", response)
 
             if (response.success && response.data) {
-                const newComment = response.data
-                console.log("New comment:", newComment)
+                const newComment = response.data.data
+                console.log("🔵 [COMMENT DEBUG] New comment created:", newComment)
 
-                refetchBlogs()
-
+                // Optimistic update - immediately add comment to UI
                 if (selectedPost?.blogId === blogId) {
                     const updatedComments: CommentResponseDTO[] = [...selectedPostComments, newComment]
                     setSelectedPostComments(updatedComments)
@@ -517,6 +518,7 @@ export function BlogManagement() {
                         commentCount: (selectedPost.commentCount || 0) + 1,
                         comments: updatedComments,
                     })
+                    console.log("🔵 [COMMENT DEBUG] Updated selectedPost and selectedPostComments optimistically")
                 }
 
                 toast.success("Bình luận đã được thêm thành công!")
@@ -612,7 +614,6 @@ export function BlogManagement() {
             </div>
 
             <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm">
-
                 <UserAuthSection
                     currentUser={currentUser}
                     handleCreateBlogClick={handleCreateBlogClick}
@@ -683,7 +684,6 @@ export function BlogManagement() {
                         )}
                     </div>
                 )}
-
             </div>
 
             {/* Dialogs */}

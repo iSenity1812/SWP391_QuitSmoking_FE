@@ -54,9 +54,19 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
     console.log("BlogPostDetail - BlogId:", blogId)
     console.log("BlogPostDetail - Comments:", comments)
 
+    // Function to render HTML content safely
+    const renderHTMLContent = (htmlContent: string) => {
+        return (
+            <div
+                className="prose prose-slate dark:prose-invert max-w-none prose-headings:text-slate-800 dark:prose-headings:text-white prose-p:text-slate-700 dark:prose-p:text-slate-200 prose-strong:text-slate-800 dark:prose-strong:text-white prose-a:text-emerald-600 dark:prose-a:text-emerald-400"
+                dangerouslySetInnerHTML={{ __html: htmlContent }}
+            />
+        )
+    }
+
     return (
         <>
-            <Button variant="outline" className="mb-6" onClick={handleBackToList}>
+            <Button variant="outline" className="mb-6 bg-transparent" onClick={handleBackToList}>
                 ← Quay lại danh sách bài viết
             </Button>
             <Card className="border-2 border-emerald-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
@@ -128,9 +138,8 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="prose dark:prose-invert max-w-none">
-                        <div className="text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">{post.content}</div>
-                    </div>
+                    {/* Render HTML content */}
+                    {renderHTMLContent(post.content)}
                 </CardContent>
 
                 {/* Phần bình luận */}

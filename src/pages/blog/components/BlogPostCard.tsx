@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { motion } from "framer-motion"
-import { Calendar, Clock, MessageCircle, ArrowRight, MoreVertical, Edit, Trash2, Flag } from "lucide-react"
+import { Calendar, Clock, ArrowRight, MoreVertical, Edit, Trash2, Flag } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -48,6 +48,14 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
     getRootComments,
 }) => {
     const blogId = post.blogId || 0
+
+    // Function to strip HTML tags and get plain text preview
+    const getTextPreview = (htmlContent: string, maxLength = 150) => {
+        const tmp = document.createElement("div")
+        tmp.innerHTML = htmlContent
+        const text = tmp.textContent || tmp.innerText || ""
+        return text.length > maxLength ? text.substring(0, maxLength) + "..." : text
+    }
 
     return (
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: index * 0.1 }}>
@@ -103,7 +111,7 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
                         {post.title}
                     </CardTitle>
                     <CardDescription className="text-slate-600 dark:text-slate-300 line-clamp-2">
-                        {post.content.substring(0, 150)}...
+                        {getTextPreview(post.content)}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
