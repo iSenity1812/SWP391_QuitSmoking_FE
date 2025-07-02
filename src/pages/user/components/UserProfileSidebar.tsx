@@ -13,7 +13,10 @@ import {
     Users,
     Calendar,
     Crown,
+    Activity,
+    TrendingUp,
 } from "lucide-react"
+import { Link } from "react-router-dom"
 import type { User } from "../types/user-types"
 import type React from "react"
 

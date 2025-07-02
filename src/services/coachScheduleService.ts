@@ -18,7 +18,7 @@ export class CoachScheduleService {
   }
   /**
    * Fetch weekly schedule for a coach
-   * GET /api/coaches/schedules/weekly/{coachId}
+   * GET /coaches/schedules/weekly/{coachId}
    * @param requestedCoachId ID của Coach cần lấy lịch trình (nếu null, sẽ lấy của chính Coach đang đăng nhập)
    * @param dateInWeek Ngày trong tuần để lấy lịch trình (nếu không cung cấp, sẽ lấy tuần hiện tại)
    */  
@@ -63,7 +63,7 @@ export class CoachScheduleService {
     }
   }  /**
    * Register time slots for a coach
-   * POST /api/coaches/schedules
+   * POST /coaches/schedules
    * Request format: [{ "timeSlotId": 1, "scheduleDate": "2025-06-22" }]
    */
   async registerTimeSlots(slots: { timeSlotId: number; scheduleDate: string }[]): Promise<ScheduleRegistrationResponse[]> {
@@ -85,7 +85,7 @@ export class CoachScheduleService {
   }
   /**
    * Cancel a time slot registration
-   * DELETE /api/coaches/schedules/{scheduleId}
+   * DELETE /coaches/schedules/{scheduleId}
    */
   async unregisterSlot(scheduleId: number): Promise<void> {
     try {

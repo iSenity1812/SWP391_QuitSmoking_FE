@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -9,9 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { achievementService } from '@/services/achievementService'
+import { toast } from 'react-toastify';
 
 interface Achievement {
-    id: number
+    achievementId: number
     name: string
     description: string
     icon: string
@@ -24,45 +26,9 @@ interface Achievement {
 }
 
 export function AchievementsManagement() {
-    const [achievements, setAchievements] = useState<Achievement[]>([
-        {
-            id: 1,
-            name: "Tuần Đầu Tiên",
-            description: "Hoàn thành tuần đầu tiên không hút thuốc",
-            icon: "🎯",
-            category: "streak",
-            requirements: "7 ngày liên tiếp không hút thuốc",
-            rarity: "common",
-            unlockedBy: 1250,
-            isActive: true,
-            createdAt: "2024-01-01T00:00:00Z",
-        },
-        {
-            id: 2,
-            name: "Chiến Binh Một Tháng",
-            description: "Vượt qua mốc 30 ngày cai thuốc",
-            icon: "🏆",
-            category: "milestone",
-            requirements: "30 ngày liên tiếp không hút thuốc",
-            rarity: "rare",
-            unlockedBy: 890,
-            isActive: true,
-            createdAt: "2024-01-01T00:00:00Z",
-        },
-        {
-            id: 3,
-            name: "Người Truyền Cảm Hứng",
-            description: "Nhận được 100 lượt thích cho bài chia sẻ",
-            icon: "⭐",
-            category: "social",
-            requirements: "100 lượt thích cho bài viết",
-            rarity: "rare",
-            unlockedBy: 234,
-            isActive: true,
-            createdAt: "2024-01-05T00:00:00Z",
-        },
-    ])
-
+    const [achievements, setAchievements] = useState<Achievement[]>([])
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null)
@@ -73,24 +39,64 @@ export function AchievementsManagement() {
         category: "streak" as Achievement["category"],
         requirements: "",
         rarity: "common" as Achievement["rarity"],
+        milestoneValue: 1,
     })
 
-    const handleCreateAchievement = () => {
-        const newAchievement: Achievement = {
-            id: Math.max(...achievements.map((a) => a.id)) + 1,
-            name: formData.name,
-            description: formData.description,
-            icon: formData.icon,
-            category: formData.category,
-            requirements: formData.requirements,
-            rarity: formData.rarity,
-            unlockedBy: 0,
-            isActive: true,
-            createdAt: new Date().toISOString(),
+    // Fetch achievements from backend
+    const fetchAchievements = useCallback(async () => {
+        setLoading(true)
+        setError(null)
+        try {
+            const data = await achievementService.getAllAchievements()
+            setAchievements(data)
+        } catch (err: any) {
+            setError(err.message || 'Lỗi khi tải danh sách thành tựu')
+        } finally {
+            setLoading(false)
         }
-        setAchievements((prev) => [newAchievement, ...prev])
-        setIsCreateModalOpen(false)
-        resetForm()
+    }, [])
+
+    useEffect(() => {
+        fetchAchievements()
+    }, [fetchAchievements])
+
+    const handleCreateAchievement = async () => {
+        if (!formData.name.trim()) {
+            toast.error('Tên thành tựu không được để trống')
+            return
+        }
+        if (!formData.milestoneValue || isNaN(Number(formData.milestoneValue))) {
+            toast.error('Milestone (giá trị mốc) phải là số và không được để trống')
+            return
+        }
+        setLoading(true)
+        try {
+            // Map category FE sang enum BE
+            let achievementType = "DAILY";
+            switch (formData.category) {
+                case "streak": achievementType = "DAILY"; break;
+                case "milestone": achievementType = "DAYS_QUIT"; break;
+                case "social": achievementType = "SOCIAL"; break;
+                case "premium": achievementType = "SPECIAL"; break;
+                default: achievementType = "DAILY";
+            }
+            const payload: Partial<Achievement> = {
+                achievementType,
+                name: formData.name,
+                iconUrl: formData.icon,
+                description: formData.description,
+                milestoneValue: formData.milestoneValue,
+            };
+            await achievementService.createAchievement(payload)
+            toast.success('Tạo thành tựu thành công!')
+            setIsCreateModalOpen(false)
+            resetForm()
+            fetchAchievements()
+        } catch (err: any) {
+            toast.error(err.message || 'Tạo thành tựu thất bại')
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleEditAchievement = (achievement: Achievement) => {
@@ -102,19 +108,29 @@ export function AchievementsManagement() {
             category: achievement.category,
             requirements: achievement.requirements,
             rarity: achievement.rarity,
+            milestoneValue: 1,
         })
         setIsEditModalOpen(true)
     }
 
-    const handleUpdateAchievement = () => {
+    const handleUpdateAchievement = async () => {
         if (!selectedAchievement) return
-        setAchievements((prev) =>
-            prev.map((achievement) =>
-                achievement.id === selectedAchievement.id ? { ...achievement, ...formData } : achievement,
-            ),
-        )
-        setIsEditModalOpen(false)
-        resetForm()
+        if (!formData.name.trim()) {
+            toast.error('Tên thành tựu không được để trống')
+            return
+        }
+        setLoading(true)
+        try {
+            await achievementService.updateAchievement(selectedAchievement.achievementId, formData)
+            toast.success('Cập nhật thành tựu thành công!')
+            setIsEditModalOpen(false)
+            resetForm()
+            fetchAchievements()
+        } catch (err: any) {
+            toast.error(err.message || 'Cập nhật thành tựu thất bại')
+        } finally {
+            setLoading(false)
+        }
     }
 
     const resetForm = () => {
@@ -125,18 +141,29 @@ export function AchievementsManagement() {
             category: "streak",
             requirements: "",
             rarity: "common",
+            milestoneValue: 1,
         })
         setSelectedAchievement(null)
     }
 
-    const handleDeleteAchievement = (achievementId: number) => {
-        setAchievements((prev) => prev.filter((achievement) => achievement.id !== achievementId))
+    const handleDeleteAchievement = async (achievementId: number) => {
+        if (!window.confirm('Bạn có chắc chắn muốn xóa thành tựu này?')) return
+        setLoading(true)
+        try {
+            await achievementService.deleteAchievement(achievementId)
+            toast.success('Xóa thành tựu thành công!')
+            fetchAchievements()
+        } catch (err: any) {
+            toast.error(err.message || 'Xóa thành tựu thất bại')
+        } finally {
+            setLoading(false)
+        }
     }
 
     const toggleAchievementStatus = (achievementId: number) => {
         setAchievements((prev) =>
             prev.map((achievement) =>
-                achievement.id === achievementId ? { ...achievement, isActive: !achievement.isActive } : achievement,
+                achievement.achievementId === achievementId ? { ...achievement, isActive: !achievement.isActive } : achievement,
             ),
         )
     }
@@ -188,6 +215,8 @@ export function AchievementsManagement() {
 
     return (
         <div className="space-y-6">
+            {loading && <div>Đang tải dữ liệu...</div>}
+            {error && <div className="text-red-500">{error}</div>}
             <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
                 <CardHeader>
                     <div className="flex justify-between items-center">
@@ -207,7 +236,7 @@ export function AchievementsManagement() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {achievements.map((achievement) => (
                             <Card
-                                key={achievement.id}
+                                key={achievement.achievementId}
                                 className={`bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 ${!achievement.isActive ? "opacity-60" : ""
                                     }`}
                             >
@@ -273,7 +302,7 @@ export function AchievementsManagement() {
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            onClick={() => toggleAchievementStatus(achievement.id)}
+                                            onClick={() => toggleAchievementStatus(achievement.achievementId)}
                                             className="flex-1"
                                         >
                                             {achievement.isActive ? "Tạm dừng" : "Kích hoạt"}
@@ -281,7 +310,7 @@ export function AchievementsManagement() {
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            onClick={() => handleDeleteAchievement(achievement.id)}
+                                            onClick={() => handleDeleteAchievement(achievement.achievementId)}
                                             className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -365,6 +394,16 @@ export function AchievementsManagement() {
                                 onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                                 placeholder="Mô tả chi tiết về thành tựu..."
                                 className="min-h-[100px]"
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="achievement-milestone">Giá trị mốc (Milestone)</Label>
+                            <Input
+                                id="achievement-milestone"
+                                type="number"
+                                value={formData.milestoneValue}
+                                onChange={(e) => setFormData((prev) => ({ ...prev, milestoneValue: parseInt(e.target.value, 10) || 0 }))}
+                                placeholder="Ví dụ: 7"
                             />
                         </div>
                     </div>

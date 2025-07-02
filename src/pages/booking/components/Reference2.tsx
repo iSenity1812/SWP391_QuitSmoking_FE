@@ -581,7 +581,7 @@ export function CoachBookingCalendar() {
         endDate.setDate(currentWeekStart.getDate() + 6)
         const endDateStr = endDate.toISOString().split("T")[0]
 
-        const response = await fetch("/api/coaches/schedules/available/by-date-and-timeslot", {
+        const response = await fetch("/coaches/schedules/available/by-date-and-timeslot", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

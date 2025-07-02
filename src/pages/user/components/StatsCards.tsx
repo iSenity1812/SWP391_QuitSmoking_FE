@@ -7,7 +7,9 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ user }: StatsCardsProps) {
-
+    // Đảm bảo hiển thị đúng định dạng số cho tiền tiết kiệm và điếu đã tránh
+    const moneySavedDisplay = typeof user.moneySaved === 'string' ? user.moneySaved : Number(user.moneySaved).toLocaleString('vi-VN')
+    const cigarettesAvoidedDisplay = typeof user.cigarettesAvoided === 'string' ? user.cigarettesAvoided : Number(user.cigarettesAvoided).toLocaleString('vi-VN')
 
     return (
         <div className="space-y-8">
@@ -18,7 +20,7 @@ export function StatsCards({ user }: StatsCardsProps) {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-blue-100 text-sm font-medium">Điếu thuốc đã tránh</p>
-                                <p className="text-5xl font-bold mt-2">{user.cigarettesAvoided}</p>
+                                <p className="text-5xl font-bold mt-2">{cigarettesAvoidedDisplay}</p>
                                 <p className="text-blue-100 text-sm mt-2">~10 điếu/ngày</p>
                             </div>
                             <div className="bg-white/20 rounded-full p-4">
@@ -36,7 +38,7 @@ export function StatsCards({ user }: StatsCardsProps) {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-purple-100 text-sm font-medium">Tiền tiết kiệm</p>
-                                <p className="text-5xl font-bold mt-2">{user.moneySaved}đ</p>
+                                <p className="text-5xl font-bold mt-2">{moneySavedDisplay}đ</p>
                                 <p className="text-purple-100 text-sm mt-2">~50,000đ/ngày</p>
                             </div>
                             <div className="bg-white/20 rounded-full p-4">

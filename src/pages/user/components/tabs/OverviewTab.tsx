@@ -5,13 +5,23 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Target, Trophy, Calendar, BookOpen, MessageCircle, Download, Users, Heart } from "lucide-react"
 import type { User } from "../../types/user-types"
+import { useEffect, useState } from "react"
+import { achievementService } from "@/services/achievementService"
+import { useAuth } from "@/hooks/useAuth"
 
 interface OverviewTabProps {
     user: User
     onTestAchievement: () => void
 }
 
-export function OverviewTab({ user, onTestAchievement }: OverviewTabProps) {
+export function OverviewTab({ user: profileUser, onTestAchievement }: OverviewTabProps) {
+    const { user: authUser } = useAuth()
+    const [nextMilestone, setNextMilestone] = useState<any>(null)
+    useEffect(() => {
+        if (authUser?.userId) {
+            achievementService.getNextMilestone(authUser.userId).then(setNextMilestone)
+        }
+    }, [authUser?.userId])
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -30,20 +40,29 @@ export function OverviewTab({ user, onTestAchievement }: OverviewTabProps) {
                             </div>
                             <div className="flex-1">
                                 <h3 className="text-xl font-semibold text-emerald-700 dark:text-emerald-400 mb-2">
-                                    {user.nextMilestone.name}
+                                    {nextMilestone?.name || "Đã đạt tất cả cột mốc!"}
                                 </h3>
                                 <p className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                                    {user.nextMilestone.daysLeft} ngày nữa
+                                    {nextMilestone ? `${nextMilestone.left} ${nextMilestone.type === "DAYS_QUIT" ? "ngày nữa" : nextMilestone.type === "MONEY_SAVED" ? "VNĐ nữa" : nextMilestone.type === "CIGARETTES_NOT_SMOKED" ? "điếu nữa" : ""}` : ""}
                                 </p>
-                                <p className="text-slate-600 dark:text-slate-400 mb-4">Phần thưởng: {user.nextMilestone.reward}</p>
-                                <Progress
-                                    value={(user.daysSmokeFreee / (user.daysSmokeFreee + user.nextMilestone.daysLeft)) * 100}
-                                    className="h-3"
-                                />
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-                                    {Math.round((user.daysSmokeFreee / (user.daysSmokeFreee + user.nextMilestone.daysLeft)) * 100)}% hoàn
-                                    thành
-                                </p>
+                                <p className="text-slate-600 dark:text-slate-400 mb-4">Phần thưởng: {nextMilestone?.reward || "-"}</p>
+                                {nextMilestone && (
+                                    <Progress
+                                        value={
+                                            nextMilestone.milestoneValue && nextMilestone.left !== undefined
+                                                ? ((Number(nextMilestone.milestoneValue) - Number(nextMilestone.left)) / Number(nextMilestone.milestoneValue)) * 100
+                                                : 100
+                                        }
+                                        className="h-3"
+                                    />
+                                )}
+                                {nextMilestone && (
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                                        {nextMilestone.milestoneValue && nextMilestone.left !== undefined
+                                            ? `${Math.round(((Number(nextMilestone.milestoneValue) - Number(nextMilestone.left)) / Number(nextMilestone.milestoneValue)) * 100)}% hoàn thành`
+                                            : ""}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </CardContent>
@@ -93,7 +112,7 @@ export function OverviewTab({ user, onTestAchievement }: OverviewTabProps) {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
-                        {user.recentActivities.map((activity, index) => (
+                        {profileUser.recentActivities.map((activity, index) => (
                             <div key={index} className="flex items-center gap-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
                                 <div
                                     className={`rounded-full p-2 ${activity.type === "achievement"

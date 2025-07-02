@@ -56,7 +56,7 @@ export function CoachScheduleDemo() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
               <h4 className="font-semibold text-slate-900 dark:text-white mb-2">📡 API Endpoint</h4>
-              <code className="text-sm text-blue-600 dark:text-blue-400">POST /api/coaches/schedules</code>
+              <code className="text-sm text-blue-600 dark:text-blue-400">POST /coaches/schedules</code>
             </div>
             <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
               <h4 className="font-semibold text-slate-900 dark:text-white mb-2">📋 Request Format</h4>

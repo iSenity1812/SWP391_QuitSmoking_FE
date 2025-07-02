@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { userData } from "../data/user-data"
-import { UserProfileHeader } from "../components/UserProfileHeader"
+import { useState, useEffect, useContext } from "react"
+import { AuthContext } from "@/context/AuthContext"
+import UserProfileHeader from "../components/UserProfileHeader"
 import { UserProfileSidebar } from "../components/UserProfileSidebar"
 import { StatsCards } from "../components/StatsCards"
+import { QuitStatsSection } from "../components/QuitStatsSection"
 import { AchievementNotificationModal } from "../components/AchievementNotificationModal"
 import { OverviewTab } from "../components/tabs/OverviewTab"
 import { ProgressTab } from "../components/tabs/ProgressTab"
@@ -13,7 +14,8 @@ import { HealthTab } from "../components/tabs/HealthTab"
 import { SocialTab } from "../components/tabs/SocialTab"
 import { BookingTab } from "../components/tabs/BookingtTab"
 import CertificationTab from "../components/tabs/CertificationTab"
-import type { AchievementNotification } from "../types/user-types"
+import type { AchievementNotification, User } from "../types/user-types"
+import { userService } from "@/services/userService"
 
 export default function UserProfile() {
     const [activeTab, setActiveTab] = useState("overview")
@@ -22,8 +24,61 @@ export default function UserProfile() {
         show: false,
         achievement: null,
     })
+    const [quitStats, setQuitStats] = useState<{cigarettesAvoided: number, moneySaved: number}>({cigarettesAvoided: 0, moneySaved: 0})
 
-    const user = userData
+    const auth = useContext(AuthContext)
+    const user: User = auth?.user
+        ? {
+            name: auth.user.username,
+            email: auth.user.email,
+            avatar: auth.user.profilePicture || '',
+            joinDate: '',
+            daysSmokeFreee: 0,
+            cigarettesAvoided: quitStats.cigarettesAvoided,
+            moneySaved: quitStats.moneySaved,
+            healthImprovement: 0,
+            level: '',
+            streak: 0,
+            achievements: [],
+            achievementCategories: [],
+            nextMilestone: { name: '', daysLeft: 0, reward: '' },
+            healthBenefits: [],
+            weeklyProgress: [],
+            friends: [],
+            recentActivities: [],
+            subscription: undefined,
+        }
+        : {
+            name: '',
+            email: '',
+            avatar: '',
+            joinDate: '',
+            daysSmokeFreee: 0,
+            cigarettesAvoided: 0,
+            moneySaved: 0,
+            healthImprovement: 0,
+            level: '',
+            streak: 0,
+            achievements: [],
+            achievementCategories: [],
+            nextMilestone: { name: '', daysLeft: 0, reward: '' },
+            healthBenefits: [],
+            weeklyProgress: [],
+            friends: [],
+            recentActivities: [],
+            subscription: undefined,
+        }
+
+    useEffect(() => {
+        userService.getQuitStats().then(res => {
+            if (res.data) {
+                setQuitStats({
+                    cigarettesAvoided: res.data.cigarettesAvoided,
+                    moneySaved: res.data.moneySaved
+                })
+            }
+        })
+    }, [])
 
     const handleTestAchievement = () => {
         const randomAchievement = user.achievements[Math.floor(Math.random() * user.achievements.length)]
@@ -65,35 +120,40 @@ export default function UserProfile() {
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [sidebarOpen])
 
+    const userWithStringMoneySaved = {
+        ...user,
+        moneySaved: quitStats.moneySaved.toLocaleString('vi-VN')
+    }
+
     const renderTabContent = () => {
         switch (activeTab) {
             case "overview":
-                return <OverviewTab user={user} onTestAchievement={handleTestAchievement} />
+                return <OverviewTab user={userWithStringMoneySaved} onTestAchievement={handleTestAchievement} />
             case "progress":
-                return <ProgressTab user={user} />
+                return <ProgressTab user={userWithStringMoneySaved} />
             case "achievements":
-                return <AchievementsTab user={user} />
+                return <AchievementsTab user={userWithStringMoneySaved} />
             case "health":
                 return <HealthTab />
             case "social":
-                return <SocialTab user={user} />
+                return <SocialTab user={userWithStringMoneySaved} />
             case "booking":
-                return <BookingTab user={user} />
+                return <BookingTab user={userWithStringMoneySaved} />
             case "certification":
                 return <CertificationTab />
             default:
-                return <OverviewTab user={user} onTestAchievement={handleTestAchievement} />
+                return <OverviewTab user={userWithStringMoneySaved} onTestAchievement={handleTestAchievement} />
         }
     }
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-            <UserProfileHeader />
+            <UserProfileHeader user={userWithStringMoneySaved as User} />
 
             <div className="flex">
                 <div id="sidebar">
                     <UserProfileSidebar
-                        user={user}
+                        user={userWithStringMoneySaved}
                         activeTab={activeTab}
                         sidebarOpen={sidebarOpen}
                         onTabChange={handleTabChange}
@@ -103,7 +163,7 @@ export default function UserProfile() {
 
                 <div className="flex-1 p-6">
                     <div className="max-w-7xl mx-auto">
-                        <StatsCards user={user} />
+                        <StatsCards user={userWithStringMoneySaved} />
                         {renderTabContent()}
                     </div>
                 </div>

@@ -26,6 +26,8 @@ import { RouteTestDashboard } from "@/components/auth/RouteTestDashboard"
 import BookingPage from "@/pages/booking/BookingPage"
 import PlanPagePref from "@/pages/plan/PlanPagePref"
 import { MeetingPage } from "@/pages/meeting/MeetingPage"
+import HealthBenefitsPage from "@/pages/health-benefits/HealthBenefitsPage"
+import QuitStatsPage from "@/pages/user/QuitStatsPage"
 
 export function AppRoutes() {
   return (
@@ -133,7 +135,35 @@ export function AppRoutes() {
             <SubscriptionPage />
           </ProtectedRoute>
         }
-      />      {/* Admin Routes - SUPER_ADMIN only */}
+      />
+
+      {/* Health Benefits - accessible by all members */}
+      <Route
+        path="/health-benefits"
+        element={
+          <ProtectedRoute
+            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+            requireAuth={false}
+          >
+            <HealthBenefitsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Quit Stats - accessible by all members */}
+      <Route
+        path="/quit-stats"
+        element={
+          <ProtectedRoute
+            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+            requireAuth={true}
+          >
+            <QuitStatsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Admin Routes - SUPER_ADMIN only */}
       <Route
         path="/admin/*"
         element={

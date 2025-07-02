@@ -141,8 +141,6 @@ export function MemberBookingCalendar() {
             <UpcomingAppointments />
           </div>
 
-
-
           {/* Calendar Grid */}
           <div className="lg:col-span-3">
             <Card className="bg-white/80 backdrop-blur-sm border-emerald-300 dark:border-slate-700 dark:bg-slate-800 shadow-sm">

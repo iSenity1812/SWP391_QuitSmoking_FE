@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosConfig = axios.create({
-  baseURL: 'http://localhost:8080/api', // Thay doi sau
+  baseURL: 'http://localhost:8080', // Đã bỏ /api ở đây để đúng root path
   timeout: 10000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json',

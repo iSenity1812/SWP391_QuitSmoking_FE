@@ -29,6 +29,7 @@ import type { User } from "../../types/user-types"
 import { useEffect, useState } from "react"
 import { achievementService } from "@/services/achievementService"
 import { useAuth } from "@/hooks/useAuth"
+import { toast } from "react-toastify"
 
 const getAchievementIcon = (iconName: string) => {
   switch (iconName) {
@@ -87,24 +88,30 @@ export function AchievementsTab() {
   const { user } = useAuth();
   const [achievements, setAchievements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     if (!user?.userId) return;
     setLoading(true);
-
-    // Gọi API check-unlock trước
-    achievementService.checkAndUnlockAchievements(user.userId)
-      .catch((err) => {
-        // Có thể log lỗi hoặc bỏ qua nếu không quan trọng
-        console.error('Check unlock achievements failed:', err);
-      })
-      .finally(() => {
-        // Sau khi check xong, fetch lại achievements
-        achievementService.getMemberAchievements(user.userId)
-          .then(data => setAchievements(data))
-          .finally(() => setLoading(false));
-      });
+    achievementService.getAllAchievementsForUser(user.userId)
+      .then(data => setAchievements(data))
+      .finally(() => setLoading(false));
   }, [user?.userId]);
+
+  const handleSyncAchievements = async () => {
+    if (!user?.userId) return;
+    setSyncing(true);
+    try {
+      await achievementService.cleanInvalidAchievements(user.userId);
+      toast.success("Đồng bộ thành tựu thành công!");
+      achievementService.getAllAchievementsForUser(user.userId)
+        .then(data => setAchievements(data));
+    } catch (e) {
+      toast.error("Lỗi khi đồng bộ thành tựu!");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   if (loading) return <div>Đang tải thành tựu...</div>;
   if (!achievements.length) return <div>Không có thành tựu nào.</div>;
@@ -166,6 +173,18 @@ export function AchievementsTab() {
           <div className="absolute bottom-8 right-8 w-12 h-8 bg-white/10 rounded-full"></div>
           <div className="absolute bottom-4 left-1/3 w-6 h-4 bg-white/10 rounded-full"></div>
         </Card>
+      </div>
+
+      <div className="flex items-center mb-4">
+        <button
+          className="ml-auto p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center"
+          onClick={handleSyncAchievements}
+          disabled={syncing}
+          aria-label="Đồng bộ thành tựu"
+          title="Đồng bộ thành tựu"
+        >
+          <RefreshCw className={`h-5 w-5 ${syncing ? "animate-spin" : ""}`} />
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
