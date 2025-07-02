@@ -40,7 +40,7 @@ export function SocialFeed({ className = "" }: SocialFeedProps) {
     const [posts, setPosts] = useState<ShareData[]>([])
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set())
 
-    // Sample initial posts
+    // Sample initial posts - removed recent activity section
     const samplePosts: ShareData[] = [
         {
             id: "1",
@@ -166,6 +166,8 @@ export function SocialFeed({ className = "" }: SocialFeedProps) {
                     {posts.length} bài đăng
                 </Badge>
             </div>
+
+            {/* Removed "Hoạt động cộng đồng gần đây" section - keeping only main posts */}
 
             {posts.length === 0 ? (
                 <Card>

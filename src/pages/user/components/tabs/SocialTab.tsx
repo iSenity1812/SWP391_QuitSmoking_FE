@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
     Users,
@@ -16,19 +16,21 @@ import {
     Medal,
     Award,
     Target,
-    TrendingUp,
     Heart,
-    Share2,
     UserCheck,
+    Eye,
 } from "lucide-react"
 import type { User, Friend } from "../../types/user-types"
+import { getAllPublicUsers } from "../../data/public-user-data"
 
 interface SocialTabProps {
     user: User
 }
 
 export function SocialTab({ user }: SocialTabProps) {
+    const navigate = useNavigate()
     const [friends, setFriends] = useState<Friend[]>(user.friends)
+    const publicUsers = getAllPublicUsers()
 
     const handleFollowToggle = (friendName: string) => {
         setFriends((prevFriends) =>
@@ -49,13 +51,17 @@ export function SocialTab({ user }: SocialTabProps) {
         // Implement chat functionality here
     }
 
+    const handleViewProfile = (userId: string) => {
+        navigate(`/user/profile/${userId}`)
+    }
+
     // Mock leaderboard data
     const leaderboard = [
-        { rank: 1, name: "Lê Văn C", streak: 67, avatar: "/placeholder.svg", level: "Kim cương" },
-        { rank: 2, name: "Nguyễn Văn A", streak: 45, avatar: "/placeholder.svg", level: "Bạc" },
-        { rank: 3, name: "Trần Thị B", streak: 32, avatar: "/placeholder.svg", level: "Đồng" },
-        { rank: 4, name: "Phạm Thị D", streak: 21, avatar: "/placeholder.svg", level: "Đồng" },
-        { rank: 5, name: "Hoàng Văn E", streak: 18, avatar: "/placeholder.svg", level: "Đồng" },
+        { rank: 1, name: "Lê Văn C", streak: 67, avatar: "/placeholder.svg" },
+        { rank: 2, name: "Nguyễn Văn A", streak: 45, avatar: "/placeholder.svg" },
+        { rank: 3, name: "Trần Thị B", streak: 32, avatar: "/placeholder.svg" },
+        { rank: 4, name: "Phạm Thị D", streak: 21, avatar: "/placeholder.svg" },
+        { rank: 5, name: "Hoàng Văn E", streak: 18, avatar: "/placeholder.svg" },
     ]
 
     const getRankIcon = (rank: number) => {
@@ -68,19 +74,6 @@ export function SocialTab({ user }: SocialTabProps) {
                 return <Award className="h-5 w-5 text-amber-600" />
             default:
                 return <Target className="h-5 w-5 text-slate-400" />
-        }
-    }
-
-    const getLevelColor = (level: string) => {
-        switch (level.toLowerCase()) {
-            case "kim cương":
-                return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
-            case "bạc":
-                return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
-            case "đồng":
-                return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
-            default:
-                return "bg-slate-100 text-slate-800 dark:bg-slate-900/30 dark:text-slate-400"
         }
     }
 
@@ -174,6 +167,10 @@ export function SocialTab({ user }: SocialTabProps) {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
+                                    <Button variant="outline" size="sm" onClick={() => handleViewProfile(`friend-${index}`)}>
+                                        <Eye className="h-4 w-4 mr-1" />
+                                        Xem
+                                    </Button>
                                     <Button
                                         variant="outline"
                                         size="sm"
@@ -202,6 +199,37 @@ export function SocialTab({ user }: SocialTabProps) {
                                 </div>
                             </div>
                         ))}
+
+                        {/* Discover Other Users Section */}
+                        <div className="border-t pt-4 mt-6">
+                            <h4 className="font-medium text-slate-900 dark:text-white mb-3">Khám phá người dùng khác</h4>
+                            {publicUsers.slice(0, 2).map((publicUser) => (
+                                <div
+                                    key={publicUser.id}
+                                    className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-800 mb-3"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Avatar className="h-12 w-12">
+                                            <AvatarImage src={publicUser.avatar || "/placeholder.svg"} alt={publicUser.name} />
+                                            <AvatarFallback>{publicUser.name.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-medium text-slate-900 dark:text-white">{publicUser.name}</p>
+                                            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                                                <Flame className="h-4 w-4 text-orange-500" />
+                                                <span>{publicUser.currentStreak} ngày</span>
+                                                <span>•</span>
+                                                <span>{publicUser.followersCount} người theo dõi</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Button variant="outline" size="sm" onClick={() => handleViewProfile(publicUser.id)}>
+                                        <Eye className="h-4 w-4 mr-1" />
+                                        Xem hồ sơ
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -233,82 +261,25 @@ export function SocialTab({ user }: SocialTabProps) {
                                     </Avatar>
                                     <div>
                                         <p className="font-medium text-slate-900 dark:text-white">{user.name}</p>
-                                        <Badge variant="secondary" className={getLevelColor(user.level)}>
-                                            {user.level}
-                                        </Badge>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
-                                        <Flame className="h-4 w-4" />
-                                        <span className="font-bold">{user.streak}</span>
+                                <div className="flex items-center gap-2">
+                                    <div className="text-right">
+                                        <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+                                            <Flame className="h-4 w-4" />
+                                            <span className="font-bold">{user.streak}</span>
+                                        </div>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">ngày</p>
                                     </div>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">ngày</p>
+                                    <Button variant="ghost" size="sm" onClick={() => handleViewProfile(`leaderboard-${index}`)}>
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             </div>
                         ))}
                     </CardContent>
                 </Card>
             </div>
-
-            {/* Recent Community Activity */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5" />
-                        Hoạt động cộng đồng gần đây
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {[
-                        {
-                            user: "Trần Thị B",
-                            action: "đã đạt được thành tựu 'Tuần đầu tiên'",
-                            time: "2 giờ trước",
-                            type: "achievement",
-                        },
-                        {
-                            user: "Lê Văn C",
-                            action: "đã chia sẻ kinh nghiệm cai thuốc",
-                            time: "4 giờ trước",
-                            type: "share",
-                        },
-                        {
-                            user: "Phạm Thị D",
-                            action: "đã hoàn thành 21 ngày không hút thuốc",
-                            time: "6 giờ trước",
-                            type: "milestone",
-                        },
-                        {
-                            user: "Hoàng Văn E",
-                            action: "đã tham gia thử thách 'Tiết kiệm 1 triệu'",
-                            time: "8 giờ trước",
-                            type: "challenge",
-                        },
-                    ].map((activity, index) => (
-                        <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800">
-                            <Avatar className="h-10 w-10">
-                                <AvatarImage src="/placeholder.svg" alt={activity.user} />
-                                <AvatarFallback>{activity.user.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                                <p className="text-sm text-slate-900 dark:text-white">
-                                    <span className="font-medium">{activity.user}</span> {activity.action}
-                                </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">{activity.time}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="sm">
-                                    <Heart className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm">
-                                    <Share2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    ))}
-                </CardContent>
-            </Card>
         </div>
     )
 }
