@@ -24,7 +24,7 @@ interface BlogPostDetailProps {
     comments: CommentResponseDTO[]
     handleBackToList: () => void
     handleEditPost: (post: BlogPost) => void
-    handleDeletePost: (post: BlogPost) => void
+    handleDeletePost: (post: BlogPost) => void  
     handleReportPost: (post: BlogPost) => void
     canEditPost: (post: BlogPost) => boolean
     canDeletePost: (post: BlogPost) => boolean
