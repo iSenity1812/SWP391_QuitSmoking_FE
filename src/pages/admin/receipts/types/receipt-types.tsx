@@ -58,7 +58,6 @@ export interface RevenueData {
 export interface ReceiptFilters {
     status: string
     subscriptionType: string
-    paymentMethod: string
     search: string
     amountRange?: {
         min: number

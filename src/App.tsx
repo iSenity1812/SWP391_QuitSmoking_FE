@@ -19,6 +19,8 @@ import SubscriptionPage from "./pages/plan/subscription/SubscriptionPage"
 import { useEffect, useState } from "react"
 import BookingPage from "./pages/booking/BookingPage"
 import { PublicUserProfile } from "./pages/user/components/PublicUserProfile"
+import { NotificationProvider } from "./components/ui/NotificationProvider"
+import { LearningPage } from "./pages/learning/LearningPage"
 
 function shouldHideNavbar(pathname: string) {
   const hiddenPaths = [
@@ -80,48 +82,53 @@ export default function App() {
 
   if (shouldRedirectToOnboarding) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <main className="flex-1">
-          <OnboardingPage />
-        </main>
-      </div>
+      <NotificationProvider>
+        <div className="min-h-screen flex flex-col">
+          <main className="flex-1">
+            <OnboardingPage />
+          </main>
+        </div>
+      </NotificationProvider>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {shouldShowNavbar && <Navbar />}
-      <main className="flex-1">
-        {/* Hidden button for development to force complete onboarding */}
-        {!isOnboardingCompleted && (
-          <button
-            onClick={forceCompleteOnboarding}
-            className="fixed bottom-4 right-4 bg-red-500 text-white px-3 py-1 rounded-md text-xs z-50"
-          >
-            Skip Onboarding (Dev)
-          </button>
-        )}
+    <NotificationProvider>
+      <div className="min-h-screen flex flex-col">
+        {shouldShowNavbar && <Navbar />}
+        <main className="flex-1">
+          {/* Hidden button for development to force complete onboarding */}
+          {!isOnboardingCompleted && (
+            <button
+              onClick={forceCompleteOnboarding}
+              className="fixed bottom-4 right-4 bg-red-500 text-white px-3 py-1 rounded-md text-xs z-50"
+            >
+              Skip Onboarding (Dev)
+            </button>
+          )}
 
-        <AnimatePresence mode="wait" initial={false}>
-          <Routes location={location} key={location.pathname}>
-            <Route path="/onboarding" element={<OnboardingPage />} />
-            <Route path="/plan-selection" element={<PlanSelectionDirectPage />} />
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/plan" element={<PlanPage />} />
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/profile" element={<UserProfilePage />} />
-            <Route path="/user/profile/:userId" element={<PublicUserProfile />} />
-            <Route path="/coach" element={<CoachPage />} />
-            <Route path="/contentadmin" element={<ContentAdminPage />} />
-            <Route path="/subscription" element={<SubscriptionPage />} />
-            <Route path="/booking" element={<BookingPage />} />
-          </Routes>
-        </AnimatePresence>
-      </main>
-    </div>
+          <AnimatePresence mode="wait" initial={false}>
+            <Routes location={location} key={location.pathname}>
+              <Route path="/onboarding" element={<OnboardingPage />} />
+              <Route path="/plan-selection" element={<PlanSelectionDirectPage />} />
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/plan" element={<PlanPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/profile" element={<UserProfilePage />} />
+              <Route path="/user/profile/:userId" element={<PublicUserProfile />} />
+              <Route path="/coach" element={<CoachPage />} />
+              <Route path="/contentadmin" element={<ContentAdminPage />} />
+              <Route path="/subscription" element={<SubscriptionPage />} />
+              <Route path="/booking" element={<BookingPage />} />
+              <Route path="/learning" element={<LearningPage />} />
+            </Routes>
+          </AnimatePresence>
+        </main>
+      </div>
+    </NotificationProvider>
   )
 }

@@ -7,7 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
     Users,
-    Calendar,
     TrendingUp,
     MessageSquare,
     BarChart3,
@@ -27,9 +26,7 @@ import {
 } from "lucide-react"
 import { AdminDashboard } from "./component/AdminDashBoard"
 import { UserManagement } from "./staff/UserManagement"
-import { PlanManagement } from "./staff/PlanManagement"
 import { ContentManagement } from "./component/ContentManagement"
-import { AnalyticsSection } from "./staff/AnalyticsSection"
 import { ReportsOverview } from "./report/components/ReportsOverview"
 import { ReceiptManagement } from "./receipts/components/ReceiptManagement"
 import { useTheme } from "@/context/ThemeContext"
@@ -46,11 +43,10 @@ export default function AdminPage() {
         { id: "dashboard", label: "Tổng Quan", icon: BarChart3 },
         { id: "users", label: "Người Dùng", icon: Users },
         { id: "coaches", label: "Coach", icon: UserCheck },
-        { id: "plans", label: "Kế Hoạch", icon: Calendar },
         { id: "content", label: "Quản Lý Blog", icon: MessageSquare },
         { id: "reports", label: "Báo Cáo Người Dùng", icon: FileText },
         { id: "receipts", label: "Hóa Đơn & Thanh Toán", icon: Receipt },
-        { id: "analytics", label: "Phân Tích", icon: TrendingUp },
+        
     ]
 
     const renderContent = () => {
@@ -61,16 +57,13 @@ export default function AdminPage() {
                 return <UserManagement />
             case "coaches":
                 return <CoachManagement />
-            case "plans":
-                return <PlanManagement />
             case "content":
                 return <ContentManagement />
             case "reports":
                 return <ReportsOverview />
             case "receipts":
                 return <ReceiptManagement />
-            case "analytics":
-                return <AnalyticsSection />
+
             default:
                 return <AdminDashboard />
         }
@@ -429,7 +422,7 @@ export default function AdminPage() {
                         >
                             {[
                                 { title: "Tổng Người Dùng", value: "2,847", change: "+12%", icon: Users, color: "blue" },
-                                { title: "Kế Hoạch Đang Hoạt Đ��ng", value: "1,234", change: "+8%", icon: Target, color: "green" },
+                                { title: "Kế Hoạch Đang Hoạt Đng", value: "1,234", change: "+8%", icon: Target, color: "green" },
                                 { title: "Tỷ Lệ Thành Công", value: "73%", change: "+5%", icon: Heart, color: "red" },
                                 { title: "Doanh Thu", value: "$12,847", change: "+15%", icon: DollarSign, color: "yellow" },
                             ].map((stat, index) => {

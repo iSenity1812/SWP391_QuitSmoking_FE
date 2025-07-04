@@ -49,7 +49,7 @@ export function PublicUserProfile() {
     }
 
     const handleGoHome = () => {
-        navigate("/")
+        navigate("/profile")
     }
 
     const getAchievementIcon = (icon: string) => {

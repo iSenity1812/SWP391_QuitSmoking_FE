@@ -18,6 +18,7 @@ import {
     Sun,
     Moon,
     BarChart3,
+    Bell,
 } from "lucide-react"
 import { useTheme } from "@/context/ThemeContext"
 import { ContentDashboard } from "./components/ContentDashboard"
@@ -26,6 +27,7 @@ import { AchievementsManagement } from "./components/AchievementsManagement"
 import { PremiumPrograms } from "./components/PremiumPrograms"
 import { ContentReports } from "./components/ContentReports"
 import { BlogManagement } from "./components/BlogManagement"
+import { NotificationManagement } from "./components/NotificationManagement"
 
 export default function ContentAdminPage() {
     const [activeTab, setActiveTab] = useState("dashboard")
@@ -39,6 +41,7 @@ export default function ContentAdminPage() {
         { id: "blogs", label: "Blog", icon: FileText },
         { id: "achievements", label: "Thành Tựu", icon: Trophy },
         { id: "premium", label: "Premium", icon: Crown },
+        { id: "notifications", label: "Thông Báo", icon: Bell },
         { id: "reports", label: "Báo Cáo", icon: Flag },
     ]
 
@@ -54,6 +57,8 @@ export default function ContentAdminPage() {
                 return <AchievementsManagement />
             case "premium":
                 return <PremiumPrograms />
+            case "notifications":
+                return <NotificationManagement />
             case "reports":
                 return <ContentReports />
             default:
@@ -199,6 +204,15 @@ export default function ContentAdminPage() {
                         </div>
 
                         <div className="flex items-center space-x-4">
+                            {/* Create Reminder Button */}
+                            <Button
+                                onClick={() => setActiveTab("notifications")}
+                                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                            >
+                                <Bell className="w-4 h-4 mr-2" />
+                                Tạo nhắc nhở
+                            </Button>
+
                             {/* Desktop Theme Toggle */}
                             <Button
                                 onClick={toggleTheme}

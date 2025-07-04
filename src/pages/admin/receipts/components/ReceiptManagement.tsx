@@ -43,6 +43,7 @@ import {
     Clock,
     XCircle,
     RotateCcw,
+    X,
 } from "lucide-react"
 import {
     getSubscriptionReceipts,
@@ -74,7 +75,6 @@ export function ReceiptManagement() {
     const [filters, setFilters] = useState<ReceiptFilters>({
         status: "all",
         subscriptionType: "all",
-        paymentMethod: "all",
         search: "",
     })
 
@@ -326,7 +326,7 @@ export function ReceiptManagement() {
                             <CardTitle className="text-gray-900 dark:text-gray-100">Bộ Lọc</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="search">Tìm kiếm</Label>
                                     <div className="relative">
@@ -369,22 +369,6 @@ export function ReceiptManagement() {
                                         <option value="basic">Cơ Bản</option>
                                         <option value="premium">Premium</option>
                                         <option value="pro">Pro</option>
-                                    </select>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="paymentMethod">Phương thức</Label>
-                                    <select
-                                        id="paymentMethod"
-                                        value={filters.paymentMethod}
-                                        onChange={(e) => handleFilterChange("paymentMethod", e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                                    >
-                                        <option value="all">Tất cả</option>
-                                        <option value="credit_card">Thẻ tín dụng</option>
-                                        <option value="bank_transfer">Chuyển khoản</option>
-                                        <option value="e_wallet">Ví điện tử</option>
-                                        <option value="paypal">PayPal</option>
                                     </select>
                                 </div>
                             </div>
@@ -437,7 +421,6 @@ export function ReceiptManagement() {
                                                     <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
                                                         {formatCurrency(receipt.amount)}
                                                     </span>
-                                                    {getPaymentMethodIcon(receipt.paymentMethod)}
                                                 </div>
                                                 <div className="flex items-center space-x-2">
                                                     {getStatusIcon(receipt.paymentStatus)}
@@ -562,9 +545,14 @@ export function ReceiptManagement() {
             {/* Receipt Detail Dialog */}
             <Dialog open={!!selectedReceipt} onOpenChange={() => setSelectedReceipt(null)}>
                 <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>Chi Tiết Hóa Đơn</DialogTitle>
-                        <DialogDescription>Thông tin chi tiết về giao dịch thanh toán</DialogDescription>
+                    <DialogHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <DialogTitle>Chi Tiết Hóa Đơn</DialogTitle>
+                            <DialogDescription>Thông tin chi tiết về giao dịch thanh toán</DialogDescription>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedReceipt(null)} className="h-8 w-8 p-0">
+                            <X className="h-4 w-4" />
+                        </Button>
                     </DialogHeader>
                     {selectedReceipt && (
                         <div className="space-y-4">
@@ -620,9 +608,14 @@ export function ReceiptManagement() {
             {/* Refund Dialog */}
             <Dialog open={refundDialogOpen} onOpenChange={setRefundDialogOpen}>
                 <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Hoàn Tiền</DialogTitle>
-                        <DialogDescription>Xử lý hoàn tiền cho khách hàng</DialogDescription>
+                    <DialogHeader className="flex flex-row items-center justify-between">
+                        <div>
+                            <DialogTitle>Hoàn Tiền</DialogTitle>
+                            <DialogDescription>Xử lý hoàn tiền cho khách hàng</DialogDescription>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => setRefundDialogOpen(false)} className="h-8 w-8 p-0">
+                            <X className="h-4 w-4" />
+                        </Button>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div>

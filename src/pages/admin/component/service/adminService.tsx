@@ -16,7 +16,9 @@ export interface DashboardStats {
 export interface User {
     id: number
     name: string
+    username: string
     email: string
+    password: string
     phone: string
     status: "active" | "inactive"
     plan: "Cơ Bản" | "Premium"
@@ -63,13 +65,35 @@ const generateRandomUser = (id: number): User => {
         "Đặng Văn Giang",
         "Bùi Thị Hoa",
     ]
+    const usernames = [
+        "nguyenvanan",
+        "tranthibinh",
+        "levancuong",
+        "phamthidung",
+        "hoangvanem",
+        "vuthiphuong",
+        "dangvangiang",
+        "buithihoa",
+    ]
+    const passwords = [
+        "password123",
+        "mypass456",
+        "secure789",
+        "user2024",
+        "admin123",
+        "qwerty456",
+        "hello789",
+        "welcome123",
+    ]
     const statuses: ("active" | "inactive")[] = ["active", "inactive"]
     const plans: ("Cơ Bản" | "Premium")[] = ["Cơ Bản", "Premium"]
 
     return {
         id,
         name: names[Math.floor(Math.random() * names.length)],
+        username: usernames[Math.floor(Math.random() * usernames.length)],
         email: `user${id}@example.com`,
+        password: passwords[Math.floor(Math.random() * passwords.length)],
         phone: `+84 ${Math.floor(Math.random() * 900000000 + 100000000)}`,
         status: statuses[Math.floor(Math.random() * statuses.length)],
         plan: plans[Math.floor(Math.random() * plans.length)],
@@ -151,6 +175,28 @@ export const adminService = {
             users.push(generateRandomUser(i))
         }
         return users
+    },
+
+    async getUserById(id: number): Promise<User | null> {
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        return generateRandomUser(id)
+    },
+
+    async updateUser(id: number, userData: Partial<User>): Promise<User> {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        const existingUser = generateRandomUser(id)
+        return { ...existingUser, ...userData, id }
+    },
+
+    async deleteUser(id: number): Promise<boolean> {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        return true
+    },
+
+    async createUser(userData: Omit<User, "id">): Promise<User> {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        const newId = Math.floor(Math.random() * 10000) + 1000
+        return { ...userData, id: newId }
     },
 
     async getPlans(page = 1, limit = 10): Promise<Plan[]> {

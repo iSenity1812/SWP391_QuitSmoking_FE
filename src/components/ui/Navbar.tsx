@@ -1,19 +1,20 @@
 "use client"
 
-import { Gem, Home, Menu, Wind, Crown } from "lucide-react"
+import { Gem, Home, Menu, Wind, Crown, BookOpen, Heart, Users, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Info, Calendar } from "lucide-react"
-import { BookOpen } from "lucide-react"
+import { Info } from "lucide-react"
 import { NavItem } from "@/components/ui/nav-item"
 // import { useTheme } from "@/context/ThemeContext";
 import { ThemeToggle } from "./ThemeToggle"
 import { Link, useLocation } from "react-router-dom"
+import { NotificationBell } from "./NotificationProvider"
 
 const navLinks = [
   { href: "/", label: "Trang chủ", icon: Home, isActive: true },
   { href: "/blog", label: "Bài viết", icon: BookOpen },
   { href: "/booking", label: "Đặt lịch", icon: Calendar },
+  { href: "/learning", label: "Chương trình học tập", icon: BookOpen },
   { href: "/subscription", label: "Cao cấp", icon: Crown },
   { href: "plan/", label: "Kiểm tra", icon: Gem },
   { href: "/about", label: "Giới thiệu", icon: Info },
@@ -41,6 +42,7 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <NotificationBell />
           <ThemeToggle />
           <Link
             to="/login"
@@ -57,7 +59,7 @@ export function Navbar() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="md:hidden">
+              <Button variant="outline" size="icon" className="md:hidden bg-transparent">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
@@ -66,6 +68,8 @@ export function Navbar() {
               <DropdownMenuItem>Trang chủ</DropdownMenuItem>
               <DropdownMenuItem>Bài viết</DropdownMenuItem>
               <DropdownMenuItem>Đặt lịch</DropdownMenuItem>
+
+              <DropdownMenuItem>Chương trình học tập</DropdownMenuItem>
               <DropdownMenuItem>Cao cấp</DropdownMenuItem>
               <DropdownMenuItem>Kiểm tra</DropdownMenuItem>
               <DropdownMenuItem>Giới thiệu</DropdownMenuItem>

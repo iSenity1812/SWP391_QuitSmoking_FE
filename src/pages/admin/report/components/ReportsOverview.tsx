@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -31,14 +33,13 @@ import {
     Eye,
     RefreshCw,
     MoreHorizontal,
-    TrendingUp,
     Clock,
-    AlertCircle,
     CheckCircle,
     XCircle,
     MessageSquare,
     Shield,
     UserX,
+    AlertCircle,
 } from "lucide-react"
 import { getUserReports, getReportStats, updateUserReportStatus } from "../data/report-data"
 import type { UserReport, ReportFilters } from "../types/report-types"
@@ -55,7 +56,7 @@ export function ReportsOverview() {
 
     const [filters, setFilters] = useState<ReportFilters>({
         status: "all",
-        priority: "all",
+        priority: "all", // This filter is still present in the state, but not used in UI
         search: "",
     })
 
@@ -77,7 +78,12 @@ export function ReportsOverview() {
     }, [])
 
     useEffect(() => {
-        const filtered = getUserReports(filters)
+        // Apply filters, excluding priority as it's no longer displayed
+        const filtered = getUserReports({
+            status: filters.status,
+            search: filters.search,
+            priority: "all", // Always filter by all priorities since the UI element is removed
+        })
         setFilteredReports(filtered)
     }, [filters])
 
@@ -129,20 +135,21 @@ export function ReportsOverview() {
         }
     }
 
-    const getPriorityColor = (priority: string) => {
-        switch (priority) {
-            case "critical":
-                return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-            case "high":
-                return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
-            case "medium":
-                return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-            case "low":
-                return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-            default:
-                return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-        }
-    }
+    // Removed getPriorityColor function as per user request
+    // const getPriorityColor = (priority: string) => {
+    //     switch (priority) {
+    //         case "critical":
+    //             return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+    //         case "high":
+    //             return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
+    //         case "medium":
+    //             return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+    //         case "low":
+    //             return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+    //         default:
+    //             return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+    //     }
+    // }
 
     const getReportReasonIcon = (reason: string) => {
         switch (reason.toLowerCase()) {
@@ -176,7 +183,9 @@ export function ReportsOverview() {
 
                 <TabsContent value="overview" className="space-y-6">
                     {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {" "}
+                        {/* Changed grid-cols-4 to grid-cols-2 */}
                         <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Tổng Báo Cáo</CardTitle>
@@ -185,17 +194,6 @@ export function ReportsOverview() {
                             <CardContent>
                                 <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalUserReports}</div>
                                 <p className="text-xs text-gray-600 dark:text-gray-400">{stats.reportsToday} báo cáo hôm nay</p>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Chờ Xử Lý</CardTitle>
-                                <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.pendingUserReports}</div>
-                                <p className="text-xs text-red-600 dark:text-red-400">{stats.criticalReports} báo cáo nghiêm trọng</p>
                             </CardContent>
                         </Card>
 
@@ -212,16 +210,6 @@ export function ReportsOverview() {
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Thời Gian Xử Lý</CardTitle>
-                                <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.averageResolutionTime}h</div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">Thời gian trung bình</p>
-                            </CardContent>
-                        </Card>
                     </div>
 
                     {/* Critical Reports */}
@@ -258,9 +246,7 @@ export function ReportsOverview() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center space-x-2">
-                                                <Badge className={`${getPriorityColor(report.priority)} text-xs`}>
-                                                    {report.priority.toUpperCase()}
-                                                </Badge>
+                                                {/* Removed priority badge here */}
                                                 <Badge className={`${getStatusColor(report.status)} text-xs`}>{report.status}</Badge>
                                             </div>
                                         </div>
@@ -308,6 +294,7 @@ export function ReportsOverview() {
 
                 <TabsContent value="reports" className="space-y-6">
                     {/* Filters */}
+
                     <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="text-gray-900 dark:text-gray-100">Bộ Lọc</CardTitle>
@@ -344,7 +331,8 @@ export function ReportsOverview() {
                                     </select>
                                 </div>
 
-                                <div className="space-y-2">
+                                {/* Removed priority filter dropdown as per user request */}
+                                {/* <div className="space-y-2">
                                     <Label htmlFor="priority">Mức độ ưu tiên</Label>
                                     <select
                                         id="priority"
@@ -358,7 +346,7 @@ export function ReportsOverview() {
                                         <option value="medium">Trung bình</option>
                                         <option value="low">Thấp</option>
                                     </select>
-                                </div>
+                                </div> */}
                             </div>
                         </CardContent>
                     </Card>
@@ -402,9 +390,7 @@ export function ReportsOverview() {
                                                     <div className="flex items-center space-x-2 mb-2">
                                                         {getReportReasonIcon(report.reportReason)}
                                                         <span className="font-medium text-gray-900 dark:text-gray-100">{report.reportReason}</span>
-                                                        <Badge className={`${getPriorityColor(report.priority)} text-xs`}>
-                                                            {report.priority.toUpperCase()}
-                                                        </Badge>
+                                                        {/* Removed priority badge here */}
                                                     </div>
                                                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{report.reportDescription}</p>
                                                     {report.evidence && report.evidence.length > 0 && (
@@ -506,14 +492,17 @@ export function ReportsOverview() {
 
             {/* Report Detail Dialog */}
             <Dialog open={!!selectedReport && !actionDialogOpen} onOpenChange={() => setSelectedReport(null)}>
+
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Chi Tiết Báo Cáo</DialogTitle>
                         <DialogDescription>Thông tin chi tiết về báo cáo vi phạm</DialogDescription>
                     </DialogHeader>
                     {selectedReport && (
+
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
+
                                 <div>
                                     <Label className="text-sm font-medium">Người báo cáo</Label>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">{selectedReport.reporterName}</p>
@@ -528,12 +517,7 @@ export function ReportsOverview() {
                                     <Label className="text-sm font-medium">Lý do</Label>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">{selectedReport.reportReason}</p>
                                 </div>
-                                <div>
-                                    <Label className="text-sm font-medium">Mức độ ưu tiên</Label>
-                                    <Badge className={`${getPriorityColor(selectedReport.priority)} text-xs`}>
-                                        {selectedReport.priority.toUpperCase()}
-                                    </Badge>
-                                </div>
+
                                 <div>
                                     <Label className="text-sm font-medium">Trạng thái</Label>
                                     <Badge className={`${getStatusColor(selectedReport.status)} text-xs`}>{selectedReport.status}</Badge>
@@ -577,12 +561,11 @@ export function ReportsOverview() {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>
-                            {actionType === "investigating" && "Bắt Đầu Điều Tra"}
+
                             {actionType === "resolved" && "Giải Quyết Báo Cáo"}
                             {actionType === "dismissed" && "Bỏ Qua Báo Cáo"}
                         </DialogTitle>
                         <DialogDescription>
-                            {actionType === "investigating" && "Bắt đầu quá trình điều tra báo cáo này"}
                             {actionType === "resolved" && "Đánh dấu báo cáo đã được giải quyết"}
                             {actionType === "dismissed" && "Bỏ qua báo cáo này vì không có căn cứ"}
                         </DialogDescription>

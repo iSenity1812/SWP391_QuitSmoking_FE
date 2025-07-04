@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Check, Crown, Star, Shield, ChevronLeft, Sparkles, QrCode } from "lucide-react" // Removed Smartphone, Building; Added QrCode
+import { Check, Crown, Star, Shield, ChevronLeft, Sparkles, QrCode } from "lucide-react"
 
 interface PlanOption {
     id: string
@@ -33,23 +33,36 @@ const freePlan: PlanOption = {
     ],
 }
 
+// General premium features that apply to all premium plans
+const premiumFeatures = [
+    "Tất cả tính năng miễn phí",
+    "Tư vấn với chuyên gia",
+    "Kế hoạch cá nhân hóa",
+    "Theo dõi sức khỏe chi tiết",
+    "Bài tập thở hướng dẫn",
+    "Nhắc nhở thông minh",
+    "Báo cáo tiến trình chi tiết",
+    "Phân tích hành vi chi tiết",
+    "Kế hoạch dinh dưỡng",
+    "Theo dõi cảm xúc",
+    "Cộng đồng Premium",
+    "Webinar độc quyền",
+    "Mentor cá nhân",
+    "Kế hoạch tập luyện",
+    "Theo dõi y tế chuyên sâu",
+    "Ưu tiên hỗ trợ",
+    "Chứng chỉ hoàn thành",
+    "Hỗ trợ 24/7",
+]
+
 const premiumPlans: PlanOption[] = [
     {
         id: "premium-2weeks",
         name: "Premium 2 Tuần",
         price: "49,000 VNĐ",
         duration: "14 ngày",
-        description: "Trải nghiệm đầy đủ tính năng Premium",
-        features: [
-            "Tất cả tính năng miễn phí",
-            "Tư vấn với chuyên gia",
-            "Kế hoạch cá nhân hóa",
-            "Theo dõi sức khỏe chi tiết",
-            "Bài tập thở hướng dẫn",
-            "Nhắc nhở thông minh",
-            "Báo cáo tiến trình chi tiết",
-            "Hỗ trợ 24/7",
-        ],
+        description: "Mở khóa toàn bộ tính năng Premium để tối ưu hóa hành trình cai thuốc của bạn",
+        features: premiumFeatures,
     },
     {
         id: "premium-1month",
@@ -57,17 +70,10 @@ const premiumPlans: PlanOption[] = [
         price: "89,000 VNĐ",
         originalPrice: "98,000 VNĐ",
         duration: "30 ngày",
-        description: "Lựa chọn phổ biến nhất",
+        description: "Mở khóa toàn bộ tính năng Premium để tối ưu hóa hành trình cai thuốc của bạn",
         popular: true,
         savings: "Tiết kiệm 9,000 VNĐ",
-        features: [
-            "Tất cả tính năng 2 tuần",
-            "Phân tích hành vi chi tiết",
-            "Kế hoạch dinh dưỡng",
-            "Theo dõi cảm xúc",
-            "Cộng đồng Premium",
-            "Webinar độc quyền",
-        ],
+        features: premiumFeatures,
     },
     {
         id: "premium-3months",
@@ -75,16 +81,9 @@ const premiumPlans: PlanOption[] = [
         price: "199,000 VNĐ",
         originalPrice: "267,000 VNĐ",
         duration: "90 ngày",
-        description: "Giá trị tốt nhất cho hành trình dài hạn",
+        description: "Mở khóa toàn bộ tính năng Premium để tối ưu hóa hành trình cai thuốc của bạn",
         savings: "Tiết kiệm 68,000 VNĐ",
-        features: [
-            "Tất cả tính năng 1 tháng",
-            "Mentor cá nhân",
-            "Kế hoạch tập luyện",
-            "Theo dõi y tế chuyên sâu",
-            "Ưu tiên hỗ trợ",
-            "Chứng chỉ hoàn thành",
-        ],
+        features: premiumFeatures,
     },
 ]
 
@@ -143,7 +142,6 @@ export default function SubscriptionPage() {
                     expiryDate: expiryDate,
                 }),
             )
-
 
             window.location.href = "/"
         }, 2000)
@@ -212,8 +210,8 @@ export default function SubscriptionPage() {
                                         <Card
                                             key={plan.id}
                                             className={`relative border-2 transition-all duration-300 hover:scale-105 hover:-translate-y-1 ${plan.popular
-                                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-xl"
-                                                : "border-gray-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600"
+                                                    ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-xl"
+                                                    : "border-gray-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600"
                                                 }`}
                                         >
                                             {plan.popular && (
@@ -255,7 +253,7 @@ export default function SubscriptionPage() {
 
                                             <CardContent>
                                                 <div className="space-y-4">
-                                                    <div className="space-y-2">
+                                                    <div className="space-y-2 max-h-48 overflow-y-auto">
                                                         {plan.features.map((feature, index) => (
                                                             <div key={index} className="flex items-center gap-2">
                                                                 <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
@@ -267,8 +265,8 @@ export default function SubscriptionPage() {
                                                     <Button
                                                         onClick={() => handlePlanSelect(plan)}
                                                         className={`w-full ${plan.popular
-                                                            ? "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
-                                                            : "bg-emerald-500 hover:bg-emerald-600"
+                                                                ? "bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
+                                                                : "bg-emerald-500 hover:bg-emerald-600"
                                                             }`}
                                                     >
                                                         Chọn Gói Này
@@ -325,8 +323,8 @@ export default function SubscriptionPage() {
                                     <Card
                                         key={method.id}
                                         className={`cursor-pointer border-2 transition-all duration-300 hover:shadow-lg ${selectedPaymentMethod === method.id
-                                            ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
-                                            : "border-gray-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600"
+                                                ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
+                                                : "border-gray-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600"
                                             }`}
                                         onClick={() => handlePaymentMethodSelect(method.id)}
                                     >

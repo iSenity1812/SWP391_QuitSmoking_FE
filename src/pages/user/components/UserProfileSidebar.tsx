@@ -45,12 +45,7 @@ const sidebarItems: Array<{
             premium: true,
             description: "Tham gia các thử thách độc quyền",
         },
-        {
-            id: "learning", // New learning program item
-            label: "Chương trình học tập",
-            icon: BookOpen,
-            description: "Tìm hiểu về cách bỏ thuốc, cải thiện sức khỏe và tiết kiệm tiền",
-        },
+
     ]
 
 export function UserProfileSidebar({

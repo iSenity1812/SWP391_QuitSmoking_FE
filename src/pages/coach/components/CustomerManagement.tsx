@@ -291,13 +291,12 @@ export function CustomerManagement({ onStartChat }: CustomerManagementProps) {
     return (
         <div className="space-y-6">
             {/* Premium Feature Banner */}
-            <div className="mb-6 bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-lg shadow-lg">
+            <div className="mb-6 bg-gradient-to-r text-black, p-4 rounded-lg shadow-lg">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Crown className="w-6 h-6" />
+
                         <div>
-                            <h3 className="font-bold text-lg">Tính Năng Premium - Quản Lý Thành Viên</h3>
-                            <p className="text-amber-100 text-sm">Chỉ dành cho thành viên Premium - Được hướng dẫn bởi chuyên gia</p>
+                            <h3 className="font-bold text-lg">Quản Lý Thành Viên</h3>
                         </div>
                     </div>
                     <div className="flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full">
