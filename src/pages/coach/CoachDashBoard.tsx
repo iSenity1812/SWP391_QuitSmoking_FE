@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useContext } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -13,11 +13,15 @@ import { CoachProfile } from "./components/CoachProfile"
 import { CoachBlogManagement } from "./components/CoachBlogManagement"
 // import { AppointmentScheduler } from "./components/AppointmentScheduler"
 import { AppointmentScheduler } from "./components/AppointmentSchedulerNew"
+import { AuthContext } from "@/context/AuthContext"
 
-export default function CoachDashboard() {
+export default function CoachDashboard({ logout }: { logout?: () => void }) {
     const [activeTab, setActiveTab] = useState("overview")
     const [sidebarCollapsed] = useState(false)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const auth = useContext(AuthContext);
+    const coachName = auth?.user?.username || "Huấn Luyện Viên";
+    const coachEmail = auth?.user?.email || "coach@quitsmoking.com";
 
     const navItems = [
         { id: "overview", label: "Tổng Quan", icon: Activity },
@@ -110,10 +114,9 @@ export default function CoachDashboard() {
                 </nav>
 
                 {/* Coach Profile - Bottom */}
-                <div className="absolute bottom-4 left-4 right-4">
+                <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-2">
                     <div
-                        className={`flex items-center space-x-3 p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg ${sidebarCollapsed ? "justify-center" : ""
-                            }`}
+                        className={`flex items-center space-x-3 p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg ${sidebarCollapsed ? "justify-center" : ""}`}
                     >
                         <Avatar className="h-8 w-8">
                             <AvatarImage src="/placeholder.svg?height=32&width=32" />
@@ -121,11 +124,18 @@ export default function CoachDashboard() {
                         </Avatar>
                         {!sidebarCollapsed && (
                             <div className="flex-1 min-w-0">
-                                <p className="text-slate-900 dark:text-white text-sm font-medium truncate">Huấn Luyện Viên Minh</p>
-                                <p className="text-slate-600 dark:text-slate-400 text-xs truncate">coach@quitsmoking.com</p>
+                                <p className="text-slate-900 dark:text-white text-sm font-medium truncate">{coachName}</p>
+                                <p className="text-slate-600 dark:text-slate-400 text-xs truncate">{coachEmail}</p>
                             </div>
                         )}
                     </div>
+                    {/* Nút Đăng Xuất */}
+                    <button
+                        onClick={logout}
+                        className="w-full mt-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 rounded-lg shadow text-sm"
+                    >
+                        Đăng Xuất
+                    </button>
                 </div>
             </div>
 

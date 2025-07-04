@@ -84,6 +84,20 @@ const getAchievementIcon = (iconName: string) => {
   }
 }
 
+const getTypeLabel = (type: string) => {
+  switch (type) {
+    case "DAYS_QUIT": return "Chuỗi ngày";
+    case "MONEY_SAVED": return "Tiết kiệm tiền";
+    case "CIGARETTES_NOT_SMOKED": return "Điếu thuốc tránh được";
+    case "RESILIENCE": return "Kiên trì";
+    case "HEALTH": return "Sức khỏe";
+    case "SOCIAL": return "Xã hội";
+    case "SPECIAL": return "Đặc biệt";
+    case "DAILY": return "Hàng ngày";
+    default: return "Khác";
+  }
+}
+
 export function AchievementsTab() {
   const { user } = useAuth();
   const [achievements, setAchievements] = useState<any[]>([]);
@@ -201,13 +215,8 @@ export function AchievementsTab() {
               <CardContent className="p-6">
                 <div className="text-center">
                   {/* Category Badge */}
-                  <div className="absolute top-2 right-2">
-                    <Badge
-                      variant="outline"
-                      className="text-xs border-gray-300 text-gray-600"
-                    >
-                      {achievement.achievement_type || achievement.category}
-                    </Badge>
+                  <div className="absolute top-2 left-2">
+                    <Badge>{getTypeLabel(achievement.achievementType)}</Badge>
                   </div>
                   <div
                     className={`rounded-full p-4 mb-4 inline-block ${isCompleted ? "bg-emerald-100 dark:bg-emerald-900" : "bg-slate-100 dark:bg-slate-700"}`}

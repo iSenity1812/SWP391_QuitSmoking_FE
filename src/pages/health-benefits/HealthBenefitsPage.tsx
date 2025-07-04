@@ -223,6 +223,18 @@ export default function HealthBenefitsPage() {
                             </div>
                         ))}
                     </div>
+                    {/* Link bài báo khoa học ở cuối trang */}
+                    <div className="mt-12 text-center">
+                        <span className="text-sm text-slate-500 dark:text-slate-400 mr-2">Tham khảo:</span>
+                        <a
+                            href="https://www.cdc.gov/tobacco/quit_smoking/how_to_quit/benefits/index.htm"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 dark:text-blue-400 underline hover:text-blue-800"
+                        >
+                            Lợi ích sức khỏe khi bỏ thuốc lá (CDC.gov)
+                        </a>
+                    </div>
                 </div>
 
                 {/* Motivation Section */}

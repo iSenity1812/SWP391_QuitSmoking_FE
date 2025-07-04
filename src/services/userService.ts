@@ -82,5 +82,15 @@ export const userService = {
     getQuitStats: async (): Promise<ApiResponse<UserQuitStatsResponse>> => {
         const response = await axiosConfig.get<ApiResponse<UserQuitStatsResponse>>("/profile/quit-stats");
         return response.data;
+    },
+
+    getPublicProfile: async (userId: string): Promise<ApiResponse<UserProfileResponse>> => {
+        const response = await axiosConfig.get<ApiResponse<UserProfileResponse>>(`/public/profile/${userId}`);
+        return response.data;
+    },
+
+    searchUsers: async (query: string): Promise<UserProfileResponse[]> => {
+        const response = await axiosConfig.get<ApiResponse<UserProfileResponse[]>>(`/public/users/search?query=${encodeURIComponent(query)}`);
+        return response.data.data || [];
     }
 }; 

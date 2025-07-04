@@ -143,7 +143,11 @@ export const useStreakTracking = (plan: Plan | null) => {
                 try {
                     const parsedData = JSON.parse(savedStreakData)
                     if (parsedData.achievements) {
-                        existingAchievements = parsedData.achievements.map((achievement: any) => ({
+                        existingAchievements = parsedData.achievements.map((achievement: {
+                            isUnlocked: boolean;
+                            unlockedAt?: string;
+                            daysRequired: number;
+                        }) => ({
                             ...achievement,
                             unlockedAt: achievement.unlockedAt ? new Date(achievement.unlockedAt) : undefined,
                         }))

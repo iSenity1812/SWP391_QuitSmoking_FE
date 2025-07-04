@@ -21,15 +21,31 @@ export default function AchievementsPage() {
       achievementService.getMemberAchievements(memberId),
     ]).then(([all, memberAch]) => {
       setAllAchievements(all);
-      setUnlockedIds(memberAch.map((ma: any) => ma.achievementId));
+      setUnlockedIds(memberAch.map((ma: { achievementId: number }) => ma.achievementId));
       // Map achievementId -> unlockedAt
       const map: Record<number, string> = {};
-      memberAch.forEach((ma: any) => {
-        map[ma.achievementId] = ma.unlockedAt;
+      memberAch.forEach((ma: { achievementId: number; unlockedAt?: string }) => {
+        if (ma.unlockedAt) {
+          map[ma.achievementId] = ma.unlockedAt;
+        }
       });
       setUnlockedMap(map);
     }).finally(() => setLoading(false));
   }, [memberId]);
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "DAYS_QUIT": return "Chuỗi ngày";
+      case "MONEY_SAVED": return "Tiết kiệm tiền";
+      case "CIGARETTES_NOT_SMOKED": return "Điếu thuốc tránh được";
+      case "RESILIENCE": return "Kiên trì";
+      case "HEALTH": return "Sức khỏe";
+      case "SOCIAL": return "Xã hội";
+      case "SPECIAL": return "Đặc biệt";
+      case "DAILY": return "Hàng ngày";
+      default: return "Khác";
+    }
+  }
 
   if (loading) return <div>Đang tải thành tựu...</div>;
 
@@ -45,6 +61,9 @@ export default function AchievementsPage() {
               className={`relative flex flex-col items-center p-3 rounded-lg border shadow transition-all duration-200
                 ${unlocked ? "bg-white" : "bg-gray-100 opacity-60 grayscale"}`}
             >
+              <div className="absolute top-2 left-2">
+                <span className="inline-block px-2 py-1 text-xs rounded bg-gray-200 text-gray-700">{getTypeLabel(ach.achievementType)}</span>
+              </div>
               {ach.iconUrl ? (
                 <img
                   src={ach.iconUrl}

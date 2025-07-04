@@ -1,5 +1,5 @@
 import axiosConfig from '@/config/axiosConfig';
-import type { Achievement, MemberAchievement } from '@/types/achievement';
+import type { Achievement, MemberAchievement, AchievementWithStatus } from '@/types/achievement';
 
 const API_BASE_URL = '/achievements'; // Đã có /api ở baseURL axiosConfig
 
@@ -89,7 +89,7 @@ export const achievementService = {
     }
   },
 
-  async getAllAchievementsForUser(memberId: string): Promise<any[]> {
+  async getAllAchievementsForUser(memberId: string): Promise<AchievementWithStatus[]> {
     const res = await axiosConfig.get(`/achievements/member/${memberId}/all`);
     if (Array.isArray(res.data)) return res.data;
     if (res.data && Array.isArray(res.data.data)) return res.data.data;

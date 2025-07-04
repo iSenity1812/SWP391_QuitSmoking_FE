@@ -14,9 +14,9 @@ Chart.displayName = "Chart"
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
-    config?: Record<string, any>
+    config?: Record<string, unknown>
   }
->(({ className, config, children, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => (
   <Box ref={ref} className={cn("w-full h-full", className)} {...props}>
     {children}
   </Box>
@@ -24,7 +24,25 @@ const ChartContainer = React.forwardRef<
 ChartContainer.displayName = "ChartContainer"
 
 // Line Chart Component using MUI X Charts with theme support
-const LineChartComponent = ({ dataset, xAxis, series, width, height }: any) => {
+interface LineChartProps {
+  dataset: Array<Record<string, string | number | Date | null | undefined>>;
+  xAxis: Array<{
+    dataKey: string;
+    tickLabelStyle?: {
+      fill: string;
+      fontSize: number;
+    };
+  }>;
+  series: Array<{
+    dataKey: string;
+    label: string;
+    color?: string;
+  }>;
+  width: number;
+  height: number;
+}
+
+const LineChartComponent = ({ dataset, xAxis, series, width, height }: LineChartProps) => {
   const { theme } = useCustomTheme()
 
   // Define colors based on theme
@@ -35,7 +53,7 @@ const LineChartComponent = ({ dataset, xAxis, series, width, height }: any) => {
   return (
     <LineChart
       dataset={dataset}
-      xAxis={xAxis.map((axis: any) => ({
+      xAxis={xAxis.map((axis) => ({
         ...axis,
         tickLabelStyle: {
           fill: textColor,

@@ -17,9 +17,9 @@ interface Achievement {
     name: string
     description: string
     icon: string
-    category: "streak" | "milestone" | "social" | "premium"
+    achievementType: 'DAYS_QUIT' | 'MONEY_SAVED' | 'CIGARETTES_NOT_SMOKED' | 'RESILIENCE' | 'HEALTH' | 'SOCIAL' | 'SPECIAL' | 'DAILY'
     requirements: string
-    rarity: "common" | "rare" | "epic" | "legendary"
+    milestoneValue: number
     unlockedBy: number
     isActive: boolean
     createdAt: string
@@ -36,9 +36,8 @@ export function AchievementsManagement() {
         name: "",
         description: "",
         icon: "",
-        category: "streak" as Achievement["category"],
+        achievementType: "DAYS_QUIT" as Achievement["achievementType"],
         requirements: "",
-        rarity: "common" as Achievement["rarity"],
         milestoneValue: 1,
     })
 
@@ -48,7 +47,16 @@ export function AchievementsManagement() {
         setError(null)
         try {
             const data = await achievementService.getAllAchievements()
-            setAchievements(data)
+            setAchievements(data.map(a => ({
+                ...a,
+                description: a.description ?? "",
+                icon: a.icon ?? "",
+                achievementType: a.achievementType ?? "DAYS_QUIT",
+                requirements: a.requirements ?? "",
+                milestoneValue: a.milestoneValue ?? 0,
+                unlockedBy: a.unlockedBy ?? 0,
+                isActive: a.isActive ?? true
+            })))
         } catch (err: any) {
             setError(err.message || 'Lỗi khi tải danh sách thành tựu')
         } finally {
@@ -71,21 +79,13 @@ export function AchievementsManagement() {
         }
         setLoading(true)
         try {
-            // Map category FE sang enum BE
-            let achievementType = "DAILY";
-            switch (formData.category) {
-                case "streak": achievementType = "DAILY"; break;
-                case "milestone": achievementType = "DAYS_QUIT"; break;
-                case "social": achievementType = "SOCIAL"; break;
-                case "premium": achievementType = "SPECIAL"; break;
-                default: achievementType = "DAILY";
-            }
             const payload: Partial<Achievement> = {
-                achievementType,
+                achievementType: formData.achievementType,
                 name: formData.name,
-                iconUrl: formData.icon,
+                icon: formData.icon,
                 description: formData.description,
                 milestoneValue: formData.milestoneValue,
+                requirements: formData.requirements,
             };
             await achievementService.createAchievement(payload)
             toast.success('Tạo thành tựu thành công!')
@@ -105,10 +105,9 @@ export function AchievementsManagement() {
             name: achievement.name,
             description: achievement.description,
             icon: achievement.icon,
-            category: achievement.category,
+            achievementType: achievement.achievementType,
             requirements: achievement.requirements,
-            rarity: achievement.rarity,
-            milestoneValue: 1,
+            milestoneValue: achievement.milestoneValue,
         })
         setIsEditModalOpen(true)
     }
@@ -138,9 +137,8 @@ export function AchievementsManagement() {
             name: "",
             description: "",
             icon: "",
-            category: "streak",
+            achievementType: "DAYS_QUIT",
             requirements: "",
-            rarity: "common",
             milestoneValue: 1,
         })
         setSelectedAchievement(null)
@@ -213,6 +211,20 @@ export function AchievementsManagement() {
         }
     }
 
+    const getTypeLabel = (type: Achievement["achievementType"]) => {
+        switch (type) {
+            case "DAYS_QUIT": return "Chuỗi ngày";
+            case "MONEY_SAVED": return "Tiết kiệm tiền";
+            case "CIGARETTES_NOT_SMOKED": return "Điếu thuốc tránh được";
+            case "RESILIENCE": return "Kiên trì";
+            case "HEALTH": return "Sức khỏe";
+            case "SOCIAL": return "Xã hội";
+            case "SPECIAL": return "Đặc biệt";
+            case "DAILY": return "Hàng ngày";
+            default: return "Khác";
+        }
+    }
+
     return (
         <div className="space-y-6">
             {loading && <div>Đang tải dữ liệu...</div>}
@@ -245,27 +257,12 @@ export function AchievementsManagement() {
                                         <div className="flex items-center space-x-2">
                                             <span className="text-2xl">{achievement.icon}</span>
                                             <div className="flex items-center space-x-1">
-                                                {getCategoryIcon(achievement.category)}
-                                                <Badge className={getCategoryColor(achievement.category)}>
-                                                    {achievement.category === "streak"
-                                                        ? "Chuỗi ngày"
-                                                        : achievement.category === "milestone"
-                                                            ? "Mốc quan trọng"
-                                                            : achievement.category === "social"
-                                                                ? "Xã hội"
-                                                                : "Premium"}
+                                                {getCategoryIcon(achievement.achievementType)}
+                                                <Badge className={getCategoryColor(achievement.achievementType)}>
+                                                    {getTypeLabel(achievement.achievementType)}
                                                 </Badge>
                                             </div>
                                         </div>
-                                        <Badge className={getRarityColor(achievement.rarity)}>
-                                            {achievement.rarity === "common"
-                                                ? "Phổ thông"
-                                                : achievement.rarity === "rare"
-                                                    ? "Hiếm"
-                                                    : achievement.rarity === "epic"
-                                                        ? "Sử thi"
-                                                        : "Huyền thoại"}
-                                        </Badge>
                                     </div>
                                     <CardTitle className="text-lg text-slate-900 dark:text-white">{achievement.name}</CardTitle>
                                 </CardHeader>
@@ -348,33 +345,21 @@ export function AchievementsManagement() {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="achievement-category">Danh mục</Label>
+                            <Label htmlFor="achievement-type">Danh mục</Label>
                             <select
-                                id="achievement-category"
-                                value={formData.category}
-                                onChange={(e) =>
-                                    setFormData((prev) => ({ ...prev, category: e.target.value as Achievement["category"] }))
-                                }
+                                id="achievement-type"
+                                value={formData.achievementType}
+                                onChange={(e) => setFormData((prev) => ({ ...prev, achievementType: e.target.value as Achievement["achievementType"] }))}
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                             >
-                                <option value="streak">Chuỗi ngày</option>
-                                <option value="milestone">Mốc quan trọng</option>
-                                <option value="social">Xã hội</option>
-                                <option value="premium">Premium</option>
-                            </select>
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="achievement-rarity">Độ hiếm</Label>
-                            <select
-                                id="achievement-rarity"
-                                value={formData.rarity}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, rarity: e.target.value as Achievement["rarity"] }))}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            >
-                                <option value="common">Phổ thông</option>
-                                <option value="rare">Hiếm</option>
-                                <option value="epic">Sử thi</option>
-                                <option value="legendary">Huyền thoại</option>
+                                <option value="DAYS_QUIT">Chuỗi ngày không hút thuốc</option>
+                                <option value="MONEY_SAVED">Tiết kiệm tiền</option>
+                                <option value="CIGARETTES_NOT_SMOKED">Điếu thuốc tránh được</option>
+                                <option value="RESILIENCE">Kiên trì/quay lại</option>
+                                <option value="HEALTH">Sức khỏe</option>
+                                <option value="SOCIAL">Xã hội</option>
+                                <option value="SPECIAL">Đặc biệt</option>
+                                <option value="DAILY">Hàng ngày</option>
                             </select>
                         </div>
                         <div className="grid gap-2">
@@ -444,33 +429,21 @@ export function AchievementsManagement() {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="edit-achievement-category">Danh mục</Label>
+                            <Label htmlFor="edit-achievement-type">Danh mục</Label>
                             <select
-                                id="edit-achievement-category"
-                                value={formData.category}
-                                onChange={(e) =>
-                                    setFormData((prev) => ({ ...prev, category: e.target.value as Achievement["category"] }))
-                                }
+                                id="edit-achievement-type"
+                                value={formData.achievementType}
+                                onChange={(e) => setFormData((prev) => ({ ...prev, achievementType: e.target.value as Achievement["achievementType"] }))}
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                             >
-                                <option value="streak">Chuỗi ngày</option>
-                                <option value="milestone">Mốc quan trọng</option>
-                                <option value="social">Xã hội</option>
-                                <option value="premium">Premium</option>
-                            </select>
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-achievement-rarity">Độ hiếm</Label>
-                            <select
-                                id="edit-achievement-rarity"
-                                value={formData.rarity}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, rarity: e.target.value as Achievement["rarity"] }))}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            >
-                                <option value="common">Phổ thông</option>
-                                <option value="rare">Hiếm</option>
-                                <option value="epic">Sử thi</option>
-                                <option value="legendary">Huyền thoại</option>
+                                <option value="DAYS_QUIT">Chuỗi ngày không hút thuốc</option>
+                                <option value="MONEY_SAVED">Tiết kiệm tiền</option>
+                                <option value="CIGARETTES_NOT_SMOKED">Điếu thuốc tránh được</option>
+                                <option value="RESILIENCE">Kiên trì/quay lại</option>
+                                <option value="HEALTH">Sức khỏe</option>
+                                <option value="SOCIAL">Xã hội</option>
+                                <option value="SPECIAL">Đặc biệt</option>
+                                <option value="DAILY">Hàng ngày</option>
                             </select>
                         </div>
                         <div className="grid gap-2">

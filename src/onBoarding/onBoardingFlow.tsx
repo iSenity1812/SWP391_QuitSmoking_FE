@@ -81,7 +81,7 @@ export const OnboardingFlow: React.FC = () => {
     }
 
     // Xử lý chọn kế hoạch
-    const handlePlanSelected = (_plan: Plan) => {
+    const handlePlanSelected = (plan: Plan) => {
         // Lưu thông tin người dùng và kế hoạch vào localStorage
         if (user) {
             localStorage.setItem("user", JSON.stringify(user))

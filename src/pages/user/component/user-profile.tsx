@@ -18,7 +18,7 @@ import type { AchievementNotification, User } from "../types/user-types"
 import { userService } from "@/services/userService"
 
 export default function UserProfile() {
-    const [activeTab, setActiveTab] = useState("overview")
+    const [activeTab, setActiveTab] = useState("social")
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [achievementNotification, setAchievementNotification] = useState<AchievementNotification>({
         show: false,
@@ -29,13 +29,14 @@ export default function UserProfile() {
     const auth = useContext(AuthContext)
     const user: User = auth?.user
         ? {
+            userId: auth.user.userId,
             name: auth.user.username,
             email: auth.user.email,
             avatar: auth.user.profilePicture || '',
             joinDate: '',
             daysSmokeFreee: 0,
             cigarettesAvoided: quitStats.cigarettesAvoided,
-            moneySaved: quitStats.moneySaved,
+            moneySaved: quitStats.moneySaved.toLocaleString('vi-VN'),
             healthImprovement: 0,
             level: '',
             streak: 0,
@@ -49,13 +50,14 @@ export default function UserProfile() {
             subscription: undefined,
         }
         : {
+            userId: '',
             name: '',
             email: '',
             avatar: '',
             joinDate: '',
             daysSmokeFreee: 0,
             cigarettesAvoided: 0,
-            moneySaved: 0,
+            moneySaved: '0',
             healthImprovement: 0,
             level: '',
             streak: 0,
@@ -120,40 +122,35 @@ export default function UserProfile() {
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [sidebarOpen])
 
-    const userWithStringMoneySaved = {
-        ...user,
-        moneySaved: quitStats.moneySaved.toLocaleString('vi-VN')
-    }
-
     const renderTabContent = () => {
         switch (activeTab) {
             case "overview":
-                return <OverviewTab user={userWithStringMoneySaved} onTestAchievement={handleTestAchievement} />
+                return <OverviewTab user={user} onTestAchievement={handleTestAchievement} />
             case "progress":
-                return <ProgressTab user={userWithStringMoneySaved} />
+                return <ProgressTab user={user} />
             case "achievements":
-                return <AchievementsTab user={userWithStringMoneySaved} />
+                return <AchievementsTab user={user} />
             case "health":
                 return <HealthTab />
             case "social":
-                return <SocialTab user={userWithStringMoneySaved} />
+                return <SocialTab user={user} />
             case "booking":
-                return <BookingTab user={userWithStringMoneySaved} />
+                return <BookingTab user={user} />
             case "certification":
                 return <CertificationTab />
             default:
-                return <OverviewTab user={userWithStringMoneySaved} onTestAchievement={handleTestAchievement} />
+                return <OverviewTab user={user} onTestAchievement={handleTestAchievement} />
         }
     }
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-            <UserProfileHeader user={userWithStringMoneySaved as User} />
+            <UserProfileHeader user={user} />
 
             <div className="flex">
                 <div id="sidebar">
                     <UserProfileSidebar
-                        user={userWithStringMoneySaved}
+                        user={user}
                         activeTab={activeTab}
                         sidebarOpen={sidebarOpen}
                         onTabChange={handleTabChange}
@@ -163,7 +160,7 @@ export default function UserProfile() {
 
                 <div className="flex-1 p-6">
                     <div className="max-w-7xl mx-auto">
-                        <StatsCards user={userWithStringMoneySaved} />
+                        <StatsCards user={user} />
                         {renderTabContent()}
                     </div>
                 </div>

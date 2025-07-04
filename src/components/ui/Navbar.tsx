@@ -1,4 +1,4 @@
-import { Gem, Home, Menu, Wind } from "lucide-react";
+import { Gem, Home, Menu, Wind, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,10 +11,12 @@ import { Info } from "lucide-react";
 import { BookOpen } from "lucide-react";
 import { NavItem } from "@/components/ui/nav-item";
 import { ThemeToggle } from "./ThemeToggle";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoutes } from "@/hooks/useRoleAuth";
 import { UserDropdown } from "@/pages/auth/components/UserDropdown";
+import { useState, useRef } from "react";
+import { userService } from "@/services/userService";
 
 // Define navigation links for different user states
 const publicNavLinks = [
@@ -38,6 +40,17 @@ export function Navbar() {
   const location = useLocation();
   const { isAuthenticated, user } = useAuth();
   const { canAccessPlan, canAccessCoach, canAccessAdmin, canAccessContentAdmin } = useUserRoutes();
+  const [search, setSearch] = useState("");
+  const [results, setResults] = useState<Array<{
+    userId: string;
+    username: string;
+    email: string;
+    profilePicture?: string;
+  }>>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Determine which nav links to show
   const getNavLinks = () => {
@@ -63,6 +76,49 @@ export function Navbar() {
   };
   const navLinks = getNavLinks();
 
+  const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearch(value);
+    if (value.trim().length < 2) {
+      setResults([]);
+      setShowDropdown(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      const users = await userService.searchUsers(value);
+      setResults(users);
+      setShowDropdown(true);
+    } catch {
+      setResults([]);
+      setShowDropdown(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearchButton = () => {
+    if (search.trim().length >= 2) {
+      inputRef.current?.focus();
+      setLoading(true);
+      userService.searchUsers(search).then(users => {
+        setResults(users);
+        setShowDropdown(true);
+      }).catch(() => {
+        setResults([]);
+        setShowDropdown(false);
+      }).finally(() => setLoading(false));
+    } else {
+      inputRef.current?.focus();
+    }
+  };
+
+  const handleSelectUser = (userId: string) => {
+    setSearch("");
+    setShowDropdown(false);
+    navigate(`/user/${userId}`);
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 border-b-2 border-emerald-200 dark:border-slate-700 backdrop-blur-xl shadow-lg shadow-emerald-100/50 dark:shadow-slate-900/50">
       <div className="max-w-1xl mx-auto px-6 flex items-center justify-between h-18">
@@ -84,7 +140,8 @@ export function Navbar() {
               {item.label}
             </NavItem>
           ))}
-        </nav>        <div className="flex items-center gap-3">
+        </nav>
+        <div className="flex items-center gap-3">
           <ThemeToggle />
           {/* Authenticated User Menu */}
           {isAuthenticated && user ? (
@@ -105,7 +162,8 @@ export function Navbar() {
                 Đăng ký
               </Link>
             </>
-          )}          {/* Mobile Menu */}
+          )}
+          {/* Mobile Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="md:hidden">

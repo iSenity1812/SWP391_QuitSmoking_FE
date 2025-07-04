@@ -15,6 +15,7 @@ import { OnboardingPage } from "@/pages/onboarding/onBoardingPage"
 // import PlanPage from "@/pages/plan/PlanPage"
 import UserProfilePage from "@/pages/user/userProfilePage"
 import SubscriptionPage from "@/pages/plan/subscription/SubscriptionPage"
+import PublicUserProfilePage from "@/pages/user/PublicUserProfilePage"
 
 // Role-specific pages
 import AdminPage from "@/pages/admin/AdminPage"
@@ -203,7 +204,11 @@ export function AppRoutes() {
             <ContentAdminPage />
           </ProtectedRoute>
         }
-      />{/* Catch all - 404 or redirect to home */}
+      />
+
+      <Route path="/user/:userId" element={<PublicUserProfilePage />} />
+
+      {/* Catch all - 404 or redirect to home */}
       <Route path="*" element={<LandingPage />} />
 
       {/* Development/Testing Route - Remove in production */}
