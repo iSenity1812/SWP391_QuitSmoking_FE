@@ -12,9 +12,10 @@ import { OnboardingPage } from "@/pages/onboarding/onBoardingPage"
 // import { PlanSelectionDirectPage } from "@/pages/plan-selection/PlanDirectPage"
 
 // Protected pages
-import PlanPage from "@/pages/plan/PlanPage"
+// import PlanPage from "@/pages/plan/PlanPage"
 import UserProfilePage from "@/pages/user/userProfilePage"
 import SubscriptionPage from "@/pages/plan/subscription/SubscriptionPage"
+import PaymentReturnPage from "@/pages/plan/subscription/PaymentReturnPage"
 
 // Role-specific pages
 import AdminPage from "@/pages/admin/AdminPage"
@@ -109,6 +110,14 @@ export function AppRoutes() {
         }
       />
 
+      <Route
+        path="/payment-return"
+        element={
+          <ProtectedRoute requireAuth={true}>
+            <PaymentReturnPage />
+          </ProtectedRoute>
+        }
+      />
       {/* Route cho meeting page */}
       <Route
         path="/meeting/:appointmentId"

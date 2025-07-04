@@ -1,4 +1,4 @@
-import { Gem, Home, Menu, Wind } from "lucide-react";
+import { ChartColumnIncreasing, Gem, Home, Menu, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -26,8 +26,9 @@ const publicNavLinks = [
 const memberNavLinks = [
   { href: "/", label: "Trang chủ", icon: Home },
   { href: "/blog", label: "Blog", icon: BookOpen },
-  { href: "/plan", label: "Tiến trình", icon: Gem },
+  { href: "/plan", label: "Tiến trình", icon: ChartColumnIncreasing },
   { href: "/about", label: "Thông tin", icon: Info },
+  { href: "/subscription", label: "Gói trả phí", icon: Gem },
 ];
 
 const coachNavLinks = [
@@ -84,7 +85,8 @@ export function Navbar() {
               {item.label}
             </NavItem>
           ))}
-        </nav>        <div className="flex items-center gap-3">
+        </nav>
+        <div className="flex items-center gap-3">
           <ThemeToggle />
           {/* Authenticated User Menu */}
           {isAuthenticated && user ? (

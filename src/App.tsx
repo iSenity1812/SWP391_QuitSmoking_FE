@@ -22,7 +22,6 @@ function shouldHideNavbar(pathname: string) {
     "/onboarding",
     "/plan-selection",
     "/profile",
-    "/subscription",
     '/meeting',
   ]
 
