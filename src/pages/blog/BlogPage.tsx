@@ -434,59 +434,59 @@ const BlogPage: React.FC = () => {
             <BlogHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
             <main className="container mx-auto px-6 pb-20">
-                <AnimatedSection animation="fadeUp" delay={300}>
-                    <UserAuthSection
-                        currentUser={currentUser}
-                        handleCreateBlogClick={handleCreateBlogClick}
-                        handleViewMyPosts={handleViewMyPosts}
-                    />
 
-                    {blogsLoading ? (
-                        <div className="text-center py-12">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto"></div>
-                            <p className="mt-4 text-slate-600 dark:text-slate-300">Đang tải bài viết...</p>
-                        </div>
-                    ) : viewMode === "detail" && selectedPost ? (
-                        <BlogPostDetail
-                            post={selectedPost}
-                            currentUser={currentUser}
-                            comments={selectedPostComments}
-                            handleBackToList={handleBackToList}
-                            handleEditPost={handleEditPost}
-                            handleDeletePost={handleDeletePost}
-                            handleReportPost={handleReportPost}
-                            canEditPost={canEditPost}
-                            canDeletePost={canDeletePost}
-                            canReportPost={canReportPost}
-                            handleAddComment={handleAddComment}
-                            setIsLoginPromptOpen={setIsLoginPromptOpen}
-                        />
-                    ) : viewMode === "myPosts" ? (
-                        <MyPostsList
-                            posts={myPosts}
-                            currentUser={currentUser}
-                            loading={myPostsLoading}
-                            onBack={handleBackFromMyPosts}
-                            onViewPost={handleViewPost}
-                            onEditPost={handleEditPost}
-                            onDeletePost={handleDeletePost}
-                        />
-                    ) : (
-                        <BlogPostList
-                            posts={filteredPosts}
-                            currentUser={currentUser}
-                            comments={selectedPostComments}
-                            handleViewPost={handleViewPost}
-                            handleEditPost={handleEditPost}
-                            handleDeletePost={handleDeletePost}
-                            handleReportPost={handleReportPost}
-                            canEditPost={canEditPost}
-                            canDeletePost={canDeletePost}
-                            canReportPost={canReportPost}
-                            getRootComments={getRootComments}
-                        />
-                    )}
-                </AnimatedSection>
+                <UserAuthSection
+                    currentUser={currentUser}
+                    handleCreateBlogClick={handleCreateBlogClick}
+                    handleViewMyPosts={handleViewMyPosts}
+                />
+
+                {blogsLoading ? (
+                    <div className="text-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto"></div>
+                        <p className="mt-4 text-slate-600 dark:text-slate-300">Đang tải bài viết...</p>
+                    </div>
+                ) : viewMode === "detail" && selectedPost ? (
+                    <BlogPostDetail
+                        post={selectedPost}
+                        currentUser={currentUser}
+                        comments={selectedPostComments}
+                        handleBackToList={handleBackToList}
+                        handleEditPost={handleEditPost}
+                        handleDeletePost={handleDeletePost}
+                        handleReportPost={handleReportPost}
+                        canEditPost={canEditPost}
+                        canDeletePost={canDeletePost}
+                        canReportPost={canReportPost}
+                        handleAddComment={handleAddComment}
+                        setIsLoginPromptOpen={setIsLoginPromptOpen}
+                    />
+                ) : viewMode === "myPosts" ? (
+                    <MyPostsList
+                        posts={myPosts}
+                        currentUser={currentUser}
+                        loading={myPostsLoading}
+                        onBack={handleBackFromMyPosts}
+                        onViewPost={handleViewPost}
+                        onEditPost={handleEditPost}
+                        onDeletePost={handleDeletePost}
+                    />
+                ) : (
+                    <BlogPostList
+                        posts={filteredPosts}
+                        currentUser={currentUser}
+                        comments={selectedPostComments}
+                        handleViewPost={handleViewPost}
+                        handleEditPost={handleEditPost}
+                        handleDeletePost={handleDeletePost}
+                        handleReportPost={handleReportPost}
+                        canEditPost={canEditPost}
+                        canDeletePost={canDeletePost}
+                        canReportPost={canReportPost}
+                        getRootComments={getRootComments}
+                    />
+                )}
+
             </main>
 
             {/* Dialogs */}
