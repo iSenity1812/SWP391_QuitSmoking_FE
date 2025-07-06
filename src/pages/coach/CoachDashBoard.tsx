@@ -7,11 +7,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Users, Calendar, MessageSquare, User, BookOpen, Bell, Activity, TrendingUp, Menu, X } from "lucide-react"
 import { CoachOverview } from "./components/CoachOverview"
-import { CustomerManagement } from "./components/CustomerManagement"
-import { CommunicationCenter } from "./components/CommunicationCenter"
+import { AppointmentScheduler } from "./components/AppointmentScheduler"
 import { CoachProfile } from "./components/CoachProfile"
 import { CoachBlogManagement } from "./components/CoachBlogManagement"
-import { AppointmentScheduler } from "./components/AppointmentScheduler"
 
 export default function CoachDashboard() {
     const [activeTab, setActiveTab] = useState("overview")
@@ -20,9 +18,7 @@ export default function CoachDashboard() {
 
     const navItems = [
         { id: "overview", label: "Tổng Quan", icon: Activity },
-        { id: "customers", label: "Quản Lý Khách Hàng", icon: Users },
         { id: "appointments", label: "Lịch Hẹn", icon: Calendar },
-        { id: "communication", label: "Giao Tiếp", icon: MessageSquare },
         { id: "blog", label: "Quản Lý Blog", icon: BookOpen },
         { id: "profile", label: "Hồ Sơ Cá Nhân", icon: User },
     ]
@@ -31,12 +27,8 @@ export default function CoachDashboard() {
         switch (activeTab) {
             case "overview":
                 return <CoachOverview />
-            case "customers":
-                return <CustomerManagement />
             case "appointments":
                 return <AppointmentScheduler />
-            case "communication":
-                return <CommunicationCenter />
             case "blog":
                 return <CoachBlogManagement />
             case "profile":
@@ -97,8 +89,8 @@ export default function CoachDashboard() {
                                     setMobileMenuOpen(false)
                                 }}
                                 className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${isActive
-                                    ? "bg-gradient-to-r from-blue-500/20 to-green-500/20 text-slate-900 dark:text-white border border-blue-500/30"
-                                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                                        ? "bg-gradient-to-r from-blue-500/20 to-green-500/20 text-slate-900 dark:text-white border border-blue-500/30"
+                                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
                                     }`}
                             >
                                 <Icon size={20} className={isActive ? "text-blue-500" : ""} />
@@ -151,7 +143,7 @@ export default function CoachDashboard() {
                         </div>
 
                         <div className="flex items-center space-x-4">
-                            <Button variant="outline" size="sm" className="hidden md:flex">
+                            <Button variant="outline" size="sm" className="hidden md:flex bg-transparent">
                                 <Bell className="w-4 h-4 mr-2" />
                                 Thông báo
                                 <Badge className="ml-2 bg-red-500 text-white">3</Badge>
