@@ -13,9 +13,11 @@ import {
     Users,
     Calendar,
     Crown,
+
 } from "lucide-react"
 import type { User } from "../types/user-types"
 import type React from "react"
+import { useAuth } from "@/hooks/useAuth"
 
 interface UserProfileSidebarProps {
     user: User
@@ -40,12 +42,13 @@ const sidebarItems: Array<{
     ]
 
 export function UserProfileSidebar({
-    user,
+    user: userProp,
     activeTab,
     sidebarOpen,
     onTabChange,
     onSidebarClose,
 }: UserProfileSidebarProps) {
+    const { user, logout } = useAuth();
     return (
         <div
             className={`
@@ -69,12 +72,12 @@ export function UserProfileSidebar({
                 <div className="mb-6">
                     <div className="flex items-center gap-3 mb-4">
                         <Avatar className="h-10 w-10">
-                            <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
-                            <AvatarFallback className="bg-emerald-500 text-white">{user.name.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={userProp.avatar || "/placeholder.svg"} alt={userProp.name} />
+                            <AvatarFallback className="bg-emerald-500 text-white">{userProp.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div>
-                            <p className="font-semibold text-slate-900 dark:text-white">{user.name}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+                            <p className="font-semibold text-slate-900 dark:text-white">{userProp.name}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{userProp.email}</p>
                         </div>
                     </div>
                 </div>
@@ -114,9 +117,7 @@ export function UserProfileSidebar({
                         className="w-full justify-start mt-2 text-rose-600 dark:text-rose-400"
                         size="sm"
                         onClick={() => {
-                            localStorage.removeItem("user_session")
-                            localStorage.removeItem("auth_token")
-                            window.location.href = "/"
+                            logout()
                         }}
                     >
                         <LogOut className="h-4 w-4 mr-2" />

@@ -27,6 +27,9 @@ import { RouteTestDashboard } from "@/components/auth/RouteTestDashboard"
 import BookingPage from "@/pages/booking/BookingPage"
 import PlanPagePref from "@/pages/plan/PlanPagePref"
 import { MeetingPage } from "@/pages/meeting/MeetingPage"
+import QuitStatsPage from "@/pages/user/QuitStatsPage"
+import PublicUserProfilePage from "@/pages/user/PublicUserProfilePage"
+import HealthBenefitsPage from "@/pages/health-benefits/HealthBenefitsPage"
 
 export function AppRoutes() {
   return (
@@ -156,6 +159,34 @@ export function AppRoutes() {
         }
       />
 
+      {/* Health Benefits - accessible by all members */}
+      <Route
+        path="/health-benefits"
+        element={
+          <ProtectedRoute
+            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+            requireAuth={false}
+          >
+            <HealthBenefitsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Quit Stats - accessible by all members */}
+      <Route
+        path="/quit-stats"
+        element={
+          <ProtectedRoute
+            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+            requireAuth={true}
+          >
+            <QuitStatsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="/user/:userId" element={<PublicUserProfilePage />} />
+
       {/* Coach Routes - COACH only */}
       <Route
         path="/coach/*"
@@ -182,7 +213,11 @@ export function AppRoutes() {
             <ContentAdminPage />
           </ProtectedRoute>
         }
-      />{/* Catch all - 404 or redirect to home */}
+      />
+
+      <Route path="/user/:userId" element={<PublicUserProfilePage />} />
+
+      {/* Catch all - 404 or redirect to home */}
       <Route path="*" element={<LandingPage />} />
 
       {/* Development/Testing Route - Remove in production */}

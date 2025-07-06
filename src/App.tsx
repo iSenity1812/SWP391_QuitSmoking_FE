@@ -9,6 +9,8 @@ import { AppRoutes } from "./routes/route"
 import { useTokenRefresh } from "./hooks/useTokenRefresh"
 import { ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import { StagewiseToolbar } from "@stagewise/toolbar-react"
+import { ReactPlugin } from "@stagewise-plugins/react"
 
 function shouldHideNavbar(pathname: string) {
   const hiddenPaths = [
@@ -113,6 +115,13 @@ export default function App() {
         pauseOnHover
         theme="light"
         className="mt-16"
+      />
+
+      {/* Stagewise Toolbar - Development only */}
+      <StagewiseToolbar
+        config={{
+          plugins: [ReactPlugin],
+        }}
       />
     </div>
   )

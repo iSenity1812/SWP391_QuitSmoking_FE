@@ -19,7 +19,6 @@ import {
     User,
     ThumbsUp,
     MessageCircle,
-    Plus,
 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
@@ -208,10 +207,6 @@ export function BlogManagement() {
                             <div className="flex justify-between items-center">
                                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Blog Người Dùng</h3>
                                 <div className="flex space-x-2">
-                                    <Button onClick={() => setIsCreateModalOpen(true)}>
-                                        <Plus className="w-4 h-4 mr-2" />
-                                        Tạo Blog Mới
-                                    </Button>
                                     <Button variant="outline" size="sm">
                                         <Filter className="w-4 h-4 mr-2" />
                                         Lọc

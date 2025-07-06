@@ -1,10 +1,10 @@
 import { AxiosError } from 'axios'
-import type { 
-  ApiError, 
-  TimeSlotResponse, 
-  WeeklyScheduleApiResponse, 
+import type {
+  ApiError,
+  TimeSlotResponse,
+  WeeklyScheduleApiResponse,
   WeeklyScheduleResponse,
-  WeeklyScheduleApiSlot 
+  WeeklyScheduleApiSlot
 } from '@/types/api'
 
 /**
@@ -16,11 +16,11 @@ export function handleApiError(error: unknown): string {
     const apiError = error.response?.data as ApiError
     return apiError?.message || error.message || 'Network error occurred'
   }
-  
+
   if (error instanceof Error) {
     return error.message
   }
-  
+
   return 'An unexpected error occurred'
 }
 
@@ -48,8 +48,7 @@ export class DataTransformer {
       'COMPLETED': 1,
       'MISSED': 1,
       'CONFIRMED': 2,
-      'SCHEDULED': 3,
-      'CANCELLED': 4
+      'CANCELLED': 3
     }
     return priorities[status.toUpperCase() as keyof typeof priorities] || 5
   }
@@ -76,7 +75,7 @@ export class DataTransformer {
         })) || []
 
         // Sort appointments by priority (completed/missed > confirmed > cancelled)
-        const sortedAppointments = appointments.sort((a, b) => 
+        const sortedAppointments = appointments.sort((a, b) =>
           this.getStatusPriority(a.status) - this.getStatusPriority(b.status)
         )
 
@@ -107,13 +106,13 @@ export class DataTransformer {
   static getWeekStart(date: Date): Date {
     const weekStart = new Date(date)
     const day = weekStart.getDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    
+
     // Calculate days to subtract to get to Monday
     // If day = 0 (Sunday), subtract 6 days to get previous Monday
     // If day = 1 (Monday), subtract 0 days
     // If day = 2 (Tuesday), subtract 1 day, etc.
     const diff = day === 0 ? 6 : day - 1
-    
+
     weekStart.setDate(weekStart.getDate() - diff)
     weekStart.setHours(0, 0, 0, 0)
     return weekStart
@@ -125,18 +124,18 @@ export class DataTransformer {
   static formatWeekRange(weekStart: Date): string {
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekStart.getDate() + 6)
-    
+
     const startStr = weekStart.toLocaleDateString('vi-VN', {
       day: '2-digit',
       month: '2-digit'
     })
-    
+
     const endStr = weekEnd.toLocaleDateString('vi-VN', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     })
-    
+
     return `${startStr} - ${endStr}`
   }
 }

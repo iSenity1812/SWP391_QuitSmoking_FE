@@ -16,6 +16,7 @@ export interface DashboardStats {
 export interface User {
     id: number
     name: string
+    username: string
     email: string
     phone: string
     status: "active" | "inactive"
@@ -63,12 +64,23 @@ const generateRandomUser = (id: number): User => {
         "Đặng Văn Giang",
         "Bùi Thị Hoa",
     ]
+    const usernames = [
+        "nguyenvanan",
+        "tranthibinh",
+        "levancuong",
+        "phamthidung",
+        "hoangvanem",
+        "vuthiphuong",
+        "dangvangiang",
+        "buithihoa",
+    ]
     const statuses: ("active" | "inactive")[] = ["active", "inactive"]
     const plans: ("Cơ Bản" | "Premium")[] = ["Cơ Bản", "Premium"]
 
     return {
         id,
         name: names[Math.floor(Math.random() * names.length)],
+        username: usernames[Math.floor(Math.random() * usernames.length)],
         email: `user${id}@example.com`,
         phone: `+84 ${Math.floor(Math.random() * 900000000 + 100000000)}`,
         status: statuses[Math.floor(Math.random() * statuses.length)],
@@ -151,6 +163,28 @@ export const adminService = {
             users.push(generateRandomUser(i))
         }
         return users
+    },
+
+    async getUserById(id: number): Promise<User | null> {
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        return generateRandomUser(id)
+    },
+
+    async updateUser(id: number, userData: Partial<User>): Promise<User> {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        const existingUser = generateRandomUser(id)
+        return { ...existingUser, ...userData, id }
+    },
+
+    async deleteUser(id: number): Promise<boolean> {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        return true
+    },
+
+    async createUser(userData: Omit<User, "id">): Promise<User> {
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        const newId = Math.floor(Math.random() * 10000) + 1000
+        return { ...userData, id: newId }
     },
 
     async getPlans(page = 1, limit = 10): Promise<Plan[]> {

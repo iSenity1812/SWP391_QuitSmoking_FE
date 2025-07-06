@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { userData } from "../data/user-data"
-import { UserProfileHeader } from "../components/UserProfileHeader"
+import { useState, useEffect, useContext } from "react"
+import { AuthContext } from "@/context/AuthContext"
+import UserProfileHeader from "../components/UserProfileHeader"
 import { UserProfileSidebar } from "../components/UserProfileSidebar"
 import { StatsCards } from "../components/StatsCards"
+import { QuitStatsSection } from "../components/QuitStatsSection"
 import { AchievementNotificationModal } from "../components/AchievementNotificationModal"
 import { OverviewTab } from "../components/tabs/OverviewTab"
 import { ProgressTab } from "../components/tabs/ProgressTab"
@@ -13,17 +14,73 @@ import { HealthTab } from "../components/tabs/HealthTab"
 import { SocialTab } from "../components/tabs/SocialTab"
 import { BookingTab } from "../components/tabs/BookingtTab"
 import CertificationTab from "../components/tabs/CertificationTab"
-import type { AchievementNotification } from "../types/user-types"
+import type { AchievementNotification, User } from "../types/user-types"
+import { userService } from "@/services/userService"
 
 export default function UserProfile() {
-    const [activeTab, setActiveTab] = useState("overview")
+    const [activeTab, setActiveTab] = useState("social")
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [achievementNotification, setAchievementNotification] = useState<AchievementNotification>({
         show: false,
         achievement: null,
     })
+    const [quitStats, setQuitStats] = useState<{cigarettesAvoided: number, moneySaved: number}>({cigarettesAvoided: 0, moneySaved: 0})
 
-    const user = userData
+    const auth = useContext(AuthContext)
+    const user: User = auth?.user
+        ? {
+            userId: auth.user.userId,
+            name: auth.user.username,
+            email: auth.user.email,
+            avatar: auth.user.profilePicture || '',
+            joinDate: '',
+            daysSmokeFreee: 0,
+            cigarettesAvoided: quitStats.cigarettesAvoided,
+            moneySaved: quitStats.moneySaved.toLocaleString('vi-VN'),
+            healthImprovement: 0,
+            level: '',
+            streak: 0,
+            achievements: [],
+            achievementCategories: [],
+            nextMilestone: { name: '', daysLeft: 0, reward: '' },
+            healthBenefits: [],
+            weeklyProgress: [],
+            friends: [],
+            recentActivities: [],
+            subscription: undefined,
+        }
+        : {
+            userId: '',
+            name: '',
+            email: '',
+            avatar: '',
+            joinDate: '',
+            daysSmokeFreee: 0,
+            cigarettesAvoided: 0,
+            moneySaved: '0',
+            healthImprovement: 0,
+            level: '',
+            streak: 0,
+            achievements: [],
+            achievementCategories: [],
+            nextMilestone: { name: '', daysLeft: 0, reward: '' },
+            healthBenefits: [],
+            weeklyProgress: [],
+            friends: [],
+            recentActivities: [],
+            subscription: undefined,
+        }
+
+    useEffect(() => {
+        userService.getQuitStats().then(res => {
+            if (res.data) {
+                setQuitStats({
+                    cigarettesAvoided: res.data.cigarettesAvoided,
+                    moneySaved: res.data.moneySaved
+                })
+            }
+        })
+    }, [])
 
     const handleTestAchievement = () => {
         const randomAchievement = user.achievements[Math.floor(Math.random() * user.achievements.length)]
@@ -40,10 +97,6 @@ export default function UserProfile() {
     const handleViewAchievements = () => {
         setActiveTab("achievements")
         handleCloseNotification()
-    }
-
-    const handleMenuToggle = () => {
-        setSidebarOpen(!sidebarOpen)
     }
 
     const handleSidebarClose = () => {
@@ -92,7 +145,7 @@ export default function UserProfile() {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-            <UserProfileHeader />
+            <UserProfileHeader user={user} />
 
             <div className="flex">
                 <div id="sidebar">
