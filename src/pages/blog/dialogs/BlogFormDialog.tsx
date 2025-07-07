@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { Upload, ImageIcon, Trash2 } from "lucide-react"
 import dynamic from "next/dynamic"
 
 // Dynamically import ReactQuill to avoid SSR issues
@@ -18,6 +19,7 @@ type UserRole = "NORMAL_MEMBER" | "PREMIUM_MEMBER" | "COACH" | "CONTENT_ADMIN" |
 interface BlogFormData {
     title: string
     content: string
+    imageUrl?: File | string // Match backend field name
 }
 
 interface BlogFormDialogProps {
@@ -87,18 +89,27 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
         initialData || {
             title: "",
             content: "",
+            imageUrl: undefined,
         },
     )
+    const [imagePreview, setImagePreview] = useState<string | null>(null)
 
     // Update form data when initialData changes
     useEffect(() => {
         if (initialData) {
             setFormData(initialData)
+            // Set image preview if editing with existing image
+            if (typeof initialData.imageUrl === "string" && initialData.imageUrl) {
+                setImagePreview(initialData.imageUrl)
+                console.log("Setting image preview from existing imageUrl:", initialData.imageUrl)
+            }
         } else {
             setFormData({
                 title: "",
                 content: "",
+                imageUrl: undefined,
             })
+            setImagePreview(null)
         }
     }, [initialData, isOpen])
 
@@ -116,6 +127,42 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
         }))
     }
 
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            // Validate file type
+            if (!file.type.startsWith("image/")) {
+                alert("Vui lòng chọn file hình ảnh")
+                return
+            }
+
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                alert("Kích thước file không được vượt quá 5MB")
+                return
+            }
+
+            setFormData((prev) => ({ ...prev, imageUrl: file }))
+
+            // Create preview
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                setImagePreview(e.target?.result as string)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
+
+    const handleRemoveImage = () => {
+        setFormData((prev) => ({ ...prev, imageUrl: undefined }))
+        setImagePreview(null)
+        // Reset file input
+        const fileInput = document.getElementById("image-upload") as HTMLInputElement
+        if (fileInput) {
+            fileInput.value = ""
+        }
+    }
+
     const handleSubmit = () => {
         if (formData.title.trim() && formData.content.trim()) {
             onSubmit(formData)
@@ -126,7 +173,9 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
         setFormData({
             title: "",
             content: "",
+            imageUrl: undefined,
         })
+        setImagePreview(null)
         onClose()
     }
 
@@ -147,6 +196,61 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
                             className="text-lg"
                         />
                     </div>
+
+                    {/* Image Upload Section */}
+                    <div className="grid gap-2">
+                        <Label htmlFor="image-upload">Hình ảnh</Label>
+                        {imagePreview ? (
+                            <div className="relative">
+                                <img
+                                    src={imagePreview || "/placeholder.svg"}
+                                    alt="Preview"
+                                    className="w-full h-48 object-cover rounded-lg border border-slate-200 dark:border-slate-700"
+                                    onError={(e) => {
+                                        console.error("Preview image failed to load:", imagePreview)
+                                        const target = e.target as HTMLImageElement
+                                        target.src = "/placeholder.svg?height=192&width=400"
+                                    }}
+                                    onLoad={() => console.log("Preview image loaded successfully:", imagePreview)}
+                                />
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    className="absolute top-2 right-2"
+                                    onClick={handleRemoveImage}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                                {/* Debug info - remove in production */}
+                                {process.env.NODE_ENV === "development" && (
+                                    <div className="mt-2 p-2 bg-blue-100 dark:bg-blue-900 rounded text-xs">
+
+                                        <br />
+                                        <strong>Form imageUrl:</strong>{" "}
+                                        {formData.imageUrl instanceof File ? `File: ${formData.imageUrl.name}` : formData.imageUrl}
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6 text-center">
+                                <ImageIcon className="w-12 h-12 text-slate-400 mx-auto mb-2" />
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Chọn hình ảnh để tải lên</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-500 mb-4">PNG, JPG, GIF tối đa 5MB</p>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => document.getElementById("image-upload")?.click()}
+                                >
+                                    <Upload className="w-4 h-4 mr-2" />
+                                    Chọn file
+                                </Button>
+                            </div>
+                        )}
+                        <input id="image-upload" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                    </div>
+
                     <div className="grid gap-2">
                         <Label htmlFor="blog-content">Nội dung</Label>
                         <div className="border rounded-md">

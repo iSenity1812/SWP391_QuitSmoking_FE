@@ -41,23 +41,11 @@ export class BlogService {
             if (Array.isArray(pageData)) {
                 console.log("Response is direct array")
                 // Convert BlogResponseDTO[] to Blog[]
-                const blogs: BlogPost[] = pageData.map((dto: BlogResponseDTO) => ({
-                    blogId: dto.blogId,
-                    id: dto.blogId, // Add fallback
-                    title: dto.title,
-                    content: dto.content,
-                    authorId: dto.author?.userId || dto.author?.username || "Unknown",
-                    authorName: dto.author?.username || dto.author?.name || "Unknown Author",
-                    status: dto.status,
-                    createdAt: dto.createdAt,
-                    lastUpdated: dto.lastUpdated,
-                    approvedBy: dto.approvedBy?.name || dto.approvedBy?.username,
-                    approvedAt: dto.approvedAt,
-                    viewCount: 0,
-                    likeCount: 0,
-                    commentCount: dto.commentCount || 0,
-                    comments: dto.comments || [], // Include comments from backend
-                }))
+                const blogs: BlogPost[] = pageData.map((dto: BlogResponseDTO) => {
+                    console.log("Processing blog DTO (direct array):", dto)
+                    console.log("DTO imageUrl:", dto.imageUrl)
+                    return this.mapBlogDtoToFrontendBlog(dto)
+                })
                 return blogs
             }
 
@@ -69,25 +57,9 @@ export class BlogService {
 
             // Convert BlogResponseDTO[] to Blog[]
             const blogs: BlogPost[] = pageData.content.map((dto: BlogResponseDTO) => {
-                console.log("Converting DTO:", dto)
-                console.log("DTO comments:", dto.comments)
-                return {
-                    blogId: dto.blogId,
-                    id: dto.blogId,
-                    title: dto.title,
-                    content: dto.content,
-                    authorId: dto.author?.userId || dto.author?.username || "Unknown",
-                    authorName: dto.author?.username || dto.author?.name || "Unknown Author",
-                    status: dto.status,
-                    createdAt: dto.createdAt,
-                    lastUpdated: dto.lastUpdated,
-                    approvedBy: dto.approvedBy?.name || dto.approvedBy?.username,
-                    approvedAt: dto.approvedAt,
-                    viewCount: 0,
-                    likeCount: 0,
-                    commentCount: dto.commentCount || 0,
-                    comments: dto.comments || [], // Include comments from backend
-                }
+                console.log("Processing blog DTO (paginated):", dto)
+                console.log("DTO imageUrl:", dto.imageUrl)
+                return this.mapBlogDtoToFrontendBlog(dto)
             })
 
             console.log("Converted blogs:", blogs)
@@ -125,11 +97,27 @@ export class BlogService {
     }
 
     private static mapBlogDtoToFrontendBlog(dto: BlogResponseDTO): BlogPost {
-        return {
+        console.log("=== Mapping Blog DTO ===")
+        console.log("Input DTO:", dto)
+        console.log("DTO imageUrl:", dto.imageUrl)
+
+        // Process image URL - handle both relative and absolute URLs
+        let imageUrl = dto.imageUrl
+        console.log("Raw imageUrl from DTO:", imageUrl)
+
+        if (imageUrl && !imageUrl.startsWith("http")) {
+            // If it's a relative URL, prepend the base URL
+            const baseUrl = axiosConfig.defaults.baseURL || "http://localhost:8080"
+            imageUrl = `${baseUrl}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`
+            console.log("Processed imageUrl:", imageUrl)
+        }
+
+        const mappedBlog = {
             blogId: dto.blogId,
             id: dto.blogId,
             title: dto.title,
             content: dto.content,
+            imageUrl: imageUrl, // Use imageUrl to match backend
             authorId: dto.author?.userId || dto.author?.username || "Unknown",
             authorName: dto.author?.username || dto.author?.name || "Unknown Author",
             status: dto.status,
@@ -140,27 +128,24 @@ export class BlogService {
             viewCount: 0,
             likeCount: 0,
             commentCount: dto.commentCount || 0,
-            comments: dto.comments || [], // Include comments from backend
+            comments: dto.comments || [],
         }
+
+        console.log("Mapped blog:", mappedBlog)
+        console.log("Final imageUrl:", mappedBlog.imageUrl)
+        console.log("=== End Mapping ===")
+
+        return mappedBlog
     }
 
-    static async getMyBlogs(
-        // Giữ lại các tham số phân trang nếu bạn muốn có khả năng kiểm soát trên frontend
-        // Mặc dù kết quả cuối cùng là một mảng phẳng.
-        page = 0,
-        size = 10,
-        sort = "createdAt,desc",
-    ): Promise<BlogPost[]> {
-        // Thay đổi kiểu trả về sang Promise<FrontendBlogPost[]>
+    static async getMyBlogs(page = 0, size = 10, sort = "createdAt,desc"): Promise<BlogPost[]> {
         try {
-            // Sử dụng this.BASE_PATH và this.MY_PATH để tạo URL đầy đủ
             console.log("Fetching my blogs from:", `${axiosConfig.defaults.baseURL}${this.BASE_PATH}${this.MY_PATH}`)
 
-            // Backend trả về ApiResponse<Page<BlogResponseDTO>>
             const response = await axiosConfig.get<ApiResponse<SpringPageResponse<BlogResponseDTO>>>(
-                `${this.BASE_PATH}${this.MY_PATH}`, // Kết hợp BASE_PATH và MY_PATH
+                `${this.BASE_PATH}${this.MY_PATH}`,
                 {
-                    params: { page, size, sort }, // Truyền các tham số phân trang
+                    params: { page, size, sort },
                 },
             )
             console.log("Raw response (MyBlogs):", response.data)
@@ -174,35 +159,36 @@ export class BlogService {
 
             if (!pageData) {
                 console.warn("Không có dữ liệu trang trong phản hồi (MyBlogs).")
-                return [] // Trả về mảng rỗng nếu không có dữ liệu
+                return []
             }
 
             let blogs: BlogPost[] = []
 
-            // Backend của /my-blogs trả về SpringPageResponse, nên tập trung vào pageData.content
             if (Array.isArray(pageData.content)) {
                 console.log("Phản hồi là đối tượng phân trang với content là mảng (MyBlogs).")
-                blogs = pageData.content.map(BlogService.mapBlogDtoToFrontendBlog)
-            }
-            // Trường hợp dự phòng nếu backend trả về thẳng một mảng (ít xảy ra với Spring Page)
-            else if (Array.isArray(pageData)) {
+                blogs = pageData.content.map((dto: BlogResponseDTO) => {
+                    console.log("Processing my blog DTO:", dto)
+                    console.log("My blog DTO imageUrl:", dto.imageUrl)
+                    return BlogService.mapBlogDtoToFrontendBlog(dto)
+                })
+            } else if (Array.isArray(pageData)) {
                 console.warn(
                     "[MyBlogs] Backend trả về mảng trực tiếp, không phải SpringPageResponse. Vui lòng kiểm tra backend.",
                 )
-                blogs = pageData.map(BlogService.mapBlogDtoToFrontendBlog)
+                blogs = pageData.map((dto: BlogResponseDTO) => {
+                    console.log("Processing my blog DTO (direct array):", dto)
+                    return BlogService.mapBlogDtoToFrontendBlog(dto)
+                })
             } else {
                 console.warn("[MyBlogs] Dữ liệu phản hồi không phù hợp với cấu trúc mong đợi:", pageData)
-                // Trường hợp này có thể xảy ra nếu backend trả về một đối tượng khác không có 'content'
-                // hoặc 'content' không phải mảng. Chúng ta sẽ trả về mảng rỗng.
                 return []
             }
 
             console.log("Converted blogs (MyBlogs):", blogs)
-            return blogs // Trả về mảng BlogPost đã được "lấy phẳng"
+            return blogs
         } catch (error: any) {
             console.error("Lỗi khi lấy bài viết của tôi:", error)
 
-            // Xử lý lỗi chi tiết tương tự getAllBlogs
             if (error.response) {
                 console.error("Response error (MyBlogs):", error.response.status, error.response.data)
 
@@ -367,25 +353,9 @@ export class BlogService {
 
             const dto = response.data.data
             console.log("Single blog DTO:", dto)
-            console.log("Single blog comments:", dto.comments)
+            console.log("Single blog imageUrl:", dto.imageUrl)
 
-            return {
-                blogId: dto.blogId,
-                id: dto.blogId,
-                title: dto.title,
-                content: dto.content,
-                authorId: dto.author?.userId || dto.author?.username || "Unknown",
-                authorName: dto.author?.username || dto.author?.name || "Unknown Author",
-                status: dto.status,
-                createdAt: dto.createdAt,
-                lastUpdated: dto.lastUpdated,
-                approvedBy: dto.approvedBy?.name || dto.approvedBy?.username,
-                approvedAt: dto.approvedAt,
-                viewCount: 0,
-                likeCount: 0,
-                commentCount: dto.commentCount || 0,
-                comments: dto.comments || [], // Include comments from backend
-            }
+            return this.mapBlogDtoToFrontendBlog(dto)
         } catch (error: any) {
             console.error(`Error fetching blog ${id}:`, error)
             throw error
@@ -393,77 +363,124 @@ export class BlogService {
     }
 
     /**
-     * Create a new blog - REQUIRES AUTH
+     * Create a new blog with image upload - REQUIRES AUTH
      */
     static async createBlog(blogData: CreateBlogRequest): Promise<BlogPost> {
         try {
-            const response = await axiosConfig.post<ApiResponse<BlogResponseDTO>>(this.BASE_PATH, {
-                title: blogData.title,
-                content: blogData.content,
+            console.log("=== BlogService.createBlog ===")
+            console.log("Input blogData:", blogData)
+            console.log("imageUrl:", blogData.imageUrl)
+            console.log("imageUrl type:", typeof blogData.imageUrl)
+            console.log("Is File?", blogData.imageUrl instanceof File)
+
+            // Create FormData for multipart upload
+            const formData = new FormData()
+            formData.append("title", blogData.title)
+            formData.append("content", blogData.content)
+
+            // Add image if provided - use imageUrl to match backend
+            if (blogData.imageUrl && blogData.imageUrl instanceof File) {
+                formData.append("imageUrl", blogData.imageUrl)
+                console.log("Added imageUrl file to FormData:", blogData.imageUrl.name)
+            } else {
+                console.log("No valid imageUrl file to add")
+            }
+
+            console.log("FormData contents:")
+            for (const [key, value] of formData.entries()) {
+                console.log(`${key}:`, value instanceof File ? `File: ${value.name}` : value)
+            }
+
+            const response = await axiosConfig.post<ApiResponse<BlogResponseDTO>>(this.BASE_PATH, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
             })
+
+            console.log("Create blog response:", response.data)
 
             if (response.data.success === false) {
                 throw new Error(response.data.message || "Failed to create blog")
             }
 
             const dto = response.data.data
-            return {
-                blogId: dto.blogId,
-                id: dto.blogId,
-                title: dto.title,
-                content: dto.content,
-                authorId: dto.author?.userId || dto.author?.username || "Unknown",
-                authorName: dto.author?.username || dto.author?.name || "Unknown Author",
-                status: dto.status,
-                createdAt: dto.createdAt,
-                lastUpdated: dto.lastUpdated,
-                approvedBy: dto.approvedBy?.name || dto.approvedBy?.username,
-                approvedAt: dto.approvedAt,
-                viewCount: 0,
-                likeCount: 0,
-                commentCount: dto.commentCount || 0,
-                comments: dto.comments || [], // Include comments from backend
-            }
+            console.log("Created blog DTO:", dto)
+            console.log("Created blog imageUrl:", dto.imageUrl)
+
+            return this.mapBlogDtoToFrontendBlog(dto)
         } catch (error: any) {
             console.error("Error creating blog:", error)
+            if (error.response) {
+                console.error("Response status:", error.response.status)
+                console.error("Response data:", error.response.data)
+            }
             throw error
         }
     }
 
     /**
-     * Update an existing blog - REQUIRES AUTH
+     * Update an existing blog with optional image upload - REQUIRES AUTH
      */
     static async updateBlog(id: number, blogData: UpdateBlogRequest): Promise<BlogPost> {
         try {
-            const response = await axiosConfig.put<ApiResponse<BlogResponseDTO>>(`${this.BASE_PATH}/${id}`, {
-                title: blogData.title,
-                content: blogData.content,
+            console.log("=== BlogService.updateBlog ===")
+            console.log("Blog ID:", id)
+            console.log("Input blogData:", blogData)
+            console.log("imageUrl:", blogData.imageUrl)
+            console.log("imageUrl type:", typeof blogData.imageUrl)
+            console.log("Is File?", blogData.imageUrl instanceof File)
+
+            // Create FormData for multipart upload
+            const formData = new FormData()
+
+            if (blogData.title) {
+                formData.append("title", blogData.title)
+            }
+
+            if (blogData.content) {
+                formData.append("content", blogData.content)
+            }
+
+            // Handle image update - use imageUrl to match backend
+            if (blogData.imageUrl) {
+                if (blogData.imageUrl instanceof File) {
+                    // New image file to upload
+                    formData.append("imageUrl", blogData.imageUrl)
+                    console.log("Added new imageUrl file to FormData:", blogData.imageUrl.name)
+                } else if (typeof blogData.imageUrl === "string") {
+                    // Keep existing image URL - don't send anything, backend will keep existing
+                    console.log("Keeping existing imageUrl:", blogData.imageUrl)
+                }
+            }
+
+            console.log("FormData contents:")
+            for (const [key, value] of formData.entries()) {
+                console.log(`${key}:`, value instanceof File ? `File: ${value.name}` : value)
+            }
+
+            const response = await axiosConfig.put<ApiResponse<BlogResponseDTO>>(`${this.BASE_PATH}/${id}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
             })
+
+            console.log("Update blog response:", response.data)
 
             if (response.data.success === false) {
                 throw new Error(response.data.message || "Failed to update blog")
             }
 
             const dto = response.data.data
-            return {
-                blogId: dto.blogId,
-                id: dto.blogId,
-                title: dto.title,
-                content: dto.content,
-                authorId: dto.author?.userId || dto.author?.username || "Unknown",
-                authorName: dto.author?.username || dto.author?.name || "Unknown Author",
-                status: dto.status,
-                createdAt: dto.createdAt,
-                lastUpdated: dto.lastUpdated,
-                approvedBy: dto.approvedBy?.name || dto.approvedBy?.username,
-                approvedAt: dto.approvedAt,
-                viewCount: 0,
-                likeCount: 0,
-                commentCount: dto.commentCount || 0,
-                comments: dto.comments || [], // Include comments from backend
-            }
+            console.log("Updated blog DTO:", dto)
+            console.log("Updated blog imageUrl:", dto.imageUrl)
+
+            return this.mapBlogDtoToFrontendBlog(dto)
         } catch (error: any) {
             console.error(`Error updating blog ${id}:`, error)
+            if (error.response) {
+                console.error("Response status:", error.response.status)
+                console.error("Response data:", error.response.data)
+            }
             throw error
         }
     }

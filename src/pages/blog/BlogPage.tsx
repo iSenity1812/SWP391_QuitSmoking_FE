@@ -2,7 +2,6 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { AnimatedSection } from "@/components/ui/AnimatedSection"
 import { useBlogPosts, useBlogActions, useMyBlogs } from "@/hooks/use-blogs"
 import { commentService } from "@/services/commentService"
 import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser } from "@/types/blog"
@@ -27,6 +26,7 @@ import DeleteConfirmDialog from "./dialogs/DeleteConfirmDialog"
 interface BlogFormData {
     title: string
     content: string
+    image?: File | string // Add image field
 }
 
 interface ReportFormData {
@@ -190,6 +190,7 @@ const BlogPage: React.FC = () => {
             const blogData: BlogRequestDTO = {
                 title: formData.title,
                 content: formData.content,
+                imageUrl: formData.image, // Add image field
             }
 
             await createBlog(blogData, currentUser.id)
@@ -221,6 +222,7 @@ const BlogPage: React.FC = () => {
             const blogData: BlogRequestDTO = {
                 title: formData.title,
                 content: formData.content,
+                imageUrl: formData.image, // Add image field
             }
 
             const blogIdToUpdate = editingPost.blogId
@@ -237,6 +239,7 @@ const BlogPage: React.FC = () => {
                     ...editingPost,
                     title: formData.title,
                     content: formData.content,
+                    imageUrl: typeof formData.image === "string" ? formData.image : editingPost.imageUrl, // Keep existing image if new one is File
                     lastUpdated: new Date().toISOString(),
                 })
             }
@@ -434,7 +437,6 @@ const BlogPage: React.FC = () => {
             <BlogHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
             <main className="container mx-auto px-6 pb-20">
-
                 <UserAuthSection
                     currentUser={currentUser}
                     handleCreateBlogClick={handleCreateBlogClick}
@@ -486,7 +488,6 @@ const BlogPage: React.FC = () => {
                         getRootComments={getRootComments}
                     />
                 )}
-
             </main>
 
             {/* Dialogs */}
@@ -512,6 +513,7 @@ const BlogPage: React.FC = () => {
                         ? {
                             title: editingPost.title,
                             content: editingPost.content,
+                            imageUrl: editingPost.imageUrl, // Add image field
                         }
                         : undefined
                 }

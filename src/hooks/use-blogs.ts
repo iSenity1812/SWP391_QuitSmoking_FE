@@ -286,6 +286,8 @@ export const useBlogActions = () => {
         ...blogData,
         authorId,
         status: "PENDING", // Default status for new blogs
+        // Handle image - if it's a File, pass it directly; if it's a string URL, ignore for create
+        imageUrl: blogData.imageUrl instanceof File ? blogData.imageUrl : undefined,
       }
 
       const blog = await BlogService.createBlog(createRequest)
@@ -306,6 +308,8 @@ export const useBlogActions = () => {
       const updateRequest: UpdateBlogRequest = {
         title: blogData.title,
         content: blogData.content,
+        // Handle image - can be File for new upload or string URL to keep existing
+        imageUrl: blogData.imageUrl,
       }
 
       const blog = await BlogService.updateBlog(id, updateRequest)

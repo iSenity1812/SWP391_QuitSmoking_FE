@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Calendar, Clock, CheckCircle, MoreVertical, Edit, Trash2, Flag } from "lucide-react"
+import { Calendar, Clock, CheckCircle, MoreVertical, Edit, Trash2, Flag, ImageIcon } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,6 +11,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge"
 import type { BlogPost } from "@/types/blog"
 import type { CommentResponseDTO } from "@/types/comment"
 import { formatDate } from "../utils/blog-utils"
@@ -24,7 +25,7 @@ interface BlogPostDetailProps {
     comments: CommentResponseDTO[]
     handleBackToList: () => void
     handleEditPost: (post: BlogPost) => void
-    handleDeletePost: (post: BlogPost) => void  
+    handleDeletePost: (post: BlogPost) => void
     handleReportPost: (post: BlogPost) => void
     canEditPost: (post: BlogPost) => boolean
     canDeletePost: (post: BlogPost) => boolean
@@ -52,6 +53,7 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
 
     console.log("BlogPostDetail - Post:", post)
     console.log("BlogPostDetail - BlogId:", blogId)
+    console.log("BlogPostDetail - ImageUrl:", post.imageUrl)
     console.log("BlogPostDetail - Comments:", comments)
 
     // Function to render HTML content safely
@@ -64,6 +66,13 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
         )
     }
 
+    // Function to handle image error
+    const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+        console.error("Detail image failed to load:", post.imageUrl)
+        const target = e.target as HTMLImageElement
+        target.style.display = "none"
+    }
+
     return (
         <>
             <Button variant="outline" className="mb-6 bg-transparent" onClick={handleBackToList}>
@@ -72,7 +81,15 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
             <Card className="border-2 border-emerald-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
                 <CardHeader>
                     <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">{getStatusBadge(post.status)}</div>
+                        <div className="flex items-center gap-2">
+                            {getStatusBadge(post.status)}
+                            {post.imageUrl && (
+                                <Badge variant="outline" className="text-xs">
+                                    <ImageIcon className="w-3 h-3 mr-1" />
+                                    Có hình ảnh
+                                </Badge>
+                            )}
+                        </div>
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-slate-500 dark:text-slate-400">Tác giả: {post.authorName}</span>
 
@@ -138,6 +155,26 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
                     </div>
                 </CardHeader>
                 <CardContent>
+                    {/* Debug info - remove in production */}
+                    {process.env.NODE_ENV === "development" && post.imageUrl && (
+                        <div className="mb-4 p-2 bg-yellow-100 dark:bg-yellow-900 rounded text-xs">
+                            <strong>Debug - ImageUrl:</strong> {post.imageUrl}
+                        </div>
+                    )}
+
+                    {/* Image Display */}
+                    {post.imageUrl && (
+                        <div className="mb-6 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
+                            <img
+                                src={post.imageUrl || "/placeholder.svg"}
+                                alt={post.title}
+                                className="w-full max-h-96 object-cover"
+                                onError={handleImageError}
+                                onLoad={() => console.log("Detail image loaded successfully:", post.imageUrl)}
+                            />
+                        </div>
+                    )}
+
                     {/* Render HTML content */}
                     {renderHTMLContent(post.content)}
                 </CardContent>

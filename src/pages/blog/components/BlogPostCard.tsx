@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { motion } from "framer-motion"
-import { Calendar, Clock, ArrowRight, MoreVertical, Edit, Trash2, Flag } from "lucide-react"
+import { Calendar, Clock, ArrowRight, MoreVertical, Edit, Trash2, Flag, ImageIcon } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,9 +12,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { BlogPost } from "@/types/blog"
+import { Badge } from "@/components/ui/badge"
+import type { BlogPost, BlogUser } from "@/types/blog"
 import type { CommentResponseDTO } from "@/types/comment"
-import type { BlogUser } from "@/types/blog"
 import { formatDate } from "../utils/blog-utils"
 import { getStatusBadge } from "./UserBadges"
 
@@ -49,6 +49,12 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
 }) => {
     const blogId = post.blogId || 0
 
+    // Debug image URL - use imageUrl field to match backend
+    console.log("=== BlogPostCard Debug ===")
+    console.log("Post:", post.title)
+    console.log("Post imageUrl:", post.imageUrl)
+    console.log("=== End Debug ===")
+
     // Function to strip HTML tags and get plain text preview
     const getTextPreview = (htmlContent: string, maxLength = 150) => {
         const tmp = document.createElement("div")
@@ -57,12 +63,27 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
         return text.length > maxLength ? text.substring(0, maxLength) + "..." : text
     }
 
+    // Function to handle image error
+    const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+        console.error("Image failed to load:", post.imageUrl)
+        const target = e.target as HTMLImageElement
+        target.style.display = "none"
+    }
+
     return (
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: index * 0.1 }}>
             <Card className="group overflow-hidden border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
                 <CardHeader>
                     <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">{getStatusBadge(post.status)}</div>
+                        <div className="flex items-center gap-2">
+                            {getStatusBadge(post.status)}
+                            {post.imageUrl && (
+                                <Badge variant="outline" className="text-xs">
+                                    <ImageIcon className="w-3 h-3 mr-1" />
+                                    Có hình ảnh
+                                </Badge>
+                            )}
+                        </div>
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-slate-500 dark:text-slate-400">{post.authorName}</span>
 
@@ -115,6 +136,28 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
+                    {/* Debug Panel - Only show in development */}
+                    {process.env.NODE_ENV === "development" && (
+                        <div className="mb-4 p-2 bg-yellow-100 dark:bg-yellow-900 rounded text-xs">
+                            <strong>Debug Info:</strong>
+                            <br />
+                            ImageUrl: {post.imageUrl || "undefined"}
+                        </div>
+                    )}
+
+                    {/* Image Preview */}
+                    {post.imageUrl && (
+                        <div className="mb-4 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
+                            <img
+                                src={post.imageUrl || "/placeholder.svg"}
+                                alt={post.title}
+                                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+                                onError={handleImageError}
+                                onLoad={() => console.log("Image loaded successfully:", post.imageUrl)}
+                            />
+                        </div>
+                    )}
+
                     <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 mb-4">
                         <div className="flex items-center gap-4">
                             <span className="flex items-center gap-1">
@@ -130,12 +173,6 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
                         </div>
                     </div>
                     <div className="flex items-center justify-between">
-                        {/* <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                            <span className="flex items-center gap-1">
-                                <MessageCircle className="w-4 h-4" />
-                                {comments.length} bình luận
-                            </span>
-                        </div> */}
                         <Button
                             variant="ghost"
                             size="sm"

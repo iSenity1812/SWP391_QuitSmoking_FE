@@ -4,6 +4,7 @@ export interface BlogPost {
   authorId: string
   title: string
   content: string
+  imageUrl?: string // Match backend field name
   createdAt?: string // ISO date string
   lastUpdated?: string // ISO date string
   status: BlogStatus
@@ -19,17 +20,18 @@ export interface BlogPost {
 export interface BlogRequestDTO {
   title: string
   content: string
+  imageUrl?: File | string // Match backend field name
 }
 
-export type Role = 'NORMAL_MEMBER' | 'PREMIUM_MEMBER' | 'SUPER_ADMIN' | 'CONTENT_ADMIN' | 'COACH';
+export type Role = "NORMAL_MEMBER" | "PREMIUM_MEMBER" | "SUPER_ADMIN" | "CONTENT_ADMIN" | "COACH"
 
 export interface BlogUser {
-  id: string; // Đổi từ blogId sang id để khớp với AccountResponse
-  username: string; // Đổi từ name sang username để khớp với AccountResponse
-  role: Role; // Đảm bảo Role được định nghĩa hoặc là string
+  id: string // Đổi từ blogId sang id để khớp với AccountResponse
+  username: string // Đổi từ name sang username để khớp với AccountResponse
+  role: Role // Đảm bảo Role được định nghĩa hoặc là string
   // Bạn có thể thêm các trường khác nếu cần như email, profilePicture
-  email?: string;
-  profilePicture?: string | null;
+  email?: string
+  profilePicture?: string | null
 }
 
 export type BlogStatus = "PENDING" | "PUBLISHED" | "REJECTED"
@@ -85,42 +87,26 @@ export interface BlogWithAuthor extends BlogPost {
   authorEmail?: string
 }
 
-// Legacy types for UI compatibility
-// export interface Blog {
-//   blogId?: number
-//   id?: number // Add fallback
-//   authorId: string
-//   title: string
-//   content: string
-//   createdAt?: string
-//   lastUpdated?: string
-//   status: BlogStatus
-//   approvedBy?: string
-//   approvedAt?: string
-//   authorName?: string
-//   viewCount?: number
-//   likeCount?: number
-//   commentCount?: number
-//   comments?: import("./comment").CommentResponseDTO[] // Add comments array
-// }
-
 export interface CreateBlogRequest {
   authorId: string
   title: string
   content: string
+  imageUrl?: string // File for upload - match backend field name
   status?: BlogStatus
 }
 
 export interface UpdateBlogRequest {
   title?: string
   content?: string
+  imageUrl?: File | string // File for new upload or string URL to keep existing
 }
 
-// Backend response DTO structure - UPDATED to match actual backend
+// Backend response DTO structure - MATCH actual backend
 export interface BlogResponseDTO {
   blogId: number // This is the main ID field
   title: string
   content: string
+  imageUrl?: string // Match backend field name exactly
   author?: {
     userId?: string
     username?: string
