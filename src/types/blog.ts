@@ -20,7 +20,7 @@ export interface BlogPost {
 export interface BlogRequestDTO {
   title: string
   content: string
-  imageUrl?: File | string // Match backend field name
+  imageUrl?: File | string // Match backend field name - File for upload, string for existing URL
 }
 
 export type Role = "NORMAL_MEMBER" | "PREMIUM_MEMBER" | "SUPER_ADMIN" | "CONTENT_ADMIN" | "COACH"
@@ -38,9 +38,13 @@ export type BlogStatus = "PENDING" | "PUBLISHED" | "REJECTED"
 
 // API Response types from backend
 export interface ApiResponse<T> {
-  success: boolean
+  status: number // Backend returns status as number
   message: string
   data: T
+  error: any
+  errorCode: any
+  timestamp: string
+  success?: boolean // Add optional success field for compatibility
 }
 
 export interface SpringPageResponse<T> {
@@ -91,7 +95,7 @@ export interface CreateBlogRequest {
   authorId: string
   title: string
   content: string
-  imageUrl?: string // File for upload - match backend field name
+  imageUrl?: File // File for upload - match backend field name
   status?: BlogStatus
 }
 

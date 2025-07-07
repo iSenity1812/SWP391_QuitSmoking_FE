@@ -14,6 +14,14 @@ export class BlogService {
     private static readonly ADMIN_PATH = "/admin"
 
     /**
+     * Check if response is successful based on backend format
+     */
+    private static isSuccessResponse(response: ApiResponse<any>): boolean {
+        // Backend returns status 200 for success, not a success boolean
+        return response.status === 200 || (response.success !== undefined ? response.success : true)
+    }
+
+    /**
      * Get all blogs - PUBLIC endpoint
      */
     static async getAllBlogs(): Promise<BlogPost[]> {
@@ -24,8 +32,8 @@ export class BlogService {
             const response = await axiosConfig.get<ApiResponse<SpringPageResponse<BlogResponseDTO>>>(this.BASE_PATH)
             console.log("Raw response:", response.data)
 
-            // Kiểm tra structure của response
-            if (response.data.success === false) {
+            // Kiểm tra structure của response - use new success check
+            if (!this.isSuccessResponse(response.data)) {
                 throw new Error(response.data.message || "API call failed")
             }
 
@@ -105,11 +113,22 @@ export class BlogService {
         let imageUrl = dto.imageUrl
         console.log("Raw imageUrl from DTO:", imageUrl)
 
-        if (imageUrl && !imageUrl.startsWith("http")) {
-            // If it's a relative URL, prepend the base URL
-            const baseUrl = axiosConfig.defaults.baseURL || "http://localhost:8080"
-            imageUrl = `${baseUrl}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`
-            console.log("Processed imageUrl:", imageUrl)
+        if (imageUrl) {
+            if (!imageUrl.startsWith("http")) {
+                // If it's a relative URL starting with /uploads/, construct the full URL
+                // Don't use axiosConfig.defaults.baseURL because it includes /api
+                const baseUrl = axiosConfig.defaults.baseURL?.replace("/api", "") || "http://localhost:8080"
+
+                if (imageUrl.startsWith("/uploads/")) {
+                    imageUrl = `${baseUrl}${imageUrl}`
+                } else {
+                    imageUrl = `${baseUrl}/${imageUrl.startsWith("/") ? imageUrl.substring(1) : imageUrl}`
+                }
+                console.log("Processed imageUrl:", imageUrl)
+            }
+        } else {
+            console.log("No imageUrl in DTO")
+            imageUrl = undefined
         }
 
         const mappedBlog = {
@@ -117,7 +136,7 @@ export class BlogService {
             id: dto.blogId,
             title: dto.title,
             content: dto.content,
-            imageUrl: imageUrl, // Use imageUrl to match backend
+            imageUrl: imageUrl, // Use processed imageUrl
             authorId: dto.author?.userId || dto.author?.username || "Unknown",
             authorName: dto.author?.username || dto.author?.name || "Unknown Author",
             status: dto.status,
@@ -150,7 +169,7 @@ export class BlogService {
             )
             console.log("Raw response (MyBlogs):", response.data)
 
-            if (response.data.success === false) {
+            if (!this.isSuccessResponse(response.data)) {
                 throw new Error(response.data.message || "Lỗi gọi API khi lấy bài viết của tôi.")
             }
 
@@ -238,7 +257,7 @@ export class BlogService {
 
             console.log("Raw admin blogs response:", response.data)
 
-            if (response.data.success === false) {
+            if (!this.isSuccessResponse(response.data)) {
                 throw new Error(response.data.message || "Failed to get admin blogs")
             }
 
@@ -285,7 +304,7 @@ export class BlogService {
 
             const response = await axiosConfig.put<ApiResponse<BlogResponseDTO>>(`${this.BASE_PATH}/${id}/approve`)
 
-            if (response.data.success === false) {
+            if (!this.isSuccessResponse(response.data)) {
                 throw new Error(response.data.message || "Failed to approve blog")
             }
 
@@ -318,7 +337,7 @@ export class BlogService {
                 params: adminNotes ? { adminNotes } : {},
             })
 
-            if (response.data.success === false) {
+            if (!this.isSuccessResponse(response.data)) {
                 throw new Error(response.data.message || "Failed to reject blog")
             }
 
@@ -347,7 +366,7 @@ export class BlogService {
         try {
             const response = await axiosConfig.get<ApiResponse<BlogResponseDTO>>(`${this.BASE_PATH}/${id}`)
 
-            if (response.data.success === false) {
+            if (!this.isSuccessResponse(response.data)) {
                 throw new Error(response.data.message || "Failed to get blog")
             }
 
@@ -378,42 +397,127 @@ export class BlogService {
             formData.append("title", blogData.title)
             formData.append("content", blogData.content)
 
-            // Add image if provided - use imageUrl to match backend
+            // Backend expects field name "imageUrl" based on BlogRequestDTO
             if (blogData.imageUrl && blogData.imageUrl instanceof File) {
                 formData.append("imageUrl", blogData.imageUrl)
                 console.log("Added imageUrl file to FormData:", blogData.imageUrl.name)
+                console.log("File size:", blogData.imageUrl.size)
+                console.log("File type:", blogData.imageUrl.type)
+                console.log("File last modified:", new Date(blogData.imageUrl.lastModified))
             } else {
                 console.log("No valid imageUrl file to add")
             }
 
-            console.log("FormData contents:")
+            console.log("=== FormData Debug ===")
+            console.log("FormData entries:")
             for (const [key, value] of formData.entries()) {
-                console.log(`${key}:`, value instanceof File ? `File: ${value.name}` : value)
+                if (value instanceof File) {
+                    console.log(`${key}: File {`)
+                    console.log(`  name: ${value.name}`)
+                    console.log(`  size: ${value.size}`)
+                    console.log(`  type: ${value.type}`)
+                    console.log(`  lastModified: ${new Date(value.lastModified)}`)
+                    console.log(`}`)
+                } else {
+                    console.log(`${key}: "${value}"`)
+                }
             }
+            console.log("=== End FormData Debug ===")
 
+            // Make sure we're sending the request with proper headers
             const response = await axiosConfig.post<ApiResponse<BlogResponseDTO>>(this.BASE_PATH, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
+                // Add timeout for large file uploads
+                timeout: 30000, // 30 seconds
+                // Add progress tracking
+                onUploadProgress: (progressEvent) => {
+                    if (progressEvent.total) {
+                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+                        console.log(`Upload progress: ${percentCompleted}%`)
+                    }
+                },
             })
 
-            console.log("Create blog response:", response.data)
+            console.log("=== Response Debug ===")
+            console.log("Response status:", response.status)
+            console.log("Response headers:", response.headers)
+            console.log("Full response data:", JSON.stringify(response.data, null, 2))
+            console.log("Response message:", response.data.message)
+            console.log("Response data payload:", response.data.data)
 
-            if (response.data.success === false) {
+            // Check if response.data.data exists and has imageUrl
+            if (response.data.data) {
+                console.log("Backend returned blog data:")
+                console.log("- blogId:", response.data.data.blogId)
+                console.log("- title:", response.data.data.title)
+                console.log("- imageUrl:", response.data.data.imageUrl)
+                console.log("- imageUrl type:", typeof response.data.data.imageUrl)
+            }
+            console.log("=== End Response Debug ===")
+
+            // Check for success response structure - use new success check
+            if (!this.isSuccessResponse(response.data)) {
                 throw new Error(response.data.message || "Failed to create blog")
             }
 
             const dto = response.data.data
-            console.log("Created blog DTO:", dto)
-            console.log("Created blog imageUrl:", dto.imageUrl)
+            if (!dto) {
+                throw new Error("No data returned from backend")
+            }
 
-            return this.mapBlogDtoToFrontendBlog(dto)
+            console.log("=== DTO Processing ===")
+            console.log("Created blog DTO:", dto)
+            console.log("Created blog imageUrl from backend:", dto.imageUrl)
+            console.log("DTO imageUrl type:", typeof dto.imageUrl)
+            console.log("=== End DTO Processing ===")
+
+            const mappedBlog = this.mapBlogDtoToFrontendBlog(dto)
+            console.log("=== Final Result ===")
+            console.log("Final mapped blog:", mappedBlog)
+            console.log("Final mapped imageUrl:", mappedBlog.imageUrl)
+            console.log("=== End Final Result ===")
+
+            return mappedBlog
         } catch (error: any) {
+            console.error("=== Error Debug ===")
             console.error("Error creating blog:", error)
+            console.error("Error name:", error.name)
+            console.error("Error message:", error.message)
+
             if (error.response) {
                 console.error("Response status:", error.response.status)
+                console.error("Response statusText:", error.response.statusText)
                 console.error("Response data:", error.response.data)
+                console.error("Response headers:", error.response.headers)
+
+                if (error.response.status === 403) {
+                    throw new Error("Không có quyền tạo bài viết. Vui lòng đăng nhập lại.")
+                }
+
+                if (error.response.status === 400) {
+                    // Bad request - could be validation error or wrong field name
+                    const errorMessage = error.response.data?.message || "Dữ liệu không hợp lệ"
+                    console.error("400 Error details:", error.response.data)
+                    throw new Error(`Lỗi validation: ${errorMessage}`)
+                }
+
+                if (error.response.data?.message) {
+                    throw new Error(`Backend error: ${error.response.data.message}`)
+                }
             }
+
+            if (error.code === "ECONNABORTED") {
+                throw new Error("Timeout: File quá lớn hoặc kết nối chậm")
+            }
+
+            if (error.request) {
+                console.error("Request was made but no response received:", error.request)
+                throw new Error("Không nhận được phản hồi từ server")
+            }
+
+            console.error("=== End Error Debug ===")
             throw error
         }
     }
@@ -466,7 +570,7 @@ export class BlogService {
 
             console.log("Update blog response:", response.data)
 
-            if (response.data.success === false) {
+            if (!this.isSuccessResponse(response.data)) {
                 throw new Error(response.data.message || "Failed to update blog")
             }
 
@@ -492,7 +596,7 @@ export class BlogService {
         try {
             const response = await axiosConfig.delete<ApiResponse<void>>(`${this.BASE_PATH}/${id}`)
 
-            if (response.data.success === false) {
+            if (!this.isSuccessResponse(response.data)) {
                 throw new Error(response.data.message || "Failed to delete blog")
             }
         } catch (error: any) {

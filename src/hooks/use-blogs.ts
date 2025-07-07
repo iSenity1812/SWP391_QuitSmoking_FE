@@ -286,7 +286,7 @@ export const useBlogActions = () => {
         ...blogData,
         authorId,
         status: "PENDING", // Default status for new blogs
-        // Handle image - if it's a File, pass it directly; if it's a string URL, ignore for create
+        // Only assign imageUrl if it's a string (URL), otherwise undefined
         imageUrl: blogData.imageUrl instanceof File ? blogData.imageUrl : undefined,
       }
 
