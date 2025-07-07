@@ -1,7 +1,7 @@
 import type { AccountResponse, ApiResponse, LoginRequest, RegisterRequest } from "@/types/auth";
 import axiosConfig from "@/config/axiosConfig";
 
-const AUTH_ENDPOINT_PREFIX = "/auth";
+const AUTH_ENDPOINT_PREFIX = "/api/auth";
 const AUTH_TOKEN = "jwt_token";
 const USER_INFO = "user_info";
 

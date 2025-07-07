@@ -15,6 +15,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoutes } from "@/hooks/useRoleAuth";
 import { UserDropdown } from "@/pages/auth/components/UserDropdown";
+import { NotificationIcon } from "./NotificationIcon";
 import { useState, useRef } from "react";
 import { userService } from "@/services/userService";
 
@@ -145,7 +146,10 @@ export function Navbar() {
           <ThemeToggle />
           {/* Authenticated User Menu */}
           {isAuthenticated && user ? (
-            <UserDropdown />
+            <>
+              <NotificationIcon />
+              <UserDropdown />
+            </>
           ) : (
             /* Guest User Buttons */
             <>

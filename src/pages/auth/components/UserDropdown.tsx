@@ -1,7 +1,7 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { User, Settings, LogOut, Trophy, ChevronDown, Shield, Gem } from "lucide-react"
+import { User, Settings, LogOut, Trophy, ChevronDown, Shield, Gem, Bell } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { useUserRoutes } from "@/hooks/useRoleAuth"
 import { Link } from "react-router-dom"
@@ -84,7 +84,17 @@ export const UserDropdown: React.FC = () => {
         icon: Gem,
         variant: 'default' as const
       })
-    } return items
+    }
+
+    // Notifications - Always show for authenticated users
+    items.push({
+      label: 'Notifications',
+      href: '/notifications',
+      icon: Bell,
+      variant: 'default' as const
+    })
+
+    return items
   }
 
   const menuItems = getMenuItems()

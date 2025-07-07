@@ -9,9 +9,10 @@ import { AppRoutes } from "./routes/route"
 import { useTokenRefresh } from "./hooks/useTokenRefresh"
 import { ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import { messaging } from "./firebase"
+import { messaging } from "./firebase.ts"
 import { getToken, onMessage } from "firebase/messaging"
 import { toast } from "react-toastify"
+import axiosConfig from "./config/axiosConfig"
 
 function shouldHideNavbar(pathname: string) {
   const hiddenPaths = [
@@ -54,33 +55,44 @@ export default function App() {
     // For debugging - log the current status
     console.log("Onboarding completed status:", storedOnboardingStatus !== "false")
 
-    // Đăng ký nhận notification FCM
+    // Đăng ký nhận notification FCM và foreground notification
     Notification.requestPermission().then((permission) => {
       if (permission === "granted") {
         getToken(messaging, { vapidKey: "BHzIniQM8sFQ9SyhSBFswrNroTVnTQHSae_dY4W7FP782YZn0A-9GKzl3gTV5mBSsq_h5WDFDRCHDVnYVKLy52U" }).then((currentToken) => {
           if (currentToken) {
             // Gửi token này lên server để lưu lại
             console.log('FCM Token:', currentToken);
-            // Lấy userId từ localStorage (giả sử đã lưu khi login)
-            const userId = localStorage.getItem("userId");
+            // Lấy userId từ localStorage (user_info)
+            const userInfo = localStorage.getItem("user_info");
+            const userId = userInfo ? JSON.parse(userInfo).userId : null;
             if (userId) {
-              fetch("http://localhost:8080/api/fcm-token", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId, token: currentToken })
-              })
-                .then(res => res.json())
-                .then(data => console.log("Token saved:", data))
-                .catch(err => console.error("Error saving token:", err));
+              axiosConfig.post("/api/fcm-token", { userId, token: currentToken })
+                .then(res => {
+                  console.log("FCM Token saved successfully:", res.data)
+                })
+                .catch(err => {
+                  console.error("Error saving FCM token:", err);
+                  setTimeout(() => {
+                    console.log("Retrying FCM token save...");
+                  }, 5000);
+                });
             } else {
               console.warn("No userId found in localStorage, cannot send FCM token to backend.");
             }
+          } else {
+            console.error("No registration token available. Request permission to generate one.");
           }
+        }).catch((err) => {
+          console.error("An error occurred while retrieving token:", err);
         });
+      } else {
+        console.warn("Notification permission denied by user");
       }
     });
 
-    onMessage(messaging, (payload) => {
+    // Đăng ký lắng nghe notification foreground duy nhất
+    const unsubscribe = onMessage(messaging, (payload) => {
+      console.log("Notification received in foreground: ", payload);
       if (payload.notification) {
         toast.info(
           <div>
@@ -97,9 +109,19 @@ export default function App() {
             progress: undefined,
           }
         );
+        // Nếu muốn hiện popup browser notification song song, bỏ comment dòng dưới:
+        // if (Notification.permission === "granted") {
+        //   new window.Notification(payload.notification.title ?? "Thông báo", {
+        //     body: payload.notification.body,
+        //     icon: "/firebase-logo.png"
+        //   });
+        // }
       }
     });
-  }, [])
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   // Force complete onboarding (for development/testing)
   const forceCompleteOnboarding = () => {

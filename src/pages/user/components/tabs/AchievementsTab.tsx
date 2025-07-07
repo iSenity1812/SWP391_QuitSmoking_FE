@@ -117,7 +117,8 @@ export function AchievementsTab() {
     setSyncing(true);
     try {
       await achievementService.cleanInvalidAchievements(user.userId);
-      toast.success("Đồng bộ thành tựu thành công!");
+      await achievementService.checkAndUnlockAchievements(user.userId);
+      toast.success("Đồng bộ thành tựu thành công! Thành tựu của bạn đã được cập nhật mới nhất.");
       achievementService.getAllAchievementsForUser(user.userId)
         .then(data => setAchievements(data));
     } catch (e) {

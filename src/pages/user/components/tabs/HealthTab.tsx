@@ -66,6 +66,14 @@ export function HealthTab() {
             <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Sức khỏe</h2>
                 <p className="text-gray-600 dark:text-gray-400">Theo dõi sự cải thiện sức khỏe của bạn kể từ khi bỏ thuốc</p>
+                <a
+                  href="https://www.cdc.gov/tobacco/about/benefits-of-quitting.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block mt-2 text-blue-600 hover:underline text-sm"
+                >
+                  Tham khảo: Lợi ích của việc bỏ thuốc lá (CDC.gov)
+                </a>
             </div>
 
             {/* Health Benefits Timeline */}

@@ -1,7 +1,5 @@
-// @ts-nocheck
-// eslint-disable-next-line
 import { initializeApp } from "firebase/app";
-import { getMessaging } from "firebase/messaging";
+import { getMessaging, type Messaging } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCO7-QxQcG3j-fxCGlkgRlAarUo0C2T2-0",
@@ -13,6 +11,6 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const messaging = getMessaging(app);
+const messaging: Messaging = getMessaging(app);
 
 export { messaging }; 

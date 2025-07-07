@@ -29,6 +29,7 @@ import PlanPagePref from "@/pages/plan/PlanPagePref"
 import { MeetingPage } from "@/pages/meeting/MeetingPage"
 import HealthBenefitsPage from "@/pages/health-benefits/HealthBenefitsPage"
 import QuitStatsPage from "@/pages/user/QuitStatsPage"
+import { NotificationsPage } from "@/pages/notifications/NotificationsPage"
 
 export function AppRoutes() {
   return (
@@ -160,6 +161,16 @@ export function AppRoutes() {
             requireAuth={true}
           >
             <QuitStatsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Notifications - accessible by all authenticated users */}
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute requireAuth={true}>
+            <NotificationsPage />
           </ProtectedRoute>
         }
       />

@@ -14,6 +14,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import type { ApiResponse, LoginRequest } from "@/types/auth"; // Import LoginRequest và các type liên quan nếu cần
 import { toast } from "react-toastify";
 import { useAuth } from "@/hooks/useAuth";
+import AutoNotification from "../../components/ui/AutoNotification";
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState(""); // Đổi tên thành email để khớp với LoginRequest
@@ -174,6 +175,7 @@ export const LoginForm: React.FC = () => {
 
 // ... Phần còn lại của LoginPage không thay đổi
 export default function LoginPage() {
+  const isLoggedIn = Boolean(localStorage.getItem("jwt_token")) && Boolean(localStorage.getItem("user_info"));
   return (
     <motion.div
       className="flex min-h-screen flex-col items-center justify-center p-4"
@@ -218,6 +220,7 @@ export default function LoginPage() {
           <LoginForm />
         </div>
       </div>
+      {isLoggedIn && <AutoNotification />}
     </motion.div>
   );
 }
