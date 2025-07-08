@@ -533,6 +533,7 @@ export class BlogService {
             console.log("imageUrl:", blogData.imageUrl)
             console.log("imageUrl type:", typeof blogData.imageUrl)
             console.log("Is File?", blogData.imageUrl instanceof File)
+            console.log("removeImage flag:", (blogData as any).removeImage)
 
             // Create FormData for multipart upload
             const formData = new FormData()
@@ -546,15 +547,17 @@ export class BlogService {
             }
 
             // Handle image update - use imageUrl to match backend
-            if (blogData.imageUrl) {
-                if (blogData.imageUrl instanceof File) {
-                    // New image file to upload
-                    formData.append("imageUrl", blogData.imageUrl)
-                    console.log("Added new imageUrl file to FormData:", blogData.imageUrl.name)
-                } else if (typeof blogData.imageUrl === "string") {
-                    // Keep existing image URL - don't send anything, backend will keep existing
-                    console.log("Keeping existing imageUrl:", blogData.imageUrl)
-                }
+            if ((blogData as any).removeImage === true) {
+                // User wants to remove image - send special flag
+                formData.append("removeImage", "true")
+                console.log("Added removeImage flag to FormData")
+            } else if (blogData.imageUrl instanceof File) {
+                // New image file to upload
+                formData.append("imageUrl", blogData.imageUrl)
+                console.log("Added new imageUrl file to FormData:", blogData.imageUrl.name)
+            } else if (typeof blogData.imageUrl === "string") {
+                // Keep existing image URL - don't send anything, backend will keep existing
+                console.log("Keeping existing imageUrl:", blogData.imageUrl)
             }
 
             console.log("FormData contents:")

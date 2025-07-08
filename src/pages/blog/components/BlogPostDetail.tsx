@@ -155,12 +155,7 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
                     </div>
                 </CardHeader>
                 <CardContent>
-                    {/* Debug info - remove in production */}
-                    {process.env.NODE_ENV === "development" && post.imageUrl && (
-                        <div className="mb-4 p-2 bg-yellow-100 dark:bg-yellow-900 rounded text-xs">
-                            <strong>Debug - ImageUrl:</strong> {post.imageUrl}
-                        </div>
-                    )}
+
 
                     {/* Image Display */}
                     {post.imageUrl && (

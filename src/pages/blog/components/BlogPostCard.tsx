@@ -136,14 +136,7 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {/* Debug Panel - Only show in development */}
-                    {process.env.NODE_ENV === "development" && (
-                        <div className="mb-4 p-2 bg-yellow-100 dark:bg-yellow-900 rounded text-xs">
-                            <strong>Debug Info:</strong>
-                            <br />
-                            ImageUrl: {post.imageUrl || "undefined"}
-                        </div>
-                    )}
+
 
                     {/* Image Preview */}
                     {post.imageUrl && (

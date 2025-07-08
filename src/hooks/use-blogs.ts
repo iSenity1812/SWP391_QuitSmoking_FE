@@ -277,7 +277,7 @@ export const useBlogActions = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const createBlog = async (blogData: BlogRequestDTO, authorId: string) => {
+  const createBlog = async (blogData: CreateBlogRequest, authorId: string) => {
     setLoading(true)
     setError(null)
     try {
@@ -300,7 +300,7 @@ export const useBlogActions = () => {
     }
   }
 
-  const updateBlog = async (id: number, blogData: BlogRequestDTO) => {
+  const updateBlog = async (id: number, blogData: UpdateBlogRequest) => {
     setLoading(true)
     setError(null)
     try {

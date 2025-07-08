@@ -4,11 +4,10 @@ import type React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Edit, Trash2, Eye } from "lucide-react"
+import { ArrowLeft, Edit, Trash2, Eye, ImageIcon } from "lucide-react"
 import type { BlogPost as BackendBlogPost, BlogUser } from "@/types/blog"
 import { formatDate } from "../utils/blog-utils"
 import type { BlogStatus } from "@/types/blog"
-
 
 interface MyPostsListProps {
     posts: BackendBlogPost[]
@@ -23,28 +22,42 @@ interface MyPostsListProps {
 const getStatusBadgeColors = (status: BlogStatus) => {
     switch (status) {
         case "PUBLISHED":
-            return "bg-emerald-100 text-emerald-800"; // Xanh lá cây đậm hơn
+            return "bg-emerald-100 text-emerald-800" // Xanh lá cây đậm hơn
         case "PENDING":
-            return "bg-amber-100 text-amber-800"; // Vàng
+            return "bg-amber-100 text-amber-800" // Vàng
         case "REJECTED":
-            return "bg-red-100 text-red-800";     // Đỏ
+            return "bg-red-100 text-red-800" // Đỏ
         default:
-            return "bg-gray-100 text-gray-800";   // Mặc định cho các trạng thái không xác định
+            return "bg-gray-100 text-gray-800" // Mặc định cho các trạng thái không xác định
     }
-};
+}
 
 const getVietnameseStatus = (status: BlogStatus) => {
     switch (status) {
         case "PUBLISHED":
-            return "Đã xuất bản";
+            return "Đã xuất bản"
         case "PENDING":
-            return "Chờ phê duyệt";
+            return "Chờ phê duyệt"
         case "REJECTED":
-            return "Bị từ chối";
+            return "Bị từ chối"
         default:
-            return status; // Trả về nguyên trạng nếu không khớp
+            return status // Trả về nguyên trạng nếu không khớp
     }
-};
+}
+
+// Function to strip HTML tags and get plain text
+const getTextPreview = (htmlContent: string, maxLength = 150) => {
+    const tmp = document.createElement("div")
+    tmp.innerHTML = htmlContent
+    const text = tmp.textContent || tmp.innerText || ""
+    return text.length > maxLength ? text.substring(0, maxLength) + "..." : text
+}
+
+// Function to handle image error
+const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.target as HTMLImageElement
+    target.style.display = "none"
+}
 
 const MyPostsList: React.FC<MyPostsListProps> = ({
     posts,
@@ -55,7 +68,7 @@ const MyPostsList: React.FC<MyPostsListProps> = ({
     onEditPost,
     onDeletePost,
 }) => {
-    console.log("[MyPostsList] Received posts prop:", posts);
+    console.log("[MyPostsList] Received posts prop:", posts)
     if (loading) {
         return (
             <div className="text-center py-12">
@@ -103,23 +116,27 @@ const MyPostsList: React.FC<MyPostsListProps> = ({
             ) : (
                 <div className="grid gap-6">
                     {posts.map((post) => (
-                        <Card key={post.blogId} className="hover:shadow-lg transition-shadow">
+                        <Card key={post.blogId} className="hover:shadow-lg transition-shadow overflow-hidden">
                             <CardHeader>
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1">
-                                        <CardTitle className="text-xl mb-2 line-clamp-2">{post.title}</CardTitle>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <CardTitle className="text-xl line-clamp-2">{post.title}</CardTitle>
+                                            {post.imageUrl && (
+                                                <Badge variant="outline" className="text-xs">
+                                                    <ImageIcon className="w-3 h-3 mr-1" />
+                                                    Có hình ảnh
+                                                </Badge>
+                                            )}
+                                        </div>
                                         <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-300">
-                                            <span>
-                                                Đăng {formatDate(post.createdAt || new Date().toISOString())}
-                                            </span>
+                                            <span>Đăng {formatDate(post.createdAt || new Date().toISOString())}</span>
                                             {post.lastUpdated && post.lastUpdated !== post.createdAt && (
                                                 <span className="text-amber-600">
-                                                    • Đã chỉnh sửa{" "}
-                                                    {formatDate(post.lastUpdated || new Date().toISOString())}
+                                                    • Đã chỉnh sửa {formatDate(post.lastUpdated || new Date().toISOString())}
                                                 </span>
                                             )}
                                             <Badge variant="secondary" className={getStatusBadgeColors(post.status)}>
-                                                {/* HIỂN THỊ TRẠNG THÁI BẰNG TIẾNG VIỆT */}
                                                 {getVietnameseStatus(post.status)}
                                             </Badge>
                                         </div>
@@ -127,7 +144,20 @@ const MyPostsList: React.FC<MyPostsListProps> = ({
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-slate-700 dark:text-slate-300 mb-4 line-clamp-3">{post.content}</p>
+                                {/* Image Preview */}
+                                {post.imageUrl && (
+                                    <div className="mb-4 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                        <img
+                                            src={post.imageUrl || "/placeholder.svg"}
+                                            alt={post.title}
+                                            className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+                                            onError={handleImageError}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Content Preview - Strip HTML tags */}
+                                <p className="text-slate-700 dark:text-slate-300 mb-4 line-clamp-3">{getTextPreview(post.content)}</p>
 
                                 {/* Stats */}
                                 <div className="flex items-center gap-6 text-sm text-slate-500 dark:text-slate-400 mb-4">
@@ -146,7 +176,6 @@ const MyPostsList: React.FC<MyPostsListProps> = ({
                                         </svg>
                                         {post.commentCount || 0} bình luận
                                     </span>
-
                                 </div>
 
                                 {/* Actions */}

@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useBlogPosts, useBlogActions, useMyBlogs } from "@/hooks/use-blogs"
 import { commentService } from "@/services/commentService"
-import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser } from "@/types/blog"
+import type { BlogPost as BackendBlogPost, BlogUser, CreateBlogRequest, UpdateBlogRequest } from "@/types/blog"
 import type { CommentRequestDTO, CommentResponseDTO, CommentApiResponse } from "@/types/comment"
 import { toast } from "react-toastify"
 
@@ -26,7 +26,7 @@ import DeleteConfirmDialog from "./dialogs/DeleteConfirmDialog"
 interface BlogFormData {
     title: string
     content: string
-    image?: File | string // Add image field
+    imageUrl?: File | string // Change from 'image' to 'imageUrl'
 }
 
 interface ReportFormData {
@@ -187,11 +187,17 @@ const BlogPage: React.FC = () => {
         }
 
         try {
-            const blogData: BlogRequestDTO = {
+            // Change this part - use CreateBlogRequest structure
+            const blogData: CreateBlogRequest = {
+                authorId: currentUser.id,
                 title: formData.title,
                 content: formData.content,
-                imageUrl: formData.image, // Add image field
+                imageUrl: formData.imageUrl instanceof File ? formData.imageUrl : undefined, // Use 'imageUrl' instead of 'image'
+                status: currentUser.role === "COACH" ? "PENDING" : "PUBLISHED",
             }
+
+            console.log("Submitting blog data:", blogData)
+            console.log("Image file:", blogData.imageUrl)
 
             await createBlog(blogData, currentUser.id)
             setIsCreateDialogOpen(false)
@@ -219,10 +225,11 @@ const BlogPage: React.FC = () => {
         if (!editingPost || !currentUser) return
 
         try {
-            const blogData: BlogRequestDTO = {
+            // Change this part - use UpdateBlogRequest structure
+            const blogData: UpdateBlogRequest = {
                 title: formData.title,
                 content: formData.content,
-                imageUrl: formData.image, // Add image field
+                imageUrl: formData.imageUrl, // Use 'imageUrl' instead of 'image'
             }
 
             const blogIdToUpdate = editingPost.blogId
@@ -239,7 +246,7 @@ const BlogPage: React.FC = () => {
                     ...editingPost,
                     title: formData.title,
                     content: formData.content,
-                    imageUrl: typeof formData.image === "string" ? formData.image : editingPost.imageUrl, // Keep existing image if new one is File
+                    imageUrl: typeof formData.imageUrl === "string" ? formData.imageUrl : editingPost.imageUrl, // Use 'imageUrl'
                     lastUpdated: new Date().toISOString(),
                 })
             }
@@ -513,7 +520,7 @@ const BlogPage: React.FC = () => {
                         ? {
                             title: editingPost.title,
                             content: editingPost.content,
-                            imageUrl: editingPost.imageUrl, // Add image field
+                            imageUrl: editingPost.imageUrl, // Use 'imageUrl' instead of 'image'
                         }
                         : undefined
                 }
