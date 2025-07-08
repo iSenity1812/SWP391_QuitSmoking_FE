@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import { useAdminBlogs, useBlogActions, useMyBlogs, useAdminBlogActions } from "@/hooks/use-blogs"
 import { commentService } from "@/services/commentService"
-import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser, BlogStatus } from "@/types/blog"
+import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser, BlogStatus, CreateBlogRequest, UpdateBlogRequest } from "@/types/blog"
 import type { CommentRequestDTO, CommentResponseDTO, CommentApiResponse } from "@/types/comment"
 import { Search, CheckCircle, XCircle, Clock, Eye, Trash2 } from "lucide-react"
 import BlogPostDetail from "@/pages/blog/components/BlogPostDetail"
@@ -11,6 +11,7 @@ import MyPostsList from "@/pages/blog/components/MyPostList"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -24,6 +25,8 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { toast } from "react-toastify"
+import BlogPostList from "@/pages/blog/components/BlogPostList"
+
 
 // Helper function to convert status to Vietnamese
 const getStatusText = (status: BlogStatus) => {
@@ -44,7 +47,10 @@ import DeleteConfirmDialog from "@/pages/blog/dialogs/DeleteConfirmDialog"
 interface BlogFormData {
     title: string
     content: string
+    imageUrl?: File | string // Đổi từ image thành imageUrl
+    removeImage?: boolean // Add removeImage field
 }
+
 
 interface ReportFormData {
     reason: string
@@ -120,6 +126,20 @@ export function BlogManagement() {
         keyword: searchTerm || undefined,
         // Remove status filter - always get all blogs
     })
+
+    // Helper function to strip HTML tags and get plain text
+    const stripHtmlTags = (html: string) => {
+        const div = document.createElement("div")
+        div.innerHTML = html
+        return div.textContent || div.innerText || ""
+    }
+
+    // Helper function to render content preview with proper HTML
+    const renderContentPreview = (content: string, maxLength = 200) => {
+        const plainText = stripHtmlTags(content)
+        const truncated = plainText.length > maxLength ? plainText.substring(0, maxLength) + "..." : plainText
+        return truncated
+    }
 
     // My posts hook - only fetch when user is logged in and viewing my posts
     const {
@@ -208,7 +228,24 @@ export function BlogManagement() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-slate-600 dark:text-slate-300 mb-4 line-clamp-3">{post.content.substring(0, 200)}...</p>
+                    {/* Image preview */}
+                    {post.imageUrl && (
+                        <div className="mb-4">
+                            <img
+                                src={post.imageUrl || "/placeholder.svg"}
+                                alt={post.title}
+                                className="w-full h-48 object-cover rounded-lg"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement
+                                    target.style.display = "none"
+                                }}
+                            />
+                        </div>
+                    )}
+
+                    {/* Content preview */}
+                    <p className="text-slate-600 dark:text-slate-300 mb-4 line-clamp-3">{renderContentPreview(post.content)}</p>
+
                     <div className="flex gap-2 flex-wrap">
                         <Button
                             variant="outline"
@@ -312,15 +349,22 @@ export function BlogManagement() {
         }
 
         try {
-            const blogData: BlogRequestDTO = {
+            // Change this part - use CreateBlogRequest structure
+            const blogData: CreateBlogRequest = {
+                authorId: currentUser.id,
                 title: formData.title,
                 content: formData.content,
+                imageUrl: formData.imageUrl instanceof File ? formData.imageUrl : undefined, // Đổi từ formData.image
+                status: currentUser.role === "COACH" ? "PENDING" : "PUBLISHED",
             }
+
+            console.log("Submitting blog data:", blogData)
+            console.log("Image file:", blogData.imageUrl)
 
             await createBlog(blogData, currentUser.id)
             setIsCreateDialogOpen(false)
             refetchBlogs()
-            refetchMyPosts()
+            refetchMyPosts() // Also refresh my posts
 
             const successMessage =
                 currentUser.role === "COACH"
@@ -343,10 +387,24 @@ export function BlogManagement() {
         if (!editingPost || !currentUser) return
 
         try {
-            const blogData: BlogRequestDTO = {
+            console.log("=== BlogPage.handleUpdateBlog ===")
+            console.log("Received formData:", formData)
+            console.log("formData.removeImage:", formData.removeImage)
+            console.log("formData.imageUrl:", formData.imageUrl)
+            console.log("formData.imageUrl type:", typeof formData.imageUrl)
+
+            // Change this part - use UpdateBlogRequest structure and include removeImage
+            const blogData: UpdateBlogRequest = {
                 title: formData.title,
                 content: formData.content,
+                imageUrl: formData.imageUrl, // Keep as is - can be File or string
+                removeImage: formData.removeImage, // IMPORTANT: Add this line to pass removeImage flag
             }
+
+            console.log("=== Prepared blogData for service ===")
+            console.log("blogData:", blogData)
+            console.log("blogData.removeImage:", blogData.removeImage)
+            console.log("blogData.imageUrl:", blogData.imageUrl)
 
             const blogIdToUpdate = editingPost.blogId
             if (!blogIdToUpdate) {
@@ -356,11 +414,17 @@ export function BlogManagement() {
 
             await updateBlog(blogIdToUpdate, blogData)
 
+            // Update selected post if it's the one being edited
             if (selectedPost?.blogId === editingPost.blogId) {
                 setSelectedPost({
                     ...editingPost,
                     title: formData.title,
                     content: formData.content,
+                    imageUrl: formData.removeImage
+                        ? undefined
+                        : typeof formData.imageUrl === "string"
+                            ? formData.imageUrl
+                            : editingPost.imageUrl, // Handle removeImage case
                     lastUpdated: new Date().toISOString(),
                 })
             }
@@ -368,7 +432,7 @@ export function BlogManagement() {
             setEditingPost(null)
             setIsEditDialogOpen(false)
             refetchBlogs()
-            refetchMyPosts()
+            refetchMyPosts() // Also refresh my posts
             toast.success("Bài viết đã được cập nhật thành công!")
         } catch (error: any) {
             toast.error(`Lỗi khi cập nhật bài viết: ${error.message || "Có lỗi xảy ra"}`)
@@ -709,6 +773,7 @@ export function BlogManagement() {
                         ? {
                             title: editingPost.title,
                             content: editingPost.content,
+                            imageUrl: editingPost.imageUrl, // Add image field
                         }
                         : undefined
                 }
@@ -801,4 +866,3 @@ export function BlogManagement() {
         </div>
     )
 }
-    

@@ -7,7 +7,6 @@ import type {
   SpringPageResponse,
   BlogListParams,
   BlogStatus,
-  BlogRequestDTO,
   CreateBlogRequest,
   UpdateBlogRequest,
 } from "@/types/blog"
@@ -304,13 +303,26 @@ export const useBlogActions = () => {
     setLoading(true)
     setError(null)
     try {
-      // Convert BlogRequestDTO to UpdateBlogRequest
+      console.log("=== useBlogActions.updateBlog ===")
+      console.log("Received blogData:", blogData)
+      console.log("blogData.removeImage:", blogData.removeImage)
+      console.log("blogData.imageUrl:", blogData.imageUrl)
+      console.log("blogData.imageUrl type:", typeof blogData.imageUrl)
+
+      // Convert BlogRequestDTO to UpdateBlogRequest - IMPORTANT: Include removeImage
       const updateRequest: UpdateBlogRequest = {
         title: blogData.title,
         content: blogData.content,
         // Handle image - can be File for new upload or string URL to keep existing
         imageUrl: blogData.imageUrl,
+        // CRITICAL: Pass through the removeImage flag
+        removeImage: blogData.removeImage,
       }
+
+      console.log("=== Prepared updateRequest for BlogService ===")
+      console.log("updateRequest:", updateRequest)
+      console.log("updateRequest.removeImage:", updateRequest.removeImage)
+      console.log("updateRequest.imageUrl:", updateRequest.imageUrl)
 
       const blog = await BlogService.updateBlog(id, updateRequest)
       return blog

@@ -19,7 +19,7 @@ type UserRole = "NORMAL_MEMBER" | "PREMIUM_MEMBER" | "COACH" | "CONTENT_ADMIN" |
 interface BlogFormData {
     title: string
     content: string
-    imageUrl?: File | string // Match backend field name
+    imageUrl?: File | string // Giữ nguyên tên imageUrl
     removeImage?: boolean // Add removeImage flag
 }
 
@@ -207,7 +207,9 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
             console.log("removeImage flag:", formData.removeImage)
             console.log("imageUrl:", formData.imageUrl)
             console.log("imageUrl type:", typeof formData.imageUrl)
+            console.log("=== About to call onSubmit ===")
             onSubmit(formData)
+            console.log("=== onSubmit called ===")
         }
     }
 
@@ -266,17 +268,7 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </Button>
-                                {/* Debug info - remove in production */}
-                                {process.env.NODE_ENV === "development" && (
-                                    <div className="mt-2 p-2 bg-blue-100 dark:bg-blue-900 rounded text-xs">
-                                        <strong>Original imageUrl:</strong> {originalImageUrl}
-                                        <br />
-                                        <strong>Form imageUrl:</strong>{" "}
-                                        {formData.imageUrl instanceof File ? `File: ${formData.imageUrl.name}` : formData.imageUrl}
-                                        <br />
-                                        <strong>removeImage:</strong> {formData.removeImage ? "true" : "false"}
-                                    </div>
-                                )}
+
                             </div>
                         ) : (
                             <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6 text-center">

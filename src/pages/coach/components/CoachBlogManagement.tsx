@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { useBlogPosts, useBlogActions, useMyBlogs } from "@/hooks/use-blogs"
 import { commentService } from "@/services/commentService"
 import { CardDescription, CardTitle } from "@/components/ui/card"
-import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser } from "@/types/blog"
+import type { BlogRequestDTO, BlogPost as BackendBlogPost, BlogUser, UpdateBlogRequest, CreateBlogRequest } from "@/types/blog"
 import type { CommentRequestDTO, CommentResponseDTO, CommentApiResponse } from "@/types/comment"
 import { Search } from "lucide-react"
 
@@ -23,6 +23,8 @@ import DeleteConfirmDialog from "@/pages/blog/dialogs/DeleteConfirmDialog"
 interface BlogFormData {
     title: string
     content: string
+    imageUrl?: File | string // Đổi từ image thành imageUrl
+    removeImage?: boolean
 }
 
 interface ReportFormData {
@@ -173,15 +175,22 @@ export function CoachBlogManagement() {
         }
 
         try {
-            const blogData: BlogRequestDTO = {
+            // Change this part - use CreateBlogRequest structure
+            const blogData: CreateBlogRequest = {
+                authorId: currentUser.id,
                 title: formData.title,
                 content: formData.content,
+                imageUrl: formData.imageUrl instanceof File ? formData.imageUrl : undefined, // Đổi từ formData.image
+                status: currentUser.role === "COACH" ? "PENDING" : "PUBLISHED",
             }
+
+            console.log("Submitting blog data:", blogData)
+            console.log("Image file:", blogData.imageUrl)
 
             await createBlog(blogData, currentUser.id)
             setIsCreateDialogOpen(false)
             refetchBlogs()
-            refetchMyPosts()
+            refetchMyPosts() // Also refresh my posts
 
             const successMessage =
                 currentUser.role === "COACH"
@@ -204,10 +213,24 @@ export function CoachBlogManagement() {
         if (!editingPost || !currentUser) return
 
         try {
-            const blogData: BlogRequestDTO = {
+            console.log("=== BlogPage.handleUpdateBlog ===")
+            console.log("Received formData:", formData)
+            console.log("formData.removeImage:", formData.removeImage)
+            console.log("formData.imageUrl:", formData.imageUrl)
+            console.log("formData.imageUrl type:", typeof formData.imageUrl)
+
+            // Change this part - use UpdateBlogRequest structure and include removeImage
+            const blogData: UpdateBlogRequest = {
                 title: formData.title,
                 content: formData.content,
+                imageUrl: formData.imageUrl, // Keep as is - can be File or string
+                removeImage: formData.removeImage, // IMPORTANT: Add this line to pass removeImage flag
             }
+
+            console.log("=== Prepared blogData for service ===")
+            console.log("blogData:", blogData)
+            console.log("blogData.removeImage:", blogData.removeImage)
+            console.log("blogData.imageUrl:", blogData.imageUrl)
 
             const blogIdToUpdate = editingPost.blogId
             if (!blogIdToUpdate) {
@@ -217,11 +240,17 @@ export function CoachBlogManagement() {
 
             await updateBlog(blogIdToUpdate, blogData)
 
+            // Update selected post if it's the one being edited
             if (selectedPost?.blogId === editingPost.blogId) {
                 setSelectedPost({
                     ...editingPost,
                     title: formData.title,
                     content: formData.content,
+                    imageUrl: formData.removeImage
+                        ? undefined
+                        : typeof formData.imageUrl === "string"
+                            ? formData.imageUrl
+                            : editingPost.imageUrl, // Handle removeImage case
                     lastUpdated: new Date().toISOString(),
                 })
             }
@@ -229,7 +258,7 @@ export function CoachBlogManagement() {
             setEditingPost(null)
             setIsEditDialogOpen(false)
             refetchBlogs()
-            refetchMyPosts()
+            refetchMyPosts() // Also refresh my posts
             toast.success("Bài viết đã được cập nhật thành công!")
         } catch (error: any) {
             toast.error(`Lỗi khi cập nhật bài viết: ${error.message || "Có lỗi xảy ra"}`)
@@ -481,6 +510,7 @@ export function CoachBlogManagement() {
                         ? {
                             title: editingPost.title,
                             content: editingPost.content,
+                            imageUrl: editingPost.imageUrl, // Add image field
                         }
                         : undefined
                 }

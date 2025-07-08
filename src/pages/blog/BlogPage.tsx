@@ -26,7 +26,8 @@ import DeleteConfirmDialog from "./dialogs/DeleteConfirmDialog"
 interface BlogFormData {
     title: string
     content: string
-    image?: File | string // Add image field
+    imageUrl?: File | string // Đổi từ image thành imageUrl
+    removeImage?: boolean // Add removeImage field
 }
 
 interface ReportFormData {
@@ -192,7 +193,7 @@ const BlogPage: React.FC = () => {
                 authorId: currentUser.id,
                 title: formData.title,
                 content: formData.content,
-                imageUrl: formData.image instanceof File ? formData.image : undefined, // Ensure File is passed correctly
+                imageUrl: formData.imageUrl instanceof File ? formData.imageUrl : undefined, // Đổi từ formData.image
                 status: currentUser.role === "COACH" ? "PENDING" : "PUBLISHED",
             }
 
@@ -225,12 +226,24 @@ const BlogPage: React.FC = () => {
         if (!editingPost || !currentUser) return
 
         try {
-            // Change this part - use UpdateBlogRequest structure
+            console.log("=== BlogPage.handleUpdateBlog ===")
+            console.log("Received formData:", formData)
+            console.log("formData.removeImage:", formData.removeImage)
+            console.log("formData.imageUrl:", formData.imageUrl)
+            console.log("formData.imageUrl type:", typeof formData.imageUrl)
+
+            // Change this part - use UpdateBlogRequest structure and include removeImage
             const blogData: UpdateBlogRequest = {
                 title: formData.title,
                 content: formData.content,
-                imageUrl: formData.image, // Keep as is - can be File or string
+                imageUrl: formData.imageUrl, // Keep as is - can be File or string
+                removeImage: formData.removeImage, // IMPORTANT: Add this line to pass removeImage flag
             }
+
+            console.log("=== Prepared blogData for service ===")
+            console.log("blogData:", blogData)
+            console.log("blogData.removeImage:", blogData.removeImage)
+            console.log("blogData.imageUrl:", blogData.imageUrl)
 
             const blogIdToUpdate = editingPost.blogId
             if (!blogIdToUpdate) {
@@ -246,7 +259,11 @@ const BlogPage: React.FC = () => {
                     ...editingPost,
                     title: formData.title,
                     content: formData.content,
-                    imageUrl: typeof formData.image === "string" ? formData.image : editingPost.imageUrl, // Keep existing image if new one is File
+                    imageUrl: formData.removeImage
+                        ? undefined
+                        : typeof formData.imageUrl === "string"
+                            ? formData.imageUrl
+                            : editingPost.imageUrl, // Handle removeImage case
                     lastUpdated: new Date().toISOString(),
                 })
             }

@@ -524,6 +524,7 @@ export class BlogService {
 
     /**
      * Update an existing blog with optional image upload - REQUIRES AUTH
+     * Fixed to match backend BlogUpdateRequestDTO exactly
      */
     static async updateBlog(id: number, blogData: UpdateBlogRequest): Promise<BlogPost> {
         try {
@@ -535,60 +536,94 @@ export class BlogService {
             console.log("Is File?", blogData.imageUrl instanceof File)
             console.log("removeImage flag:", blogData.removeImage)
 
-            // Create FormData for multipart upload
+            // Create FormData to match backend @ModelAttribute BlogUpdateRequestDTO
             const formData = new FormData()
 
-            if (blogData.title) {
-                formData.append("title", blogData.title)
-            }
+            // Required fields - backend expects these
+            formData.append("title", blogData.title || "")
+            formData.append("content", blogData.content || "")
 
-            if (blogData.content) {
-                formData.append("content", blogData.content)
-            }
-
-            // Handle removeImage flag
+            // Handle removeImage flag - backend expects Boolean removeImage
+            // Convert to string as FormData only accepts strings
             if (blogData.removeImage !== undefined) {
                 formData.append("removeImage", blogData.removeImage.toString())
-                console.log("Added removeImage flag to FormData:", blogData.removeImage)
+                console.log("✅ Added removeImage to FormData:", blogData.removeImage)
+            } else {
+                // Default to false if not specified
+                formData.append("removeImage", "false")
+                console.log("✅ Added default removeImage to FormData: false")
             }
 
-            // Handle image update - only add imageUrl if there's a new file to upload
+            // Handle imageUrl - backend expects MultipartFile imageUrl (can be null)
             if (blogData.imageUrl && blogData.imageUrl instanceof File) {
-                // New image file to upload
                 formData.append("imageUrl", blogData.imageUrl)
-                console.log("Added new imageUrl file to FormData:", blogData.imageUrl.name)
+                console.log("✅ Added new imageUrl file to FormData:", blogData.imageUrl.name)
+            } else {
+                console.log("ℹ️ No new imageUrl file to add (keeping existing or removing based on removeImage flag)")
             }
-            // If imageUrl is a string (existing URL) and removeImage is not true,
-            // don't send anything - backend will keep existing image
 
+            console.log("=== FormData Debug ===")
             console.log("FormData contents:")
             for (const [key, value] of formData.entries()) {
-                console.log(`${key}:`, value instanceof File ? `File: ${value.name}` : value)
+                if (value instanceof File) {
+                    console.log(`  ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`)
+                } else {
+                    console.log(`  ${key}: "${value}"`)
+                }
             }
+            console.log("=== End FormData Debug ===")
 
+            // Send request with multipart/form-data to match backend expectation
             const response = await axiosConfig.put<ApiResponse<BlogResponseDTO>>(`${this.BASE_PATH}/${id}`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
+                timeout: 30000, // 30 seconds for file uploads
             })
 
-            console.log("Update blog response:", response.data)
+            console.log("=== Update Response Debug ===")
+            console.log("Response status:", response.status)
+            console.log("Response data:", response.data)
+            console.log("Response message:", response.data.message)
 
             if (!this.isSuccessResponse(response.data)) {
                 throw new Error(response.data.message || "Failed to update blog")
             }
 
             const dto = response.data.data
-            console.log("Updated blog DTO:", dto)
-            console.log("Updated blog imageUrl:", dto.imageUrl)
+            if (!dto) {
+                throw new Error("No data returned from backend")
+            }
+
+            console.log("✅ Updated blog DTO:", dto)
+            console.log("✅ Updated blog imageUrl:", dto.imageUrl)
+            console.log("=== End Update Response Debug ===")
 
             return this.mapBlogDtoToFrontendBlog(dto)
         } catch (error: any) {
-            console.error(`Error updating blog ${id}:`, error)
+            console.error("=== Update Error Debug ===")
+            console.error("Error updating blog:", error)
+
             if (error.response) {
                 console.error("Response status:", error.response.status)
                 console.error("Response data:", error.response.data)
+                console.error("Response headers:", error.response.headers)
+
+                if (error.response.status === 400) {
+                    console.error("❌ Bad Request - Check if FormData fields match backend DTO")
+                    console.error("Backend expects: title, content, imageUrl (MultipartFile), removeImage (Boolean)")
+                }
+
+                if (error.response.status === 403) {
+                    throw new Error("Không có quyền cập nhật bài viết này.")
+                }
+
+                if (error.response.data?.message) {
+                    throw new Error(`Backend error: ${error.response.data.message}`)
+                }
             }
+
+            console.error("=== End Update Error Debug ===")
             throw error
         }
     }
