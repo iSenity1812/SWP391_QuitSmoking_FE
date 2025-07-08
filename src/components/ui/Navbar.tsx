@@ -1,36 +1,77 @@
-import { Gem, Home, Menu, Wind } from "lucide-react";
+import { ChartColumnIncreasing, Gem, Home, Menu, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Info } from "lucide-react";
 import { BookOpen } from "lucide-react";
 import { NavItem } from "@/components/ui/nav-item";
-// import { useTheme } from "@/context/ThemeContext";
 import { ThemeToggle } from "./ThemeToggle";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserRoutes } from "@/hooks/useRoleAuth";
+import { UserDropdown } from "@/pages/auth/components/UserDropdown";
 
-const navLinks = [
-  { href: "/", label: "Home", icon: Home, isActive: true },
+// Define navigation links for different user states
+const publicNavLinks = [
+  { href: "/", label: "Trang chủ", icon: Home },
   { href: "/blog", label: "Blog", icon: BookOpen },
-  { href: "plan/", label: "Check", icon: Gem },
-  { href: "/about", label: "About", icon: Info },
+  { href: "/about", label: "Thông tin", icon: Info },
+];
+
+const memberNavLinks = [
+  { href: "/", label: "Trang chủ", icon: Home },
+  { href: "/blog", label: "Blog", icon: BookOpen },
+  { href: "/plan", label: "Tiến trình", icon: ChartColumnIncreasing },
+  { href: "/about", label: "Thông tin", icon: Info },
+  { href: "/subscription", label: "Gói trả phí", icon: Gem },
+];
+
+const coachNavLinks = [
+  { href: "/blog", label: "Blog", icon: BookOpen },
 ];
 
 export function Navbar() {
   const location = useLocation();
-  // const { theme } = useTheme();
+  const { isAuthenticated, user } = useAuth();
+  const { canAccessPlan, canAccessCoach, canAccessAdmin, canAccessContentAdmin } = useUserRoutes();
+
+  // Determine which nav links to show
+  const getNavLinks = () => {
+    if (!isAuthenticated) return publicNavLinks;
+
+    if (!user) return publicNavLinks;
+
+    // Admin and Content Admin should only see dashboard
+    if (canAccessAdmin || canAccessContentAdmin) {
+      return []; // No public nav links for admins
+    }
+
+    // Coach can only see blog
+    if (canAccessCoach) {
+      return coachNavLinks;
+    }
+
+    // For members (normal/premium)
+    if (canAccessPlan) return memberNavLinks;
+
+    // Default fallback
+    return publicNavLinks;
+  };
+  const navLinks = getNavLinks();
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-slate-900/95 border-b-2 border-emerald-200 dark:border-slate-700 backdrop-blur-xl shadow-lg shadow-emerald-100/50 dark:shadow-slate-900/50">
       <div className="max-w-1xl mx-auto px-6 flex items-center justify-between h-18">
         <div className="flex items-center gap-3 text-2xl font-black text-slate-800 dark:text-white">
           <Wind className="h-8 w-8 text-emerald-500" />
-          <a href="/" className="text-xl font-bold">
+          <Link to="/" className="text-xl font-bold">
             QuitTogether
-          </a>
+          </Link>
         </div>
 
         <nav className="hidden md:flex items-center gap-6">
@@ -45,21 +86,28 @@ export function Navbar() {
             </NavItem>
           ))}
         </nav>
-
         <div className="flex items-center gap-3">
           <ThemeToggle />
-          <Link
-            to="/login"
-            className="hidden md:flex items-center px-4 py-2.5 rounded-xl font-semibold text-sm border-2 border-emerald-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-slate-700 dark:to-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500 hover:scale-105 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-          >
-            Log In
-          </Link>
-          <Link
-            to={"/register"}
-            className="hidden md:flex items-center px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-500/25">
-            Sign Up
-          </Link>
-
+          {/* Authenticated User Menu */}
+          {isAuthenticated && user ? (
+            <UserDropdown />
+          ) : (
+            /* Guest User Buttons */
+            <>
+              <Link
+                to="/login"
+                className="hidden md:flex items-center px-4 py-2.5 rounded-xl font-semibold text-sm border-2 border-emerald-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-slate-700 dark:to-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500 hover:scale-105 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                Đăng nhập
+              </Link>
+              <Link
+                to="/register"
+                className="hidden md:flex items-center px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-500/25"
+              >
+                Đăng ký
+              </Link>
+            </>
+          )}          {/* Mobile Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="md:hidden">
@@ -68,13 +116,22 @@ export function Navbar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>Home</DropdownMenuItem>
-              <DropdownMenuItem>Progress</DropdownMenuItem>
-              <DropdownMenuItem>Blog</DropdownMenuItem>
-              <DropdownMenuItem>Shop</DropdownMenuItem>
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Log In</DropdownMenuItem>
-              <DropdownMenuItem>Sign Up</DropdownMenuItem>
+              {navLinks.map((item) => (
+                <DropdownMenuItem key={item.href} asChild>
+                  <Link to={item.href}>{item.label}</Link>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              {!isAuthenticated && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link to="/login">Đăng nhập</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/register">Đăng ký</Link>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

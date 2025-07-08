@@ -1,51 +1,112 @@
 // src/components/auth/LoginForm.tsx
+
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
-import { Sparkles, ArrowRight } from "lucide-react"; // Thay đổi ArrowLeft thành ArrowRight cho Login
+import { Link } from "react-router-dom"; // Import useNavigate
+import { Sparkles, ArrowRight, Wind } from "lucide-react";
 
-import { UsernameOrEmailInput } from "@/pages/auth/components/login";
-import { PasswordInput } from "@/pages/auth/components/login"; // Sử dụng lại PasswordInput từ Register
-import { SubmitButton } from "@/pages/auth/components/login"; // Sử dụng lại SubmitButton
+import { EmailInput } from "@/pages/auth/components/login";
+import { PasswordInput } from "@/pages/auth/components/login";
+import { SubmitButton } from "@/pages/auth/components/login";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
+import type { ApiResponse, LoginRequest } from "@/types/auth"; // Import LoginRequest và các type liên quan nếu cần
+import { toast } from "react-toastify";
+import { useAuth } from "@/hooks/useAuth";
+
 export const LoginForm: React.FC = () => {
-  const [usernameOrEmail, setUsernameOrEmail] = useState("");
+  const [email, setEmail] = useState(""); // Đổi tên thành email để khớp với LoginRequest
   const [password, setPassword] = useState("");
-  const [isUsernameOrEmailValid, setIsUsernameOrEmailValid] = useState<boolean | null>(null);
+  // const [isUsernameOrEmailValid, setIsUsernameOrEmailValid] = useState<boolean | null>(null); // Có thể bỏ qua nếu validation bên client đơn giản hơn
+  const [isEmailValid, setIsEmailValid] = useState<boolean | null>(null); // Đổi tên để khớp với email
   const [isPasswordValid, setIsPasswordValid] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // State để lưu thông báo lỗi
+  const [successMessage, setSuccessMessage] = useState<string | null>(null); // State để lưu thông báo thành công
+  const { login: authContextLogin } = useAuth(); // Lấy hàm login từ AuthContext
 
-  const validateUsernameOrEmail = (value: string) => {
+  const validateEmail = (value: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const isEmail = emailRegex.test(value);
-    const isUsername = value.length >= 3; // Ví dụ: username tối thiểu 3 ký tự
-
-    setIsUsernameOrEmailValid(isEmail || isUsername);
+    setIsEmailValid(emailRegex.test(value));
   };
 
   const validatePassword = (value: string) => {
-    // Logic validation password đơn giản hơn cho Login (chỉ cần có ký tự)
-    // Hoặc bạn có thể giữ nguyên logic password strength nếu muốn người dùng nhập password mạnh cả khi login
-    setIsPasswordValid(value.length >= 8); // Đảm bảo password không trống
+    // Backend của bạn yêu cầu password từ 6 đến 20 ký tự
+    setIsPasswordValid(value.length >= 6 && value.length <= 20);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Re-validate just in case (e.g., if user types then quickly clicks submit)
-    validateUsernameOrEmail(usernameOrEmail);
+    console.log("e.preventDefault() đã được gọi.")
+    setErrorMessage(null); // Reset lỗi
+    setSuccessMessage(null); // Reset thành công
+    setIsSubmitting(true);
+
+    // Re-validate just in case
+    validateEmail(email);
     validatePassword(password);
 
-    if (isUsernameOrEmailValid && isPasswordValid) {
-      setIsSubmitting(true);
-      // Simulate API call
-      setTimeout(() => {
-        setIsSubmitting(false);
-        // Handle successful login
-        alert("Login successful!");
-        // Redirect or perform other actions
-      }, 1500);
+    const currentEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const currentPasswordValid = password.length >= 6 && password.length <= 20;
+
+    if (!currentEmailValid || !currentPasswordValid) {
+      setIsSubmitting(false);
+      toast.error("Vui lòng nhập đúng định dạng Email và Mật khẩu (từ 8 đến 20 ký tự).");
+      return;
+    }
+
+    try {
+      const loginData: LoginRequest = { email, password };
+      const response = await authContextLogin(loginData); // Sử dụng hàm login từ AuthContext
+
+      if (response.status === 200) { // Kiểm tra status từ ApiResponse
+        toast.success(response.message || "Đăng nhập thành công!");
+      } else {
+        // Đây là trường hợp response.status không phải 200 nhưng vẫn là phản hồi hợp lệ từ backend
+        toast.error(response.message || "Có lỗi xảy ra trong quá trình đăng nhập.");
+      }
+    } catch (err: unknown) {
+      // Xử lý lỗi từ backend (được ném ra từ apiClient.ts)
+      console.error("Login API Error:", err);
+      // Xử lý lỗi được ném ra từ apiClient.ts interceptor
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "status" in err && // Kiểm tra một thuộc tính chắc chắn có trong ApiResponse
+        "message" in err   // Kiểm tra một thuộc tính khác
+      ) {
+        // Ép kiểu err thành ApiResponse để TypeScript biết các thuộc tính của nó
+        const apiError = err as ApiResponse<unknown>;
+
+        if (apiError.error) {
+          if (typeof apiError.error === 'string') {
+            // Trường hợp lỗi là một chuỗi (ví dụ: "Tài khoản vô hiệu hóa")
+            toast.error(apiError.error);
+          } else if (typeof apiError.error === 'object' && apiError.error !== null) {
+            // Trường hợp lỗi là một Map (lỗi validation)
+            const fieldErrors = Object.values(apiError.error).join(". ");
+            toast.error(`Lỗi nhập liệu: ${fieldErrors}`);
+          } else {
+            // Trường hợp lỗi.error không phải string hoặc object
+            toast.error(apiError.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+          }
+        } else if (apiError.message) {
+          // Nếu không có apiError.error nhưng có apiError.message
+          toast.error(apiError.message);
+        } else {
+          // Fallback cuối cùng nếu không có cả error và message
+          toast.error("Đăng nhập thất bại. Vui lòng kiểm tra kết nối mạng hoặc thử lại.");
+        }
+      } else if (err instanceof Error) {
+        // Xử lý các lỗi JavaScript Error thông thường (ví dụ: lỗi mạng)
+        toast.error(err.message);
+      } else {
+        // Xử lý các lỗi không xác định khác
+        toast.error("Đăng nhập thất bại. Vui lòng kiểm tra kết nối mạng hoặc thử lại.");
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -63,11 +124,17 @@ export const LoginForm: React.FC = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <UsernameOrEmailInput
-              value={usernameOrEmail}
-              setValue={setUsernameOrEmail}
-              isValid={isUsernameOrEmailValid}
-              validate={validateUsernameOrEmail}
+            {errorMessage && (
+              <p className="text-red-500 text-center text-sm">{errorMessage}</p>
+            )}
+            {successMessage && (
+              <p className="text-green-500 text-center text-sm">{successMessage}</p>
+            )}
+            <EmailInput // Tên component này có thể gây hiểu lầm, bạn có thể đổi tên thành EmailInput
+              email={email}
+              setEmail={setEmail}
+              isEmailValid={isEmailValid}
+              validateEmail={validateEmail}
             />
 
             <PasswordInput
@@ -80,7 +147,7 @@ export const LoginForm: React.FC = () => {
             <SubmitButton
               isSubmitting={isSubmitting}
               isPasswordValid={isPasswordValid}
-              isEmailValid={isUsernameOrEmailValid}
+              isEmailValid={isEmailValid} // Đổi tên prop
             />
           </form>
         </CardContent>
@@ -105,7 +172,7 @@ export const LoginForm: React.FC = () => {
   );
 };
 
-
+// ... Phần còn lại của LoginPage không thay đổi
 export default function LoginPage() {
   return (
     <motion.div
@@ -115,8 +182,17 @@ export default function LoginPage() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
+      <div className="absolute top-4 left-4 right-4">
+        <div className="flex items-center justify-between w-full">
+          {/* Phần QuitTogether nằm bên trái */}
+          <a href="/" className="flex items-center gap-3 text-2xl font-black text-slate-800 dark:text-white">
+            <Wind className="h-8 w-8 text-emerald-500" />
+            <span className="text-xl font-bold">QuitTogether</span>
+          </a>
+
+          {/* Phần ThemeToggle nằm bên phải */}
+          <ThemeToggle />
+        </div>
       </div>
 
       <div className="w-full max-w-md">
@@ -126,22 +202,19 @@ export default function LoginPage() {
           transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
           className="mb-8 text-center"
         >
-          <h1 className="text-4xl font-bold text-primary mb-2">Welcome back</h1>
+          <h1 className="text-4xl font-bold text-primary mb-2">Chào mừng trở lại</h1>
           <p className="text-muted-foreground">Your journey to a smoke-free life begins here</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-1 gap-6 items-center">
-          {/* Phần bên trái (tùy chọn) - Nếu bạn muốn có ảnh/mô tả bên trái cho trang Login */}
           <motion.div
             className="hidden md:block md:col-span-2 "
             initial={{ x: -50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.3, type: "spring" }}
           >
-            {/* Có thể thêm một hình ảnh hoặc text ở đây */}
-          </motion.div>
 
-          {/* Form đăng nhập chính */}
+          </motion.div>
           <LoginForm />
         </div>
       </div>

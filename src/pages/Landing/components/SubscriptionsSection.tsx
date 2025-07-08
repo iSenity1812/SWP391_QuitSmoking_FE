@@ -1,86 +1,86 @@
-import { AnimatedSection } from "@/components/ui/AnimatedSection";
+import { AnimatedSection } from "@/components/ui/AnimatedSection"
 export const SubscriptionsSection = () => {
     return (
         <section
             id="plans"
             className="py-20 bg-gradient-to-br from-emerald-50 to-white dark:from-slate-800 dark:to-slate-900"
         >
-
             <AnimatedSection animation="fadeUp" delay={400} className="relative z-10">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-emerald-200/30 to-emerald-300/20 dark:from-emerald-500/10 dark:to-emerald-600/30 rounded-full blur-3xl animate-pulse"></div>
                 <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-emerald-100/40 to-emerald-200/30 dark:from-emerald-600/10 dark:to-emerald-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
                 <div className="max-w-6xl mx-auto px-6">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl lg:text-5xl font-black mb-6 text-slate-800 dark:text-white">
-                            Choose Your Plan
-                        </h2>
+                        <h2 className="text-4xl lg:text-5xl font-black mb-6 text-slate-800 dark:text-white">Chọn Gói Của Bạn</h2>
                         <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto font-medium leading-relaxed">
-                            Select the plan that works best for your quit journey!
+                            Chọn gói phù hợp nhất cho hành trình bỏ thuốc của bạn!
                         </p>
                     </div>
 
                     <div className="grid md:grid-cols-6 gap-8 max-w-5xl mx-auto">
                         {[
                             {
-                                name: "Free",
-                                price: "$0",
-                                period: "per month",
-                                description: "Basic tools to start your journey",
+                                name: "Miễn Phí",
+                                price: "0đ",
+                                period: "mỗi tháng",
+                                description: "Công cụ cơ bản để bắt đầu hành trình",
                                 features: [
-                                    "✨ Basic progress tracking",
-                                    "✨ Community access",
-                                    "✨ Daily motivational quotes",
-                                    "✨ Limited health insights",
+                                    "✨ Theo dõi tiến độ cơ bản",
+                                    "✨ Truy cập cộng đồng",
+                                    "✨ Câu nói động viên hàng ngày",
+                                    "✨ Thông tin sức khỏe hạn chế",
                                 ],
-                                cta: "🚀 Get Started",
+                                cta: "🚀 Bắt Đầu",
                                 popular: false,
                             },
                             {
-                                name: "Premium",
-                                price: "$4.99",
-                                period: "per month",
-                                description: "Everything you need to quit for good!",
+                                name: "Cao Cấp",
+                                price: "119.000đ",
+                                period: "mỗi tháng",
+                                description: "Mọi thứ bạn cần để bỏ thuốc vĩnh viễn!",
                                 features: [
-                                    "✨ Advanced progress tracking",
-                                    "✨ Chat with a coach/AI",
-                                    "✨ Create custom challenges",
-                                    "✨ Full health dashboard",
-                                    "✨ Money-saving calculator",
-                                    "✨ Access Premium content",
-                                    "✨ Premium community features",
+                                    "✨ Theo dõi tiến độ nâng cao",
+                                    "✨ Trò chuyện với huấn luyện viên/AI",
+                                    "✨ Tạo thử thách tùy chỉnh",
+                                    "✨ Bảng điều khiển sức khỏe đầy đủ",
+                                    "✨ Máy tính tiết kiệm tiền",
+                                    "✨ Truy cập nội dung Cao cấp",
+                                    "✨ Tính năng cộng đồng Cao cấp",
                                 ],
-                                cta: "🚀 Start Your Journey",
+                                cta: "🚀 Bắt Đầu Hành Trình",
                                 popular: true,
                                 variants: [
                                     {
                                         id: "prem_14d",
-                                        label: "14 Days",
-                                        price: "$4.99",
-                                        subLabel: "billed every 14 days",
+                                        label: "14 Ngày",
+                                        price: "119.000đ",
+                                        subLabel: "thanh toán mỗi 14 ngày",
                                         cta: "Choose 14 Days",
                                     },
                                     {
                                         id: "prem_1m",
-                                        label: "1 Months",
-                                        price: "$8.99",
-                                        subLabel: "billed every 1 month, save 10%",
+                                        label: "1 Tháng",
+                                        price: "209.000đ",
+                                        subLabel: "thanh toán mỗi tháng, tiết kiệm 10%",
                                         cta: "Choose 1 Month",
-                                        highlight: "Popular",
+                                        highlight: "Phổ Biến",
                                     },
                                     {
                                         id: "prem_3m",
-                                        label: "3 Months",
-                                        price: "$21.99",
-                                        subLabel: "billed every 3 months, save 20%",
+                                        label: "3 Tháng",
+                                        price: "499.000đ",
+                                        subLabel: "thanh toán mỗi 3 tháng, tiết kiệm 20%",
                                         cta: "Choose 3 Months",
-                                        highlight: "Best Value",
+                                        highlight: "Giá Trị Tốt Nhất",
                                     },
                                 ],
                             },
                         ].map((plan, i) => (
-                            <AnimatedSection key={i} animation="fadeUp" delay={i * 150}
-                                className={`${plan.popular ? "md:col-span-3" : "md:col-span-3"
-                                    }`}>
+                            <AnimatedSection
+                                key={i}
+                                animation="fadeUp"
+                                delay={i * 150}
+                                className={`${plan.popular ? "md:col-span-3" : "md:col-span-3"}`}
+                            >
                                 <div
                                     className={`relative bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-xl border-2 transition-all duration-500 hover:scale-105 hover:-translate-y-2 flex flex-col ${plan.popular
                                         ? " border-emerald-300 dark:border-emerald-500 shadow-2xl shadow-emerald-200/50 dark:shadow-emerald-500/25"
@@ -89,7 +89,7 @@ export const SubscriptionsSection = () => {
                                 >
                                     {plan.popular && (
                                         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 px-6 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-bold text-sm rounded-full shadow-lg">
-                                            🌟 Most Popular
+                                            🌟 Phổ Biến Nhất
                                         </div>
                                     )}
                                     <div className="text-center mb-8">
@@ -105,7 +105,7 @@ export const SubscriptionsSection = () => {
                                         </div>
                                         <p className="text-slate-600 dark:text-slate-300 font-medium">{plan.description}</p>
                                     </div>
-                                    <div className="flex-1">
+                                    <div className="flex-1 mb-2">
                                         <ul className="space-y-3">
                                             {plan.features.map((feature, j) => (
                                                 <li key={j} className="text-slate-600 dark:text-slate-300 font-medium">
@@ -115,17 +115,19 @@ export const SubscriptionsSection = () => {
                                         </ul>
 
                                         {/* Variants Section for Premium Plan */}
-                                        {plan.name === "Premium" && plan.variants && (
-                                            <div className="mb-8 mt-4">
+                                        {plan.name === "Cao Cấp" && plan.variants && (
+                                            <div className="mb-2 mt-4">
                                                 {/* <h4 className="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4 text-center">Choose your duration:</h4> */}
                                                 <div className="space-y-3">
                                                     {plan.variants.map((variant) => (
                                                         <div
                                                             key={variant.id}
-                                                            className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all hover:shadow-lg dark:hover:border-emerald-400 ${variant.highlight ? 'border-emerald-400 dark:border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10' : 'border-slate-200 dark:border-slate-600 hover:border-emerald-300 bg-slate-50 dark:bg-slate-700/50'}`}
+                                                            className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all hover:shadow-lg dark:hover:border-emerald-400 ${variant.highlight === "Giá Trị Tốt Nhất" || variant.highlight === "Phổ Biến" ? "border-emerald-400 dark:border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10" : "border-slate-200 dark:border-slate-600 hover:border-emerald-300 bg-slate-50 dark:bg-slate-700/50"}`}
                                                         >
                                                             {variant.highlight && (
-                                                                <div className={`absolute -top-3 right-3 text-xs font-bold px-2 py-1 rounded-full text-white ${variant.highlight === "Best Value" ? "bg-yellow-500" : "bg-emerald-500"}`}>
+                                                                <div
+                                                                    className={`absolute -top-3 right-3 text-xs font-bold px-2 py-1 rounded-full text-white ${variant.highlight === "Giá Trị Tốt Nhất" ? "bg-yellow-500" : "bg-emerald-500"}`}
+                                                                >
                                                                     {variant.highlight}
                                                                 </div>
                                                             )}
@@ -135,8 +137,14 @@ export const SubscriptionsSection = () => {
                                                                     <p className="text-sm text-slate-500 dark:text-slate-400">{variant.subLabel}</p>
                                                                 </div>
                                                                 <div className="text-right">
-                                                                    <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{variant.price}</span>
-                                                                    {variant.label !== "1 Month" && <span className="text-xs text-slate-500 dark:text-slate-400 block">/{variant.label}</span>}
+                                                                    <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                                                                        {variant.price}
+                                                                    </span>
+                                                                    {variant.label !== "1 Tháng" && (
+                                                                        <span className="text-xs text-slate-500 dark:text-slate-400 block">
+                                                                            /{variant.label}
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                             {/* Optionally, add a button for each variant if the main CTA changes
@@ -151,9 +159,7 @@ export const SubscriptionsSection = () => {
                                         )}
                                     </div>
                                     <div className="mt-auto">
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                                            No credit card required.
-                                        </p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Không cần thẻ tín dụng.</p>
                                     </div>
 
                                     <button
@@ -171,6 +177,5 @@ export const SubscriptionsSection = () => {
                 </div>
             </AnimatedSection>
         </section>
-
     )
 }

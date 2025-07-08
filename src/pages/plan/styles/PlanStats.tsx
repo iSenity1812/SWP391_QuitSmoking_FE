@@ -1,11 +1,11 @@
 import type React from "react"
-import { CalendarIcon, DollarSign, TrendingUp, Heart } from "lucide-react"
+import { CalendarIcon, DollarSign } from "lucide-react"
 import { StatCard } from "./ui/StatCard"
 import type { PlanCalculations } from "@/pages/plan/styles/ui/types/plan"
 
 export const PlanStats: React.FC<PlanCalculations> = ({ days, saved, progress }) => {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <StatCard
                 icon={CalendarIcon}
                 title="Ngày Không Hút Thuốc"
@@ -19,20 +19,6 @@ export const PlanStats: React.FC<PlanCalculations> = ({ days, saved, progress })
                 value={saved.toLocaleString("vi-VN")}
                 subtitle="VNĐ"
                 gradient="from-green-400 to-green-600"
-            />
-            <StatCard
-                icon={TrendingUp}
-                title="Tiến Trình"
-                value={Math.round(progress).toString()}
-                subtitle="%"
-                gradient="from-blue-400 to-blue-600"
-            />
-            <StatCard
-                icon={Heart}
-                title="Điểm Sức Khỏe"
-                value="Đang Cải Thiện"
-                subtitle=""
-                gradient="from-rose-400 to-rose-600"
             />
         </div>
     )

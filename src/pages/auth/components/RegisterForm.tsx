@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { Sparkles, ArrowRight } from "lucide-react";
+import { toast } from "react-toastify";
 
 import { AuthFormProgress } from "./AuthFormProgress";
 import { UsernameInput } from "./UsernameInput";
@@ -12,8 +13,12 @@ import { PasswordInput } from "./PasswordInput";
 import { PasswordRequirements } from "./PasswordRequirements";
 import { ConfirmPasswordInput } from "./ConfirmPasswordInput";
 import { RegSubmitButton } from "./RegSubmitButton";
+import type { RegisterRequest, ValidationApiError } from "@/types/auth";
+import { AxiosError } from "axios";
+import { useAuth } from "@/hooks/useAuth";
 
 export const RegisterForm: React.FC = () => {
+  const { register: authRegister } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -86,18 +91,115 @@ export const RegisterForm: React.FC = () => {
     if (isConfirmPasswordValid) validFields++;
 
     return (validFields / totalFields) * 100;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  }; const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isUsernameValid && isEmailValid && isPasswordValid && isConfirmPasswordValid) {
-      setIsSubmitting(true);
-      // Simulate API call
-      setTimeout(() => {
-        setIsSubmitting(false);
-        // Handle successful registration
-        alert("Registration successful!");
-      }, 1500);
+
+    if (!isUsernameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid) {
+      toast.error("Vui lòng điền đầy đủ thông tin hợp lệ!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const registerData: RegisterRequest = {
+        username: username.trim(),
+        email: email.trim().toLowerCase(),
+        password: password,
+      };
+
+      // Show loading toast
+      const loadingToastId = toast.loading("Đang tạo tài khoản...", {
+        position: "top-right"
+      });
+
+      // Use AuthContext register instead of authService directly
+      const response = await authRegister(registerData);
+
+      // Dismiss loading toast
+      toast.dismiss(loadingToastId);
+
+      if (response.status === 200 && response.data) {
+        // Registration successful
+        toast.success("🎉 Đăng ký thành công! Chào mừng bạn đến với QuitTogether!", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+
+        // Clear form
+        setUsername("");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setIsUsernameValid(null);
+        setIsEmailValid(null);
+        setIsPasswordValid(null);
+        setIsConfirmPasswordValid(null);
+
+        // AuthContext will handle navigation automatically
+        // No need to manually navigate here
+
+      } else {
+        // Server returned error response
+        toast.error(response.message || "Đăng ký thất bại. Vui lòng thử lại!", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+      }
+    } catch (error: unknown) {
+      // Dismiss any loading toast
+      toast.dismiss();
+
+      console.error("Registration error:", error);      // Handle Axios errors
+      if (error instanceof AxiosError && error.response) {
+        const status = error.response.status;
+        const errorData = error.response.data;
+
+        if (status === 400 && errorData) {
+          const validationError = errorData as ValidationApiError;
+
+          if (validationError.error && typeof validationError.error === 'object') {
+            // Handle field-specific validation errors
+            Object.entries(validationError.error).forEach(([field, message]) => {
+              toast.error(`${field}: ${message}`, {
+                position: "top-right",
+                autoClose: 4000,
+              });
+            });
+          } else {
+            toast.error(validationError.message || "Dữ liệu không hợp lệ!", {
+              position: "top-right",
+              autoClose: 4000,
+            });
+          }
+        } else if (status === 409) {
+          // Conflict - usually duplicate email/username
+          toast.error("Email hoặc tên người dùng đã tồn tại!", {
+            position: "top-right",
+            autoClose: 4000,
+          });
+        } else if (status >= 500) {
+          toast.error("Lỗi server! Vui lòng thử lại sau.", {
+            position: "top-right",
+            autoClose: 4000,
+          });
+        } else {
+          toast.error("Đăng ký thất bại! Vui lòng kiểm tra thông tin.", {
+            position: "top-right",
+            autoClose: 4000,
+          });
+        }
+      } else {
+        toast.error("Đăng ký thất bại! Vui lòng kiểm tra kết nối mạng.", {
+          position: "top-right",
+          autoClose: 4000,
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

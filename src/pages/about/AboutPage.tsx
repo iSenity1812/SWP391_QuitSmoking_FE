@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -26,82 +28,85 @@ import {
 const AboutPage: React.FC = () => {
     const teamMembers = [
         {
-            name: "Dr. Sarah Johnson",
-            role: "Chief Medical Officer",
-            description: "15+ years in addiction medicine and respiratory health. Specialized in smoking cessation programs.",
+            name: "BS. Nguyễn Thị Hương",
+            role: "Giám Đốc Y Khoa",
+            description:
+                "Hơn 15 năm kinh nghiệm trong y học nghiện và sức khỏe hô hấp. Chuyên gia về các chương trình cai thuốc lá.",
             avatar: "/cham1.jpg",
             rating: 4.9,
             patients: 500,
-            specialties: ["Addiction Medicine", "Respiratory Health", "Behavioral Therapy"],
+            specialties: ["Y Học Nghiện", "Sức Khỏe Hô Hấp", "Liệu Pháp Hành Vi"],
         },
         {
-            name: "Mike Chen",
-            role: "Health & Wellness Coach",
-            description: "Certified wellness coach with expertise in habit formation and lifestyle changes.",
+            name: "Trần Văn Minh",
+            role: "Huấn Luyện Viên Sức Khỏe",
+            description:
+                "Huấn luyện viên sức khỏe được chứng nhận với chuyên môn về hình thành thói quen và thay đổi lối sống.",
             avatar: "/cham1.jpg",
             rating: 4.8,
             patients: 320,
-            specialties: ["Habit Formation", "Nutrition", "Exercise Therapy"],
+            specialties: ["Hình Thành Thói Quen", "Dinh Dưỡng", "Liệu Pháp Tập Thể Dục"],
         },
         {
-            name: "Dr. Emily Rodriguez",
-            role: "Behavioral Psychologist",
-            description: "PhD in Psychology, specializing in addiction recovery and cognitive behavioral therapy.",
+            name: "BS. Lê Thị Mai",
+            role: "Nhà Tâm Lý Học Hành Vi",
+            description: "Tiến sĩ Tâm lý học, chuyên về phục hồi nghiện và liệu pháp nhận thức hành vi.",
             avatar: "/cham1.jpg",
             rating: 4.9,
             patients: 280,
-            specialties: ["CBT", "Addiction Recovery", "Mental Health"],
+            specialties: ["CBT", "Phục Hồi Nghiện", "Sức Khỏe Tâm Thần"],
         },
         {
-            name: "Alex Thompson",
-            role: "Community Mentor",
-            description: "5 years smoke-free. Peer support specialist helping others through their quit journey.",
+            name: "Phạm Văn Đức",
+            role: "Cố Vấn Cộng Đồng",
+            description: "5 năm không khói thuốc. Chuyên gia hỗ trợ đồng đẳng giúp đỡ người khác trong hành trình bỏ thuốc.",
             avatar: "/cham1.jpg",
             rating: 4.7,
             patients: 150,
-            specialties: ["Peer Support", "Motivation", "Real Experience"],
+            specialties: ["Hỗ Trợ Đồng Đẳng", "Động Lực", "Kinh Nghiệm Thực Tế"],
         },
     ]
 
     const features = [
         {
             icon: Target,
-            title: "Evidence-Based Methods",
-            description: "Our approach is backed by scientific research and proven clinical methods for smoking cessation.",
+            title: "Phương Pháp Dựa Trên Bằng Chứng",
+            description:
+                "Cách tiếp cận của chúng tôi được hỗ trợ bởi nghiên cứu khoa học và các phương pháp lâm sàng đã được chứng minh.",
             gradient: "from-emerald-400 to-emerald-600",
         },
         {
             icon: Users,
-            title: "24/7 Community Support",
-            description: "Connect with a supportive community of people on the same journey, available around the clock.",
+            title: "Hỗ Trợ Cộng Đồng 24/7",
+            description: "Kết nối với cộng đồng hỗ trợ những người cùng hành trình, có sẵn suốt ngày đêm.",
             gradient: "from-blue-400 to-blue-600",
         },
         {
             icon: BarChart3,
-            title: "Progress Tracking",
-            description: "Advanced analytics to monitor your progress, health improvements, and financial savings.",
+            title: "Theo Dõi Tiến Độ",
+            description: "Phân tích nâng cao để theo dõi tiến độ, cải thiện sức khỏe và tiết kiệm tài chính của bạn.",
             gradient: "from-purple-400 to-purple-600",
         },
         {
             icon: Shield,
-            title: "Personalized Plans",
-            description: "Customized quit plans tailored to your smoking habits, lifestyle, and personal goals.",
+            title: "Kế Hoạch Cá Nhân Hóa",
+            description: "Kế hoạch bỏ thuốc tùy chỉnh phù hợp với thói quen hút thuốc, lối sống và mục tiêu cá nhân của bạn.",
             gradient: "from-rose-400 to-rose-600",
         },
     ]
 
     const stats = [
-        { number: "10,000+", label: "People Helped", icon: Users },
-        { number: "85%", label: "Success Rate", icon: TrendingUp },
-        { number: "24/7", label: "Support Available", icon: Clock },
-        { number: "5★", label: "Average Rating", icon: Star },
+        { number: "10,000+", label: "Người Được Giúp Đỡ", icon: Users },
+        { number: "85%", label: "Tỷ Lệ Thành Công", icon: TrendingUp },
+        { number: "24/7", label: "Hỗ Trợ Có Sẵn", icon: Clock },
+        { number: "5★", label: "Đánh Giá Trung Bình", icon: Star },
     ]
 
     const achievements = [
-        "Featured in Health & Wellness Magazine 2024",
-        "Winner of Digital Health Innovation Award",
-        "Certified by International Smoking Cessation Association",
-        "Partnership with leading medical institutions",
+        "Được giới thiệu trong Tạp chí Sức khỏe & Thể chất 2024",
+        "Giải thưởng Đổi mới Sức khỏe Số",
+        "Được chứng nhận bởi Hiệp hội Cai thuốc lá Quốc tế",
+        "Hợp tác với các tổ chức y tế hàng đầu",
     ]
 
     return (
@@ -115,17 +120,17 @@ const AboutPage: React.FC = () => {
 
                         <div className="relative z-10">
                             <Badge className="mb-4 px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
-                                ✨ About QuitTogether
+                                ✨ Về QuitTogether
                             </Badge>
                             <h1 className="text-4xl lg:text-6xl font-black mb-6 text-slate-800 dark:text-white">
-                                Empowering Your
+                                Trao Quyền Cho
                                 <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 bg-clip-text text-transparent block">
-                                    Smoke-Free Journey
+                                    Hành Trình Không Khói Thuốc
                                 </span>
                             </h1>
                             <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-                                We're dedicated to helping people quit smoking through evidence-based methods, personalized support, and
-                                a thriving community of success stories.
+                                Chúng tôi tận tâm giúp đỡ mọi người bỏ thuốc lá thông qua các phương pháp dựa trên bằng chứng, hỗ trợ cá
+                                nhân hóa và một cộng đồng thịnh vượng với những câu chuyện thành công.
                             </p>
                         </div>
                     </div>
@@ -161,17 +166,17 @@ const AboutPage: React.FC = () => {
                                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
                                         <Heart className="w-6 h-6 text-white" />
                                     </div>
-                                    <CardTitle className="text-2xl font-bold">Our Mission</CardTitle>
+                                    <CardTitle className="text-2xl font-bold">Sứ Mệnh Của Chúng Tôi</CardTitle>
                                 </div>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                                    To provide comprehensive, evidence-based support for individuals on their journey to quit smoking. We
-                                    combine cutting-edge technology with human compassion to create lasting change and improve lives
-                                    through personalized quit plans, community support, and expert guidance.
+                                    Cung cấp hỗ trợ toàn diện, dựa trên bằng chứng cho các cá nhân trong hành trình bỏ thuốc lá. Chúng tôi
+                                    kết hợp công nghệ tiên tiến với lòng trắc ẩn của con người để tạo ra sự thay đổi lâu dài và cải thiện
+                                    cuộc sống thông qua kế hoạch bỏ thuốc cá nhân hóa, hỗ trợ cộng đồng và hướng dẫn chuyên gia.
                                 </p>
                                 <div className="mt-6 flex flex-wrap gap-2">
-                                    {["Health First", "Evidence-Based", "Community Driven"].map((tag) => (
+                                    {["Sức Khỏe Là Ưu Tiên", "Dựa Trên Bằng Chứng", "Cộng Đồng Dẫn Dắt"].map((tag) => (
                                         <Badge
                                             key={tag}
                                             variant="secondary"
@@ -190,17 +195,17 @@ const AboutPage: React.FC = () => {
                                     <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                                         <Target className="w-6 h-6 text-white" />
                                     </div>
-                                    <CardTitle className="text-2xl font-bold">Our Vision</CardTitle>
+                                    <CardTitle className="text-2xl font-bold">Tầm Nhìn Của Chúng Tôi</CardTitle>
                                 </div>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                                    To become the world's leading platform for smoking cessation, creating a smoke-free future where
-                                    everyone has access to the tools, support, and community they need to live healthier, happier lives.
-                                    We envision a world where quitting smoking is achievable for everyone.
+                                    Trở thành nền tảng hàng đầu thế giới về cai thuốc lá, tạo ra một tương lai không khói thuốc nơi mọi
+                                    người đều có quyền truy cập vào các công cụ, hỗ trợ và cộng đồng họ cần để sống khỏe mạnh hơn, hạnh
+                                    phúc hơn. Chúng tôi hình dung một thế giới nơi việc bỏ thuốc lá có thể đạt được cho tất cả mọi người.
                                 </p>
                                 <div className="mt-6 flex flex-wrap gap-2">
-                                    {["Global Impact", "Innovation", "Accessibility"].map((tag) => (
+                                    {["Tác Động Toàn Cầu", "Đổi Mới", "Khả Năng Tiếp Cận"].map((tag) => (
                                         <Badge
                                             key={tag}
                                             variant="secondary"
@@ -220,10 +225,10 @@ const AboutPage: React.FC = () => {
                     <div className="mb-16">
                         <div className="text-center mb-12">
                             <h2 className="text-3xl lg:text-4xl font-black mb-4 text-slate-800 dark:text-white">
-                                Why Choose QuitTogether?
+                                Tại Sao Chọn QuitTogether?
                             </h2>
                             <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
-                                Our comprehensive approach combines the best of technology, science, and human support
+                                Cách tiếp cận toàn diện của chúng tôi kết hợp tốt nhất của công nghệ, khoa học và hỗ trợ con người
                             </p>
                         </div>
 
@@ -261,10 +266,11 @@ const AboutPage: React.FC = () => {
                     <div className="mb-16">
                         <div className="text-center mb-12">
                             <h2 className="text-3xl lg:text-4xl font-black mb-4 text-slate-800 dark:text-white">
-                                Meet Our Expert Team
+                                Gặp Gỡ Đội Ngũ Chuyên Gia
                             </h2>
                             <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto">
-                                Our dedicated professionals bring years of experience in healthcare, psychology, and wellness
+                                Các chuyên gia tận tâm của chúng tôi mang đến nhiều năm kinh nghiệm trong chăm sóc sức khỏe, tâm lý học
+                                và thể chất
                             </p>
                         </div>
 
@@ -341,9 +347,9 @@ const AboutPage: React.FC = () => {
                                     <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg">
                                         <Award className="w-6 h-6 text-white" />
                                     </div>
-                                    <CardTitle className="text-2xl font-bold">Our Achievements</CardTitle>
+                                    <CardTitle className="text-2xl font-bold">Thành Tựu Của Chúng Tôi</CardTitle>
                                 </div>
-                                <CardDescription>Recognition and milestones that drive us forward</CardDescription>
+                                <CardDescription>Sự công nhận và cột mốc thúc đẩy chúng tôi tiến về phía trước</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="grid md:grid-cols-2 gap-4">
@@ -371,17 +377,17 @@ const AboutPage: React.FC = () => {
                         <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-2 border-emerald-100 dark:border-slate-700 shadow-xl max-w-4xl mx-auto">
                             <CardHeader className="text-center">
                                 <CardTitle className="text-3xl font-black mb-4 text-slate-800 dark:text-white">
-                                    Ready to Start Your Journey?
+                                    Sẵn Sàng Bắt Đầu Hành Trình?
                                 </CardTitle>
                                 <CardDescription className="text-lg">
-                                    Get in touch with our team for personalized support and guidance
+                                    Liên hệ với đội ngũ của chúng tôi để được hỗ trợ và hướng dẫn cá nhân hóa
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-8">
                                 <div className="grid md:grid-cols-3 gap-6">
                                     <div className="text-center p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
                                         <Mail className="w-8 h-8 text-emerald-500 mx-auto mb-3" />
-                                        <h4 className="font-bold mb-2">Email Us</h4>
+                                        <h4 className="font-bold mb-2">Gửi Email</h4>
                                         <a
                                             href="mailto:support@quittogether.com"
                                             className="text-emerald-600 dark:text-emerald-400 hover:underline"
@@ -391,29 +397,29 @@ const AboutPage: React.FC = () => {
                                     </div>
                                     <div className="text-center p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                                         <Phone className="w-8 h-8 text-blue-500 mx-auto mb-3" />
-                                        <h4 className="font-bold mb-2">Call Us</h4>
+                                        <h4 className="font-bold mb-2">Gọi Điện</h4>
                                         <a href="tel:+84123456789" className="text-blue-600 dark:text-blue-400 hover:underline">
                                             +84 123 456 789
                                         </a>
                                     </div>
                                     <div className="text-center p-6 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
                                         <MessageCircle className="w-8 h-8 text-purple-500 mx-auto mb-3" />
-                                        <h4 className="font-bold mb-2">Live Chat</h4>
-                                        <span className="text-purple-600 dark:text-purple-400">Available 24/7</span>
+                                        <h4 className="font-bold mb-2">Chat Trực Tiếp</h4>
+                                        <span className="text-purple-600 dark:text-purple-400">Có sẵn 24/7</span>
                                     </div>
                                 </div>
 
                                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                     <Button className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
                                         <Calendar className="w-5 h-5 mr-2" />
-                                        Schedule Consultation
+                                        Đặt Lịch Tư Vấn
                                     </Button>
                                     <Button
                                         variant="outline"
                                         className="px-8 py-3 border-2 border-emerald-200 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 font-bold rounded-xl"
                                     >
                                         <MessageCircle className="w-5 h-5 mr-2" />
-                                        Start Live Chat
+                                        Bắt Đầu Chat
                                     </Button>
                                 </div>
                             </CardContent>
