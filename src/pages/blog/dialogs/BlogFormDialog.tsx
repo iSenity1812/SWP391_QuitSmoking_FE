@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Upload, ImageIcon, X } from "lucide-react"
+import { Upload, ImageIcon, Trash2 } from "lucide-react"
 import dynamic from "next/dynamic"
 
 // Dynamically import ReactQuill to avoid SSR issues
@@ -20,7 +20,7 @@ interface BlogFormData {
     title: string
     content: string
     imageUrl?: File | string // Match backend field name
-    removeImage?: boolean // Add flag to track image removal
+    removeImage?: boolean // Add removeImage flag
 }
 
 interface BlogFormDialogProps {
@@ -95,19 +95,19 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
         },
     )
     const [imagePreview, setImagePreview] = useState<string | null>(null)
-    const [removeImage, setRemoveImage] = useState(false) // Track if user wants to remove image
+    const [originalImageUrl, setOriginalImageUrl] = useState<string | null>(null)
 
     // Update form data when initialData changes
     useEffect(() => {
         if (initialData) {
             setFormData({
                 ...initialData,
-                removeImage: false,
+                removeImage: false, // Always start with removeImage = false
             })
-            setRemoveImage(false) // Reset remove image flag
             // Set image preview if editing with existing image
             if (typeof initialData.imageUrl === "string" && initialData.imageUrl) {
                 setImagePreview(initialData.imageUrl)
+                setOriginalImageUrl(initialData.imageUrl)
                 console.log("Setting image preview from existing imageUrl:", initialData.imageUrl)
             }
         } else {
@@ -118,7 +118,7 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
                 removeImage: false,
             })
             setImagePreview(null)
-            setRemoveImage(false)
+            setOriginalImageUrl(null)
         }
     }, [initialData, isOpen])
 
@@ -154,9 +154,8 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
             setFormData((prev) => ({
                 ...prev,
                 imageUrl: file,
-                removeImage: false,
+                removeImage: false, // Reset removeImage when new file is selected
             }))
-            setRemoveImage(false) // Reset remove flag when new image is selected
 
             // Create preview
             const reader = new FileReader()
@@ -168,28 +167,47 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
     }
 
     const handleRemoveImage = () => {
-        setFormData((prev) => ({
-            ...prev,
-            imageUrl: undefined,
-            removeImage: true,
-        }))
+        console.log("=== handleRemoveImage called ===")
+        console.log("Original image URL:", originalImageUrl)
+        console.log("Current imageUrl:", formData.imageUrl)
+
+        if (isEdit && originalImageUrl) {
+            // If editing and there was an original image, set removeImage flag
+            setFormData((prev) => ({
+                ...prev,
+                imageUrl: undefined,
+                removeImage: true,
+            }))
+            console.log("Set removeImage = true for existing image")
+        } else {
+            // If creating new blog or no original image, just clear imageUrl
+            setFormData((prev) => ({
+                ...prev,
+                imageUrl: undefined,
+                removeImage: false,
+            }))
+            console.log("Just cleared imageUrl for new blog")
+        }
+
         setImagePreview(null)
-        setRemoveImage(true) // Mark that user wants to remove image
+
         // Reset file input
         const fileInput = document.getElementById("image-upload") as HTMLInputElement
         if (fileInput) {
             fileInput.value = ""
         }
+
+        console.log("=== handleRemoveImage completed ===")
     }
 
     const handleSubmit = () => {
         if (formData.title.trim() && formData.content.trim()) {
-            // Send the form data with removeImage flag
-            const submitData: BlogFormData = {
-                ...formData,
-                removeImage: removeImage,
-            }
-            onSubmit(submitData)
+            console.log("=== Submitting form data ===")
+            console.log("Form data:", formData)
+            console.log("removeImage flag:", formData.removeImage)
+            console.log("imageUrl:", formData.imageUrl)
+            console.log("imageUrl type:", typeof formData.imageUrl)
+            onSubmit(formData)
         }
     }
 
@@ -201,7 +219,7 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
             removeImage: false,
         })
         setImagePreview(null)
-        setRemoveImage(false)
+        setOriginalImageUrl(null)
         onClose()
     }
 
@@ -226,7 +244,7 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
                     {/* Image Upload Section */}
                     <div className="grid gap-2">
                         <Label htmlFor="image-upload">Hình ảnh</Label>
-                        {imagePreview && !removeImage ? (
+                        {imagePreview ? (
                             <div className="relative">
                                 <img
                                     src={imagePreview || "/placeholder.svg"}
@@ -246,24 +264,24 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
                                     className="absolute top-2 right-2"
                                     onClick={handleRemoveImage}
                                 >
-                                    <X className="w-4 h-4" />
+                                    <Trash2 className="w-4 h-4" />
                                 </Button>
                                 {/* Debug info - remove in production */}
                                 {process.env.NODE_ENV === "development" && (
                                     <div className="mt-2 p-2 bg-blue-100 dark:bg-blue-900 rounded text-xs">
+                                        <strong>Original imageUrl:</strong> {originalImageUrl}
+                                        <br />
                                         <strong>Form imageUrl:</strong>{" "}
                                         {formData.imageUrl instanceof File ? `File: ${formData.imageUrl.name}` : formData.imageUrl}
                                         <br />
-                                        <strong>Remove Image:</strong> {removeImage ? "Yes" : "No"}
+                                        <strong>removeImage:</strong> {formData.removeImage ? "true" : "false"}
                                     </div>
                                 )}
                             </div>
                         ) : (
                             <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6 text-center">
                                 <ImageIcon className="w-12 h-12 text-slate-400 mx-auto mb-2" />
-                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                                    {removeImage ? "Ảnh sẽ được xóa khi lưu" : "Chọn hình ảnh để tải lên"}
-                                </p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Chọn hình ảnh để tải lên</p>
                                 <p className="text-xs text-slate-500 dark:text-slate-500 mb-4">PNG, JPG, GIF tối đa 5MB</p>
                                 <Button
                                     type="button"
@@ -272,26 +290,8 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
                                     onClick={() => document.getElementById("image-upload")?.click()}
                                 >
                                     <Upload className="w-4 h-4 mr-2" />
-                                    {removeImage ? "Chọn ảnh mới" : "Chọn file"}
+                                    Chọn file
                                 </Button>
-                                {removeImage && (
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="ml-2"
-                                        onClick={() => {
-                                            setRemoveImage(false)
-                                            setFormData((prev) => ({ ...prev, removeImage: false }))
-                                            if (initialData?.imageUrl && typeof initialData.imageUrl === "string") {
-                                                setImagePreview(initialData.imageUrl)
-                                                setFormData((prev) => ({ ...prev, imageUrl: initialData.imageUrl }))
-                                            }
-                                        }}
-                                    >
-                                        Hủy xóa
-                                    </Button>
-                                )}
                             </div>
                         )}
                         <input id="image-upload" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />

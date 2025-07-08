@@ -18,6 +18,7 @@ export interface BlogPost {
 }
 
 export interface BlogRequestDTO {
+  authorId: string
   title: string
   content: string
   imageUrl?: File | string // Match backend field name - File for upload, string for existing URL
@@ -103,6 +104,7 @@ export interface UpdateBlogRequest {
   title?: string
   content?: string
   imageUrl?: File | string // File for new upload or string URL to keep existing
+  removeImage?: boolean // Flag to remove existing image
 }
 
 // Backend response DTO structure - MATCH actual backend

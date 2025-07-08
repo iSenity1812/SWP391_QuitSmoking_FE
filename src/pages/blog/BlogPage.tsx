@@ -26,7 +26,7 @@ import DeleteConfirmDialog from "./dialogs/DeleteConfirmDialog"
 interface BlogFormData {
     title: string
     content: string
-    imageUrl?: File | string // Change from 'image' to 'imageUrl'
+    image?: File | string // Add image field
 }
 
 interface ReportFormData {
@@ -192,7 +192,7 @@ const BlogPage: React.FC = () => {
                 authorId: currentUser.id,
                 title: formData.title,
                 content: formData.content,
-                imageUrl: formData.imageUrl instanceof File ? formData.imageUrl : undefined, // Use 'imageUrl' instead of 'image'
+                imageUrl: formData.image instanceof File ? formData.image : undefined, // Ensure File is passed correctly
                 status: currentUser.role === "COACH" ? "PENDING" : "PUBLISHED",
             }
 
@@ -229,7 +229,7 @@ const BlogPage: React.FC = () => {
             const blogData: UpdateBlogRequest = {
                 title: formData.title,
                 content: formData.content,
-                imageUrl: formData.imageUrl, // Use 'imageUrl' instead of 'image'
+                imageUrl: formData.image, // Keep as is - can be File or string
             }
 
             const blogIdToUpdate = editingPost.blogId
@@ -246,7 +246,7 @@ const BlogPage: React.FC = () => {
                     ...editingPost,
                     title: formData.title,
                     content: formData.content,
-                    imageUrl: typeof formData.imageUrl === "string" ? formData.imageUrl : editingPost.imageUrl, // Use 'imageUrl'
+                    imageUrl: typeof formData.image === "string" ? formData.image : editingPost.imageUrl, // Keep existing image if new one is File
                     lastUpdated: new Date().toISOString(),
                 })
             }
@@ -520,7 +520,7 @@ const BlogPage: React.FC = () => {
                         ? {
                             title: editingPost.title,
                             content: editingPost.content,
-                            imageUrl: editingPost.imageUrl, // Use 'imageUrl' instead of 'image'
+                            imageUrl: editingPost.imageUrl, // Add image field
                         }
                         : undefined
                 }
