@@ -5,7 +5,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2 } from 'lucide-react'
 import { useDateRangeRegistration } from '@/hooks/useDateRangeRegistration'
-import type { TimeSlot, CoachScheduleRangeRequest } from '@/types/api'
+import type { TimeSlot } from '@/types/api'
+
+// Define CoachScheduleRangeRequest type locally
+type CoachScheduleRangeRequest = {
+  startDate: string
+  endDate: string
+  timeSlotIds: number[]
+}
 import { toast } from 'react-toastify'
 
 // Helper function to get today's date in YYYY-MM-DD format
@@ -79,7 +86,7 @@ export const DateRangeRegistrationModal: React.FC<DateRangeRegistrationModalProp
   const handleTimeSlotToggle = (timeSlotId: number, event?: React.MouseEvent | React.KeyboardEvent) => {
     console.log('🔍 handleTimeSlotToggle called with timeSlotId:', timeSlotId)
     console.log('🔍 Current selectedTimeSlots before update:', selectedTimeSlots)
-    
+
     // Prevent any event bubbling or default behavior
     if (event) {
       event.preventDefault()
@@ -90,7 +97,7 @@ export const DateRangeRegistrationModal: React.FC<DateRangeRegistrationModalProp
       const isCurrentlySelected = prevSlots.includes(timeSlotId)
       console.log('🔍 isCurrentlySelected:', isCurrentlySelected)
       console.log('🔍 prevSlots:', prevSlots)
-      
+
       if (isCurrentlySelected) {
         const newSlots = prevSlots.filter(id => id !== timeSlotId)
         console.log('🔍 Removing timeSlot, new array:', newSlots)
