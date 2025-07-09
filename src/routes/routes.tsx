@@ -24,6 +24,8 @@ import ContentAdminPage from "@/pages/admin/content/ContentAdminPage"
 // Test components (remove in production)
 import { RouteTestDashboard } from "@/components/auth/RouteTestDashboard"
 import { TaskPage } from "@/pages/task/TaskPage"
+import ProgramPage from "@/pages/learning/ProgramPage"
+
 
 export function AppRoutes() {
     return (
@@ -89,6 +91,15 @@ export function AppRoutes() {
                         requireAuth={true}
                     >
                         <PlanPage />
+                    </ProtectedRoute>
+                }
+            />
+            {/* Add this route in the Member Routes section, after the /plan route: */}
+            <Route
+                path="/program"
+                element={
+                    <ProtectedRoute allowedRoles={["PREMIUM_MEMBER"]} requireAuth={true}>
+                        <ProgramPage />
                     </ProtectedRoute>
                 }
             />

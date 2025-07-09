@@ -5,10 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-    MessageSquare,
     FileText,
-    Trophy,
-    Crown,
     Flag,
     Activity,
     Menu,
@@ -18,6 +15,7 @@ import {
     Sun,
     Moon,
     BarChart3,
+    BookOpen,
 } from "lucide-react"
 import { useTheme } from "@/context/ThemeContext"
 import { ContentDashboard } from "./components/ContentDashboard"
@@ -29,6 +27,7 @@ import { ContentReports } from "./components/ContentReports"
 import { BlogManagement } from "./components/BlogManagement"
 import { QuizManagement } from "./components/QuizManagement"
 import { TipManagement } from "./components/TipManagement"
+import { ProgramManagement } from "./components/ProgramManagement"
 
 export default function ContentAdminPage() {
     const [activeTab, setActiveTab] = useState("dashboard")
@@ -38,16 +37,18 @@ export default function ContentAdminPage() {
 
     const navItems = [
         { id: "dashboard", label: "Tổng Quan", icon: BarChart3 },
+        { id: "programs", label: "Quản Lý Chương Trình", icon: BookOpen },
         { id: "quizzes", label: "Quản Lý Quiz", icon: Flag },
         { id: "tips", label: "Quản Lý Tips", icon: FileText },
         { id: "blogs", label: "Blog", icon: FileText },
-
     ]
 
     const renderContent = () => {
         switch (activeTab) {
             case "dashboard":
                 return <ContentDashboard />
+            case "programs":
+                return <ProgramManagement />
             case "quizzes":
                 return <QuizManagement />
             case "tips":
@@ -130,8 +131,8 @@ export default function ContentAdminPage() {
                                     setMobileMenuOpen(false)
                                 }}
                                 className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${isActive
-                                    ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-slate-900 dark:text-white border border-purple-500/30"
-                                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                                        ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-slate-900 dark:text-white border border-purple-500/30"
+                                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
                                     }`}
                             >
                                 <Icon size={20} className={isActive ? "text-purple-500" : ""} />

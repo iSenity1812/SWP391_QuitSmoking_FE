@@ -1,47 +1,54 @@
-import { Gem, Home, Menu, Wind } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Info } from "lucide-react";
-import { BookOpen } from "lucide-react";
-import { NavItem } from "@/components/ui/nav-item";
-// import { useTheme } from "@/context/ThemeContext";
-import { ThemeToggle } from "./ThemeToggle";
-import { href, Link, useLocation } from "react-router-dom";
-import { toast } from "react-toastify";
-import { useAuth } from "@/hooks/useAuth";
-import { UserDropdown } from "@/pages/auth/components/UserDropdown";
+"use client"
 
-const navLinks = [
-  { href: "/", label: "Home", icon: Home, isActive: true },
-  { href: "/blog", label: "Blog", icon: BookOpen },
-  { href: "plan/", label: "Plan", icon: Gem },
-  { href: "/about", label: "About", icon: Info },
-  { href: "/task", label: "Task", icon: Info }
-];
+import { Gem, Home, Menu, Wind } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Info } from "lucide-react"
+import { BookOpen } from "lucide-react"
+import { NavItem } from "@/components/ui/nav-item"
+// import { useTheme } from "@/context/ThemeContext";
+import { ThemeToggle } from "./ThemeToggle"
+import { Link, useLocation } from "react-router-dom"
+import { toast } from "react-toastify"
+import { useAuth } from "@/hooks/useAuth"
+import { UserDropdown } from "@/pages/auth/components/UserDropdown"
 
 function shouldHideNavbar(pathname: string) {
-  const hiddenPaths = [
-    '/login',
-    '/register',
-    '/admin',
-    '/reset-password',
-    '/forgot-password',
-  ];
-  return hiddenPaths.some((prefix) => pathname.startsWith(prefix));
+  const hiddenPaths = ["/login", "/register", "/admin", "/reset-password", "/forgot-password"]
+  return hiddenPaths.some((prefix) => pathname.startsWith(prefix))
 }
 
 export function Navbar() {
-  const location = useLocation();
-  const { isAuthenticated, logout, isLoading } = useAuth();
-  const showNavbar = !shouldHideNavbar(location.pathname);
+  const location = useLocation()
+  const { isAuthenticated, logout, isLoading, user } = useAuth()
+
+  // Update navLinks to be dynamic based on user role
+  const getNavLinks = () => {
+    const baseLinks = [
+      { href: "/", label: "Home", icon: Home, isActive: true },
+      { href: "/blog", label: "Blog", icon: BookOpen },
+      { href: "/plan", label: "Plan", icon: Gem },
+      { href: "/about", label: "About", icon: Info },
+      { href: "/task", label: "Task", icon: Info },
+    ]
+
+    // Add Program link only for PREMIUM_MEMBER
+    if (user?.role === "PREMIUM_MEMBER") {
+      const programLink = { href: "/program", label: "Program", icon: Gem }
+      // Insert Program link after Plan
+      const planIndex = baseLinks.findIndex((link) => link.href === "/plan")
+      baseLinks.splice(planIndex + 1, 0, programLink)
+    }
+
+    return baseLinks
+  }
+
+  const navLinks = getNavLinks()
+
+  const showNavbar = !shouldHideNavbar(location.pathname)
 
   if (!showNavbar) {
-    return null;
+    return null
   }
   // const { theme } = useTheme();
   return (
@@ -56,12 +63,7 @@ export function Navbar() {
 
         <nav className="hidden md:flex items-center gap-6">
           {navLinks.map((item) => (
-            <NavItem
-              key={item.href}
-              href={item.href}
-              icon={item.icon}
-              isActive={item.href === location.pathname}
-            >
+            <NavItem key={item.href} href={item.href} icon={item.icon} isActive={item.href === location.pathname}>
               {item.label}
             </NavItem>
           ))}
@@ -83,32 +85,60 @@ export function Navbar() {
               </Link>
               <Link
                 to={"/register"}
-                className="hidden md:flex items-center px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-500/25">
+                className="hidden md:flex items-center px-4 py-2.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 hover:scale-105 transition-all duration-300 hover:-translate-y-0.5 shadow-lg shadow-emerald-200/50 dark:shadow-emerald-500/25"
+              >
                 Sign Up
               </Link>
             </>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="md:hidden">
+              <Button variant="outline" size="icon" className="md:hidden bg-transparent">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild><Link to="/">Home</Link></DropdownMenuItem>
-              <DropdownMenuItem asChild><Link to="/plan">Progress</Link></DropdownMenuItem>
-              <DropdownMenuItem asChild><Link to="/blog">Blog</Link></DropdownMenuItem>
-              {isAuthenticated && <DropdownMenuItem asChild><Link to="/profile">Profile</Link></DropdownMenuItem>}
-              {!isAuthenticated && <DropdownMenuItem asChild><Link to="/login">Log In</Link></DropdownMenuItem>}
-              {!isAuthenticated && <DropdownMenuItem asChild><Link to="/register">Sign Up</Link></DropdownMenuItem>}
+              <DropdownMenuItem asChild>
+                <Link to="/">Home</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/plan">Progress</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/blog">Blog</Link>
+              </DropdownMenuItem>
+              {isAuthenticated && (
+                <DropdownMenuItem asChild>
+                  <Link to="/profile">Profile</Link>
+                </DropdownMenuItem>
+              )}
+              {!isAuthenticated && (
+                <DropdownMenuItem asChild>
+                  <Link to="/login">Log In</Link>
+                </DropdownMenuItem>
+              )}
+              {!isAuthenticated && (
+                <DropdownMenuItem asChild>
+                  <Link to="/register">Sign Up</Link>
+                </DropdownMenuItem>
+              )}
               {/* Dòng này vẫn cần gọi logout, vì UserDropdown chỉ hiển thị trên màn hình lớn. */}
               {/* Nếu bạn có DropdownMenu cho mobile, và muốn có nút logout ở đó, bạn vẫn cần gọi logout ở đây */}
-              {isAuthenticated && <DropdownMenuItem onClick={() => { logout(); toast.success("Bạn đã đăng xuất thành công!"); }}>Log Out</DropdownMenuItem>}
+              {isAuthenticated && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    logout()
+                    toast.success("Bạn đã đăng xuất thành công!")
+                  }}
+                >
+                  Log Out
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
     </header>
-  );
+  )
 }
