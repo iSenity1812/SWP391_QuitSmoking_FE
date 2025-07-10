@@ -10,6 +10,7 @@ import type {
     ProgramUpdateRequestDTO,
     ProgramAdminParams,
 } from "@/types/program"
+import type { SpringPageResponse } from "@/types/program"
 
 // Hook for programs list with pagination and search
 export function usePrograms(initialParams: ProgramSearchParams = {}) {
@@ -62,16 +63,19 @@ export function usePrograms(initialParams: ProgramSearchParams = {}) {
 
             console.log("Fetching programs with params:", searchParams) // Debug log
 
-            // Ensure programType is properly passed
-            const apiParams = {
-                ...searchParams,
-                // Make sure programType is included if it exists
-                ...(searchParams.programType && { programType: searchParams.programType }),
+            let response: SpringPageResponse<ProgramResponseDTO>
+
+            // If programType is specified, use the specific endpoint
+            if (searchParams.programType) {
+                console.log("Using getProgramsByType for:", searchParams.programType) // Debug log
+                response = await programService.getProgramsByType(searchParams.programType, {
+                    ...searchParams,
+                    programType: undefined, // Remove from params since it's in the URL path
+                })
+            } else {
+                console.log("Using getAllPrograms") // Debug log
+                response = await programService.getAllPrograms(searchParams)
             }
-
-            console.log("API params being sent:", apiParams) // Debug log
-
-            const response = await programService.getAllPrograms(apiParams)
 
             console.log("API response:", response) // Debug log
 
@@ -201,7 +205,11 @@ export function useProgramsByType(programType: string, initialParams: ProgramSea
             setLoading(true)
             setError(null)
 
+            console.log("Fetching programs by type:", programType, "with params:", searchParams) // Debug log
+
             const response = await programService.getProgramsByType(programType, searchParams)
+
+            console.log("API response for type:", response) // Debug log
 
             setPrograms(response.content)
             setPagination({
@@ -216,6 +224,7 @@ export function useProgramsByType(programType: string, initialParams: ProgramSea
             const errorMessage = err instanceof Error ? err.message : "Failed to fetch programs by type"
             setError(errorMessage)
             toast.error(errorMessage)
+            console.error("Error fetching programs by type:", err)
         } finally {
             setLoading(false)
         }

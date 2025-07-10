@@ -47,6 +47,7 @@ export function ProgramManagement() {
         search,
         clearSearch,
         refresh,
+        searchParams,
     } = usePrograms({
         page: 0,
         size: 10,
@@ -63,8 +64,12 @@ export function ProgramManagement() {
 
     // Handle type filter change
     const handleTypeFilter = (type: string) => {
+        console.log("Admin - Selected type:", type) // Debug log
         const programType = type as ProgramType | ""
         setSelectedType(programType)
+
+        // Update search params immediately with proper logging
+        console.log("Admin - Updating search params with programType:", programType || "undefined") // Debug log
         updateSearchParams({
             programType: programType || undefined,
             page: 0,
@@ -267,6 +272,8 @@ export function ProgramManagement() {
                     )}
                 </CardContent>
             </Card>
+
+
 
             {/* Programs List */}
             <Card className="border border-gray-200 dark:border-gray-700">

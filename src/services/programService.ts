@@ -7,6 +7,7 @@ import type {
     ProgramAdminParams,
     SpringPageResponse,
     ApiResponse,
+    ProgramType,
 } from "@/types/program"
 
 class ProgramService {
@@ -114,7 +115,46 @@ class ProgramService {
             return response.data.data
         } catch (error: any) {
             console.error("Error fetching programs by type:", error)
-            throw new Error(error.response?.data?.message || "Failed to fetch programs by type")
+            throw new Error(error.response?.data?.message || `Failed to fetch programs by type: ${programType}`)
+        }
+    }
+
+    // Get programs by multiple types
+    async getProgramsByMultipleTypes(
+        types: string[],
+        params: ProgramSearchParams = {},
+    ): Promise<SpringPageResponse<ProgramResponseDTO>> {
+        try {
+            const searchParams = new URLSearchParams()
+
+            // Add pagination params
+            if (params.page !== undefined) searchParams.append("page", params.page.toString())
+            if (params.size !== undefined) searchParams.append("size", params.size.toString())
+            if (params.sort) searchParams.append("sort", params.sort)
+            if (params.direction) searchParams.append("direction", params.direction)
+
+            // Add types as multiple query params
+            types.forEach((type) => searchParams.append("types", type))
+
+            const response = await axiosInstance.get<ApiResponse<SpringPageResponse<ProgramResponseDTO>>>(
+                `${this.baseUrl}/types/multiple?${searchParams.toString()}`,
+            )
+
+            return response.data.data
+        } catch (error) {
+            console.error("Error fetching programs by multiple types:", error)
+            throw new Error("Failed to fetch programs by multiple types")
+        }
+    }
+
+    // Get all program types
+    async getAllProgramTypes(): Promise<ProgramType[]> {
+        try {
+            const response = await axiosInstance.get<ApiResponse<ProgramType[]>>(`${this.baseUrl}/types`)
+            return response.data.data
+        } catch (error) {
+            console.error("Error fetching program types:", error)
+            throw new Error("Failed to fetch program types")
         }
     }
 
@@ -204,9 +244,9 @@ class ProgramService {
         try {
             const response = await axiosInstance.get<ApiResponse<number>>(`${this.baseUrl}/creator/${creatorId}/count`)
             return response.data.data
-        } catch (error: any) {
+        } catch (error) {
             console.error("Error counting programs by creator:", error)
-            throw new Error(error.response?.data?.message || "Failed to count programs by creator")
+            throw new Error("Failed to count programs by creator")
         }
     }
 }

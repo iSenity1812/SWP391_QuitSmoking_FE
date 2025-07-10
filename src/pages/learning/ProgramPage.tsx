@@ -31,6 +31,7 @@ export default function ProgramPage() {
         changePage,
         changePageSize,
         refresh,
+        searchParams,
     } = usePrograms()
 
     // Handle search input change
@@ -38,13 +39,14 @@ export default function ProgramPage() {
         search(e.target.value)
     }
 
-    // Handle type filter change - Fixed logic
+    // Handle type filter change - Enhanced with better debugging
     const handleTypeFilter = (type: string) => {
         console.log("Selected type:", type) // Debug log
         const programType = type as ProgramType | ""
         setSelectedType(programType)
 
-        // Update search params immediately
+        // Update search params immediately with proper logging
+        console.log("Updating search params with programType:", programType || "undefined") // Debug log
         updateSearchParams({
             programType: programType || undefined,
             page: 0,
@@ -222,6 +224,8 @@ export default function ProgramPage() {
                         )}
                     </CardContent>
                 </Card>
+
+
 
                 {/* Programs List */}
                 <ProgramList

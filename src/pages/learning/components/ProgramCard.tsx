@@ -22,7 +22,7 @@ export function ProgramCard({ program, onClick }: ProgramCardProps) {
     }
 
     const getImageUrl = (imageUrl?: string) => {
-        if (!imageUrl) return "/placeholder.svg?height=200&width=300"
+        if (!imageUrl) return null // Return null for no image
 
         if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
             return imageUrl
@@ -59,15 +59,37 @@ export function ProgramCard({ program, onClick }: ProgramCardProps) {
     return (
         <Card className="group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm hover:scale-[1.02]">
             <div className="relative overflow-hidden">
-                <img
-                    src={getImageUrl(program.programImage) || "/placeholder.svg"}
-                    alt={program.programTitle}
-                    className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
-                    onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.src = "/placeholder.svg?height=200&width=300"
-                    }}
-                />
+                {getImageUrl(program.programImage) ? (
+                    <img
+                        src={getImageUrl(program.programImage)! || "/placeholder.svg"}
+                        alt={program.programTitle}
+                        className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
+                        onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            // Show no image background when image fails to load
+                            target.style.display = "none"
+                            const parent = target.parentElement
+                            if (parent) {
+                                parent.innerHTML = `
+                        <div class="w-full h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600">
+                            <div class="text-center">
+                                <div class="text-4xl mb-2 text-slate-400 dark:text-slate-500">📷</div>
+                                <span class="text-sm font-medium text-slate-500 dark:text-slate-400">No Image</span>
+                            </div>
+                        </div>
+                        ${program.programType ? `<div class="absolute top-3 left-3"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border-0 shadow-lg ${getTypeColor(program.programType)}">${getProgramTypeLabel(program.programType)}</span></div>` : ""}
+                    `
+                            }
+                        }}
+                    />
+                ) : (
+                    <div className="w-full h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600">
+                        <div className="text-center">
+                            <div className="text-4xl mb-2 text-slate-400 dark:text-slate-500">📷</div>
+                            <span className="text-sm font-medium text-slate-500 dark:text-slate-400">No Image</span>
+                        </div>
+                    </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 {program.programType && (
                     <Badge className={`absolute top-3 left-3 ${getTypeColor(program.programType)} border-0 shadow-lg`}>
