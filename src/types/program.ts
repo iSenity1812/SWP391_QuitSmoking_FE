@@ -15,6 +15,7 @@ export interface Program {
     contentUrl?: string
     description?: string
     createdAt: string
+    updatedAt: string
     createdBy: ProgramUser
 }
 
@@ -46,6 +47,7 @@ export interface ProgramResponseDTO {
     contentUrl?: string
     description?: string
     createdAt: string
+    updatedAt: string
     createdBy: ProgramUser
 }
 
