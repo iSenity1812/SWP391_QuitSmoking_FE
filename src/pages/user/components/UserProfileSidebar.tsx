@@ -2,8 +2,8 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils" // Added this import
 import {
-    Share2,
     LogOut,
     X,
     LayoutDashboard,
@@ -11,8 +11,8 @@ import {
     Award,
     Heart,
     Users,
-    Calendar,
     Crown,
+    BookOpen,
 } from "lucide-react"
 import type { User } from "../types/user-types"
 import type React from "react"
@@ -30,13 +30,21 @@ const sidebarItems: Array<{
     label: string
     icon: React.ComponentType<{ className?: string }>
     premium?: boolean
+    description?: string
 }> = [
-        { id: "overview", label: "Tổng quan", icon: LayoutDashboard },
-        { id: "progress", label: "Tiến trình", icon: ChartBar },
-        { id: "achievements", label: "Thành tựu", icon: Award },
-        { id: "health", label: "Sức khỏe", icon: Heart },
-        { id: "social", label: "Cộng đồng", icon: Users },
-        { id: "booking", label: "Đặt Lịch Chuyên Gia", icon: Calendar, premium: true },
+        { id: "overview", label: "Tổng quan", icon: LayoutDashboard, description: "Xem tổng quan tiến trình" },
+        { id: "progress", label: "Tiến trình", icon: ChartBar, description: "Theo dõi tiến độ bỏ thuốc" },
+        { id: "achievements", label: "Thành tựu", icon: Award, description: "Xem các thành tích đạt được" },
+        { id: "health", label: "Sức khỏe", icon: Heart, description: "Theo dõi sức khỏe" },
+        { id: "social", label: "Cộng đồng", icon: Users, description: "Kết nối với cộng đồng" },
+        { id: "diary", label: "Nhật ký", icon: BookOpen, description: "Viết và xem nhật ký cá nhân" },
+        {
+            id: "challenges",
+            label: "Thử thách Premium",
+            icon: Crown,
+            premium: true,
+            description: "Tham gia các thử thách độc quyền",
+        }, // Added premium challenges
     ]
 
 export function UserProfileSidebar({
@@ -49,11 +57,11 @@ export function UserProfileSidebar({
     return (
         <div
             className={`
-        fixed md:sticky top-0 left-0 z-50 md:z-0 h-screen md:h-auto w-64 md:w-64 
-        bg-white dark:bg-slate-900 shadow-lg md:shadow-none border-r border-slate-200 dark:border-slate-700
-        transform transition-transform duration-200 ease-in-out md:transform-none
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
-      `}
+      fixed md:sticky top-0 left-0 z-50 md:z-0 h-screen md:h-auto w-64 md:w-64 
+      bg-white dark:bg-slate-900 shadow-lg md:shadow-none border-r border-slate-200 dark:border-slate-700
+      transform transition-transform duration-200 ease-in-out md:transform-none
+      ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+    `}
         >
             <div className="flex items-center justify-between p-4 md:hidden">
                 <h2 className="font-bold text-lg text-slate-900 dark:text-white">Menu</h2>
@@ -80,38 +88,44 @@ export function UserProfileSidebar({
                 </div>
 
                 <div className="space-y-1">
-                    {sidebarItems.map((item) => (
-                        <button
-                            key={item.id}
-                            className={`
-            w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left
-            ${activeTab === item.id
-                                    ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium"
-                                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                }
-        `}
-                            onClick={() => {
-                                onTabChange(item.id)
-                                onSidebarClose()
-                            }}
-                        >
-                            <item.icon
-                                className={`h-5 w-5 ${activeTab === item.id ? "text-emerald-600 dark:text-emerald-400" : ""}`}
-                            />
-                            <span className="flex-1">{item.label}</span>
-                            {item.premium && <Crown className="h-4 w-4 text-amber-500" />}
-                        </button>
-                    ))}
+                    {sidebarItems.map((item) =>
+                        // Conditionally render based on premium status
+                        item.premium && user.subscription?.type !== "premium" ? null : (
+                            <button
+                                key={item.id}
+                                className={cn(
+                                    // Using cn here
+                                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left group relative",
+                                    activeTab === item.id
+                                        ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium"
+                                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800",
+                                )}
+                                onClick={() => {
+                                    onTabChange(item.id)
+                                    onSidebarClose()
+                                }}
+                                title={item.description}
+                            >
+                                <item.icon
+                                    className={`h-5 w-5 ${activeTab === item.id ? "text-emerald-600 dark:text-emerald-400" : ""}`}
+                                />
+                                <span className="flex-1">{item.label}</span>
+                                {item.premium && <Crown className="h-4 w-4 text-amber-500" />}
+                                {item.id === "chat" && <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>}
+                                {item.id === "diary" && (
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                    </div>
+                                )}
+                            </button>
+                        ),
+                    )}
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
-                    <Button variant="outline" className="w-full justify-start" size="sm">
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Chia sẻ tiến trình
-                    </Button>
                     <Button
                         variant="outline"
-                        className="w-full justify-start mt-2 text-rose-600 dark:text-rose-400"
+                        className="w-full justify-start text-rose-600 dark:text-rose-400"
                         size="sm"
                         onClick={() => {
                             localStorage.removeItem("user_session")

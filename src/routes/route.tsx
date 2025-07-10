@@ -1,10 +1,10 @@
 import { Routes, Route } from "react-router-dom"
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { AuthRedirect } from "@/components/auth/AuthRedirect"
+import { QuitPlanGuard } from "@/components/auth/QuitPlanGuard"
 
 // Public pages
-import { LandingPage } from "@/pages/landing/LandingPage"
-import BlogPage from "@/pages/blog/BlogPage"
+import { LandingPage } from "@/pages/Landing/LandingPage"
 import AboutPage from "@/pages/about/AboutPage"
 import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
@@ -12,7 +12,6 @@ import { OnboardingPage } from "@/pages/onboarding/onBoardingPage"
 // import { PlanSelectionDirectPage } from "@/pages/plan-selection/PlanDirectPage"
 
 // Protected pages
-import PlanPage from "@/pages/plan/PlanPage"
 import UserProfilePage from "@/pages/user/userProfilePage"
 import SubscriptionPage from "@/pages/plan/subscription/SubscriptionPage"
 
@@ -23,11 +22,15 @@ import ContentAdminPage from "@/pages/admin/content/ContentAdminPage"
 
 // Test components (remove in production)
 import { RouteTestDashboard } from "@/components/auth/RouteTestDashboard"
+import CreateQuitPlanLayout from "@/layouts/CreateQuitPlanLayout"
+import PlanPage from "@/pages/plan/PlanPage"
+import { QuitPlanDashboard } from "@/pages/plan/quitPlan/QuitPlanDashboard"
 
 export function AppRoutes() {
   return (
     <Routes>
-      {/* Public Routes - accessible by guests and members only (NOT admin/coach except blog for coach) */}      <Route
+      {/* Public Routes - accessible by guests and members only (NOT admin/coach except blog for coach) */}
+      <Route
         path="/"
         element={
           <ProtectedRoute
@@ -51,18 +54,6 @@ export function AppRoutes() {
         }
       />
 
-      {/* Blog - accessible by guests, members, and coaches */}
-      <Route
-        path="/blog"
-        element={
-          <ProtectedRoute
-            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER', 'COACH']}
-            requireAuth={false}
-          >
-            <BlogPage />
-          </ProtectedRoute>
-        }
-      />{/* Auth routes - prevent authenticated users from accessing */}
       <Route path="/login" element={<AuthRedirect><LoginPage /></AuthRedirect>} />
       <Route path="/register" element={<AuthRedirect><RegisterPage /></AuthRedirect>} />
       <Route path="/onboarding" element={<OnboardingPage />} />
@@ -80,13 +71,39 @@ export function AppRoutes() {
 
       {/* Member Routes - NORMAL_MEMBER & PREMIUM_MEMBER */}
       <Route
-        path="/plan"
+        path="/plan/create"
+        element={
+          <ProtectedRoute
+            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+            requireAuth={true}
+          >
+            <QuitPlanGuard>
+              <CreateQuitPlanLayout />
+            </QuitPlanGuard>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/plan2"
         element={
           <ProtectedRoute
             allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
             requireAuth={true}
           >
             <PlanPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/plan"
+        element={
+          <ProtectedRoute
+            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+            requireAuth={true}
+          >
+            <QuitPlanDashboard />
           </ProtectedRoute>
         }
       />

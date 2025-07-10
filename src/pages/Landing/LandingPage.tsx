@@ -1,13 +1,13 @@
-import { BenefitsSection } from "@/pages/landing/components/BenefitsSection";
-import { HeroSection } from "@/pages/landing/components/HeroSection";
+import { BenefitsSection } from "@/pages/Landing/components/BenefitsSection";
+import { HeroSection } from "@/pages/Landing/components/HeroSection";
 import { Navbar } from "@/components/ui/Navbar";
 import { Footer } from "@/components/ui/Footer";
-import { MotivationSection } from "@/pages/landing/components/MotivationSection";
-import { MotivationMessages } from "@/pages/landing/components/MotivationMessages";
-import { CoachAndAchievement } from "@/pages/landing/components/CoachAndAchievement";
-import { SubscriptionsSection } from "@/pages/landing/components/SubscriptionsSection";
+import { MotivationSection } from "@/pages/Landing/components/MotivationSection";
+import { MotivationMessages } from "@/pages/Landing/components/MotivationMessages";
+import { CoachAndAchievement } from "@/pages/Landing/components/CoachAndAchievement";
+import { SubscriptionsSection } from "@/pages/Landing/components/SubscriptionsSection";
 import { motion } from "framer-motion";
-import { TestimonialSlider } from "./components/TestimonialSlider";
+import { TestimonialSlider } from "@/pages/Landing/components/TestimonialSlider";
 // import SplashCursor from "@/components/ui/SplashCursor";
 
 const pageVariants = {

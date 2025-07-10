@@ -63,6 +63,21 @@ export interface Subscription {
     plan?: string
 }
 
+export interface Challenge {
+    id: string
+    name: string
+    description: string
+    requirements: string
+    reward: string
+    category: "health" | "mindfulness" | "social" | "streak" | "financial" | "other"
+    targetValue: number
+    currentValue: number
+    status: "not-started" | "in-progress" | "completed" | "failed"
+    isPremium: true
+    icon: string // Icon name for Lucide React
+    isUserCreated?: boolean // New: To distinguish user-created challenges
+}
+
 export interface User {
     name: string
     email: string
@@ -82,6 +97,7 @@ export interface User {
     weeklyProgress: WeeklyProgress[]
     friends: Friend[]
     recentActivities: RecentActivity[]
+    challenges: Challenge[]
 }
 
 export interface UserProfileProps {

@@ -4,7 +4,7 @@ import type React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { CheckCircle, TrendingDown, Calendar, Target, Zap, Clock } from "lucide-react"
+import { TrendingDown, Calendar, Target, Zap, Clock } from "lucide-react"
 import type { ReductionStep } from "@/pages/plan/styles/ui/types/plan"
 
 interface ReductionScheduleProps {
@@ -45,17 +45,7 @@ export const ReductionSchedule: React.FC<ReductionScheduleProps> = ({ schedule, 
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                {/* Main Info Section */}
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
-                    <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">
-                        Bạn đã chọn phương pháp giảm dần hàng ngày!
-                    </h4>
-                    <p className="text-blue-700 dark:text-blue-300 text-sm">
-                        Mỗi ngày bạn sẽ giảm 1 điếu thuốc so với ngày hôm trước. Đây là cách tiếp cận từ từ nhưng kiên định, giúp cơ
-                        thể thích nghi dần dần với việc giảm nicotine.
-                    </p>
-                </div>
-
+            
                 {/* Progress Overview */}
                 <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-700">
                     <div className="flex items-center justify-between mb-3">
@@ -111,64 +101,74 @@ export const ReductionSchedule: React.FC<ReductionScheduleProps> = ({ schedule, 
                         Lịch trình 7 ngày tới:
                     </h4>
 
-                    <div className="grid gap-2 max-h-80 overflow-y-auto">
-                        {schedule.slice(Math.max(0, currentDay - 1), Math.max(7, currentDay + 6)).map((step, index) => {
-                            const dayNumber = Math.max(1, currentDay) + index - (currentDay > 1 ? 1 : 0)
-                            const isCompleted = currentDay > dayNumber
-                            const isCurrent = currentDay === dayNumber
-                            const actualStep = schedule[dayNumber - 1]
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
+                        {/* Progress Line Visualization */}
+                        <div className="space-y-4">
+                            {/* Days Labels */}
+                            <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400">
+                                {schedule.slice(Math.max(0, currentDay - 1), Math.max(7, currentDay + 6)).map((_, index) => {
+                                    const dayNumber = Math.max(1, currentDay) + index - (currentDay > 1 ? 1 : 0)
+                                    const actualStep = schedule[dayNumber - 1]
+                                    if (!actualStep) return null
 
-                            if (!actualStep) return null
-
-                            return (
-                                <div
-                                    key={`day-${dayNumber}`}
-                                    className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-300 ${isCompleted
-                                            ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700"
-                                            : isCurrent
-                                                ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 ring-2 ring-blue-300 dark:ring-blue-600"
-                                                : "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-600"
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div
-                                            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${isCompleted
-                                                    ? "bg-green-500 text-white"
-                                                    : isCurrent
-                                                        ? "bg-blue-500 text-white"
-                                                        : "bg-slate-300 dark:bg-slate-600 text-slate-600 dark:text-slate-300"
-                                                }`}
-                                        >
-                                            {isCompleted ? <CheckCircle className="w-4 h-4" /> : dayNumber}
+                                    return (
+                                        <div key={`day-label-${dayNumber}`} className="text-center">
+                                            <div className="font-medium">Ngày {dayNumber}</div>
+                                            <div className={dayNumber === currentDay ? "text-blue-600 dark:text-blue-400" : ""}>
+                                                {actualStep.cigarettesPerDay === 0 ? "0" : actualStep.cigarettesPerDay}
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span className="font-medium text-slate-900 dark:text-white">
-                                                Ngày {dayNumber}
-                                                {isCurrent && <span className="text-blue-600 dark:text-blue-400 ml-2">(Hôm nay)</span>}
-                                            </span>
-                                            <p className="text-xs text-slate-600 dark:text-slate-300">
-                                                {actualStep.cigarettesPerDay === 0 ? "Không hút thuốc" : `${actualStep.cigarettesPerDay} điếu`}
-                                                {dayNumber > 1 && actualStep.cigarettesPerDay > 0 && (
-                                                    <span className="text-emerald-600 dark:text-emerald-400 ml-1">(-1 điếu)</span>
-                                                )}
-                                            </p>
-                                        </div>
-                                    </div>
+                                    )
+                                })}
+                            </div>
 
-                                    <Badge
-                                        variant="outline"
-                                        className={`text-xs ${isCompleted
-                                                ? "bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-300"
-                                                : isCurrent
-                                                    ? "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300"
-                                                    : "bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700 dark:text-slate-300"
-                                            }`}
-                                    >
-                                        {isCompleted ? "Hoàn thành" : isCurrent ? "Hôm nay" : "Sắp tới"}
-                                    </Badge>
+                            {/* Progress Line */}
+                            <div className="relative">
+                                <div className="flex items-end justify-between h-20">
+                                    {schedule.slice(Math.max(0, currentDay - 1), Math.max(7, currentDay + 6)).map((_, index) => {
+                                        const dayNumber = Math.max(1, currentDay) + index - (currentDay > 1 ? 1 : 0)
+                                        const actualStep = schedule[dayNumber - 1]
+                                        if (!actualStep) return null
+
+                                        const isCompleted = currentDay > dayNumber
+                                        const isCurrent = currentDay === dayNumber
+                                        const maxCigarettes = Math.max(...schedule.map((s) => s.cigarettesPerDay))
+                                        const height = maxCigarettes > 0 ? (actualStep.cigarettesPerDay / maxCigarettes) * 100 : 0
+
+                                        return (
+                                            <div key={`bar-${dayNumber}`} className="flex flex-col items-center flex-1">
+                                                <div
+                                                    className={`w-8 rounded-t transition-all duration-300 ${isCompleted ? "bg-green-500" : isCurrent ? "bg-blue-500" : "bg-slate-300 dark:bg-slate-600"
+                                                        }`}
+                                                    style={{ height: `${Math.max(height, 10)}%` }}
+                                                />
+                                                <div
+                                                    className={`w-3 h-3 rounded-full mt-1 ${isCompleted ? "bg-green-500" : isCurrent ? "bg-blue-500" : "bg-slate-300 dark:bg-slate-600"
+                                                        }`}
+                                                />
+                                            </div>
+                                        )
+                                    })}
                                 </div>
-                            )
-                        })}
+
+                                {/* Connecting Line */}
+                                <div className="absolute bottom-1.5 left-0 right-0 h-0.5 bg-slate-200 dark:bg-slate-600" />
+                            </div>
+
+                            {/* Current Status */}
+                            <div className="text-center">
+                                {todaySchedule && (
+                                    <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 px-3 py-2 rounded-lg">
+                                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                                        <span className="text-sm text-blue-700 dark:text-blue-300">
+                                            {todaySchedule.cigarettesPerDay === 0
+                                                ? "Hôm nay: Không hút thuốc!"
+                                                : `Hôm nay: ${todaySchedule.cigarettesPerDay} điếu`}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -195,26 +195,7 @@ export const ReductionSchedule: React.FC<ReductionScheduleProps> = ({ schedule, 
                     </div>
                 </div>
 
-                {/* Encouragement Section */}
-                <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-700">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Zap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <span className="font-medium text-emerald-800 dark:text-emerald-300">Lời khuyến khích:</span>
-                    </div>
-                    <p className="text-emerald-700 dark:text-emerald-300 text-sm">
-                        {currentDay <= totalDays ? (
-                            <>
-                                Tuyệt vời! Bạn đang giảm dần một cách khoa học. Mỗi ngày giảm 1 điếu giúp cơ thể thích nghi từ từ và
-                                giảm thiểu các triệu chứng cai thuốc. Hãy kiên trì!
-                            </>
-                        ) : (
-                            <>
-                                🎉 Xuất sắc! Bạn đã hoàn thành toàn bộ kế hoạch giảm dần hàng ngày. Giờ đây bạn đã tự do khỏi thuốc lá.
-                                Hãy duy trì thành quả này!
-                            </>
-                        )}
-                    </p>
-                </div>
+    
             </CardContent>
         </Card>
     )

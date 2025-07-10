@@ -5,6 +5,15 @@ export interface ApiResponse<T> {
   data: T
 }
 
+// Error Types
+export interface ApiError {
+  status: number
+  message: string
+  errors?: string[]
+}
+
+// ------ Coach Schedule DTO ------
+
 // Coach Schedule Registration Types
 export interface ScheduleRegistrationResponse {
   scheduleId: number
@@ -108,13 +117,6 @@ export interface Coach {
   name: string
   email: string
   // Add other coach fields as needed
-}
-
-// Error Types
-export interface ApiError {
-  status: number
-  message: string
-  errors?: string[]
 }
 
 // Request Types

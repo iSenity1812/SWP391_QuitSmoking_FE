@@ -75,12 +75,7 @@ export function Navbar() {
 
         <nav className="hidden md:flex items-center gap-6">
           {navLinks.map((item) => (
-            <NavItem
-              key={item.href}
-              href={item.href}
-              icon={item.icon}
-              isActive={item.href === location.pathname}
-            >
+            <NavItem key={item.href} href={item.href} icon={item.icon} isActive={item.href === location.pathname}>
               {item.label}
             </NavItem>
           ))}
@@ -135,5 +130,5 @@ export function Navbar() {
         </div>
       </div>
     </header>
-  );
+  )
 }

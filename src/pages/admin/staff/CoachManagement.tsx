@@ -640,6 +640,24 @@ export function CoachManagement() {
                                     </p>
                                 </div>
                             )}
+
+                            {/* Action Buttons */}
+                            <div className="flex justify-end space-x-2 pt-4 border-t">
+                                <Button variant="outline" onClick={() => setApplicationDialogOpen(false)}>
+                                    Hủy
+                                </Button>
+                                {selectedApplication.status === "pending" && (
+                                    <Button
+                                        onClick={() => {
+                                            setReviewDialogOpen(true)
+                                        }}
+                                        className="bg-blue-600 hover:bg-blue-700"
+                                    >
+                                        <CheckCircle className="w-4 h-4 mr-1" />
+                                        Duyệt đơn
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     )}
                 </DialogContent>
@@ -667,6 +685,9 @@ export function CoachManagement() {
                     </div>
 
                     <div className="flex justify-end space-x-2">
+                        <Button variant="outline" onClick={() => setReviewDialogOpen(false)}>
+                            Hủy
+                        </Button>
                         <Button
                             variant="outline"
                             onClick={() => selectedApplication && handleRejectApplication(selectedApplication.id)}
@@ -770,6 +791,13 @@ export function CoachManagement() {
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex justify-end space-x-2 pt-4 border-t">
+                                <Button variant="outline" onClick={() => setCoachDetailDialogOpen(false)}>
+                                    Hủy
+                                </Button>
                             </div>
                         </div>
                     )}

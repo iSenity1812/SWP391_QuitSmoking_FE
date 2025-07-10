@@ -17,6 +17,7 @@ interface AuthContextType {
 const AUTH_TOKEN = "jwt_token";
 const USER_INFO = "user_info";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
