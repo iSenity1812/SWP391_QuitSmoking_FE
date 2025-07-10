@@ -3,10 +3,10 @@ import type {
     ProgramRequestDTO,
     ProgramUpdateRequestDTO,
     ProgramResponseDTO,
-    SpringPageResponse,
-    ApiResponse,
     ProgramSearchParams,
     ProgramAdminParams,
+    SpringPageResponse,
+    ApiResponse,
 } from "@/types/program"
 
 class ProgramService {
@@ -63,28 +63,35 @@ class ProgramService {
         return formData
     }
 
-    // Get all programs with search and pagination
+    // Get all programs with search and filter
     async getAllPrograms(params: ProgramSearchParams = {}): Promise<SpringPageResponse<ProgramResponseDTO>> {
-        const searchParams = new URLSearchParams()
+        try {
+            console.log("ProgramService - getAllPrograms params:", params)
 
-        if (params.keyword) searchParams.append("keyword", params.keyword)
-        if (params.page !== undefined) searchParams.append("page", params.page.toString())
-        if (params.size !== undefined) searchParams.append("size", params.size.toString())
-        if (params.sort) searchParams.append("sort", params.sort)
-        if (params.direction) searchParams.append("direction", params.direction)
+            // Build query parameters
+            const queryParams = new URLSearchParams()
 
-        const response = await axiosInstance.get<ApiResponse<SpringPageResponse<ProgramResponseDTO>>>(
-            `${this.baseUrl}?${searchParams.toString()}`,
-        )
+            if (params.page !== undefined) queryParams.append("page", params.page.toString())
+            if (params.size !== undefined) queryParams.append("size", params.size.toString())
+            if (params.sort) queryParams.append("sort", params.sort)
+            if (params.direction) queryParams.append("direction", params.direction)
+            if (params.keyword) queryParams.append("keyword", params.keyword)
+            if (params.programType) {
+                queryParams.append("programType", params.programType)
+                console.log("ProgramService - Adding programType filter:", params.programType)
+            }
 
-        return response.data.data
-    }
+            const url = `${this.baseUrl}?${queryParams.toString()}`
+            console.log("ProgramService - Final URL:", url)
 
-    // Get program by ID
-    async getProgramById(id: number): Promise<ProgramResponseDTO> {
-        const response = await axiosInstance.get<ApiResponse<ProgramResponseDTO>>(`${this.baseUrl}/${id}`)
+            const response = await axiosInstance.get<ApiResponse<SpringPageResponse<ProgramResponseDTO>>>(url)
+            console.log("ProgramService - API Response:", response.data)
 
-        return response.data.data
+            return response.data.data
+        } catch (error: any) {
+            console.error("Error fetching programs:", error)
+            throw new Error(error.response?.data?.message || "Failed to fetch programs")
+        }
     }
 
     // Get programs by type
@@ -92,76 +99,115 @@ class ProgramService {
         programType: string,
         params: ProgramSearchParams = {},
     ): Promise<SpringPageResponse<ProgramResponseDTO>> {
-        const searchParams = new URLSearchParams()
+        try {
+            const queryParams = new URLSearchParams()
 
-        if (params.page !== undefined) searchParams.append("page", params.page.toString())
-        if (params.size !== undefined) searchParams.append("size", params.size.toString())
-        if (params.sort) searchParams.append("sort", params.sort)
-        if (params.direction) searchParams.append("direction", params.direction)
+            if (params.page !== undefined) queryParams.append("page", params.page.toString())
+            if (params.size !== undefined) queryParams.append("size", params.size.toString())
+            if (params.sort) queryParams.append("sort", params.sort)
+            if (params.direction) queryParams.append("direction", params.direction)
+            if (params.keyword) queryParams.append("keyword", params.keyword)
 
-        const response = await axiosInstance.get<ApiResponse<SpringPageResponse<ProgramResponseDTO>>>(
-            `${this.baseUrl}/type/${encodeURIComponent(programType)}?${searchParams.toString()}`,
-        )
+            const url = `${this.baseUrl}/type/${encodeURIComponent(programType)}?${queryParams.toString()}`
+            const response = await axiosInstance.get<ApiResponse<SpringPageResponse<ProgramResponseDTO>>>(url)
 
-        return response.data.data
+            return response.data.data
+        } catch (error: any) {
+            console.error("Error fetching programs by type:", error)
+            throw new Error(error.response?.data?.message || "Failed to fetch programs by type")
+        }
+    }
+
+    // Get program by ID
+    async getProgramById(id: number): Promise<ProgramResponseDTO> {
+        try {
+            const response = await axiosInstance.get<ApiResponse<ProgramResponseDTO>>(`${this.baseUrl}/${id}`)
+            return response.data.data
+        } catch (error: any) {
+            console.error("Error fetching program by ID:", error)
+            throw new Error(error.response?.data?.message || "Failed to fetch program")
+        }
     }
 
     // Create new program
     async createProgram(programData: ProgramRequestDTO): Promise<ProgramResponseDTO> {
-        const formData = this.createFormData(programData)
+        try {
+            const formData = this.createFormData(programData)
 
-        const response = await axiosInstance.post<ApiResponse<ProgramResponseDTO>>(this.baseUrl, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        })
+            const response = await axiosInstance.post<ApiResponse<ProgramResponseDTO>>(this.baseUrl, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
 
-        return response.data.data
+            return response.data.data
+        } catch (error: any) {
+            console.error("Error creating program:", error)
+            throw new Error(error.response?.data?.message || "Failed to create program")
+        }
     }
 
     // Update program
     async updateProgram(id: number, programData: ProgramUpdateRequestDTO): Promise<ProgramResponseDTO> {
-        const formData = this.createFormData(programData)
+        try {
+            const formData = this.createFormData(programData)
 
-        const response = await axiosInstance.put<ApiResponse<ProgramResponseDTO>>(`${this.baseUrl}/${id}`, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        })
+            const response = await axiosInstance.put<ApiResponse<ProgramResponseDTO>>(`${this.baseUrl}/${id}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
 
-        return response.data.data
+            return response.data.data
+        } catch (error: any) {
+            console.error("Error updating program:", error)
+            throw new Error(error.response?.data?.message || "Failed to update program")
+        }
     }
 
     // Delete program
     async deleteProgram(id: number): Promise<void> {
-        await axiosInstance.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`)
+        try {
+            await axiosInstance.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`)
+        } catch (error: any) {
+            console.error("Error deleting program:", error)
+            throw new Error(error.response?.data?.message || "Failed to delete program")
+        }
     }
 
     // Admin: Get programs by creator
     async getProgramsByCreator(params: ProgramAdminParams): Promise<SpringPageResponse<ProgramResponseDTO>> {
-        if (!params.creatorId) {
-            throw new Error("Creator ID is required")
+        try {
+            if (!params.creatorId) {
+                throw new Error("Creator ID is required")
+            }
+
+            const queryParams = new URLSearchParams()
+
+            if (params.page !== undefined) queryParams.append("page", params.page.toString())
+            if (params.size !== undefined) queryParams.append("size", params.size.toString())
+            if (params.sort) queryParams.append("sort", params.sort)
+            if (params.direction) queryParams.append("direction", params.direction)
+
+            const response = await axiosInstance.get<ApiResponse<SpringPageResponse<ProgramResponseDTO>>>(
+                `${this.baseUrl}/creator/${params.creatorId}?${queryParams.toString()}`,
+            )
+            return response.data.data
+        } catch (error: any) {
+            console.error("Error fetching programs by creator:", error)
+            throw new Error(error.response?.data?.message || "Failed to fetch programs by creator")
         }
-
-        const searchParams = new URLSearchParams()
-
-        if (params.page !== undefined) searchParams.append("page", params.page.toString())
-        if (params.size !== undefined) searchParams.append("size", params.size.toString())
-        if (params.sort) searchParams.append("sort", params.sort)
-        if (params.direction) searchParams.append("direction", params.direction)
-
-        const response = await axiosInstance.get<ApiResponse<SpringPageResponse<ProgramResponseDTO>>>(
-            `${this.baseUrl}/creator/${params.creatorId}?${searchParams.toString()}`,
-        )
-
-        return response.data.data
     }
 
     // Admin: Count programs by creator
     async countProgramsByCreator(creatorId: string): Promise<number> {
-        const response = await axiosInstance.get<ApiResponse<number>>(`${this.baseUrl}/creator/${creatorId}/count`)
-
-        return response.data.data
+        try {
+            const response = await axiosInstance.get<ApiResponse<number>>(`${this.baseUrl}/creator/${creatorId}/count`)
+            return response.data.data
+        } catch (error: any) {
+            console.error("Error counting programs by creator:", error)
+            throw new Error(error.response?.data?.message || "Failed to count programs by creator")
+        }
     }
 }
 

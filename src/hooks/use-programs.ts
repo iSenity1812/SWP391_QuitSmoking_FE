@@ -27,18 +27,53 @@ export function usePrograms(initialParams: ProgramSearchParams = {}) {
 
     const [searchParams, setSearchParams] = useState<ProgramSearchParams>({
         page: 0,
-        size: 20,
+        size: 10,
         sort: "createdAt",
         direction: "DESC" as const,
         ...initialParams,
     })
+
+    // Add debounced search term state
+    const [searchTerm, setSearchTerm] = useState(initialParams.keyword || "")
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialParams.keyword || "")
+
+    // Debounce search term
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm)
+        }, 300)
+
+        return () => clearTimeout(timer)
+    }, [searchTerm])
+
+    // Update search params when debounced term changes
+    useEffect(() => {
+        setSearchParams((prev) => ({
+            ...prev,
+            keyword: debouncedSearchTerm || undefined,
+            page: 0, // Reset to first page when search changes
+        }))
+    }, [debouncedSearchTerm])
 
     const fetchPrograms = useCallback(async () => {
         try {
             setLoading(true)
             setError(null)
 
-            const response = await programService.getAllPrograms(searchParams)
+            console.log("Fetching programs with params:", searchParams) // Debug log
+
+            // Ensure programType is properly passed
+            const apiParams = {
+                ...searchParams,
+                // Make sure programType is included if it exists
+                ...(searchParams.programType && { programType: searchParams.programType }),
+            }
+
+            console.log("API params being sent:", apiParams) // Debug log
+
+            const response = await programService.getAllPrograms(apiParams)
+
+            console.log("API response:", response) // Debug log
 
             setPrograms(response.content)
             setPagination({
@@ -53,6 +88,7 @@ export function usePrograms(initialParams: ProgramSearchParams = {}) {
             const errorMessage = err instanceof Error ? err.message : "Failed to fetch programs"
             setError(errorMessage)
             toast.error(errorMessage)
+            console.error("Error fetching programs:", err)
         } finally {
             setLoading(false)
         }
@@ -63,11 +99,16 @@ export function usePrograms(initialParams: ProgramSearchParams = {}) {
     }, [fetchPrograms])
 
     const updateSearchParams = useCallback((newParams: Partial<ProgramSearchParams>) => {
-        setSearchParams((prev) => ({
-            ...prev,
-            ...newParams,
-            page: newParams.page !== undefined ? newParams.page : 0, // Reset to first page when other params change
-        }))
+        console.log("Updating search params:", newParams) // Debug log
+        setSearchParams((prev) => {
+            const updated = {
+                ...prev,
+                ...newParams,
+                page: newParams.page !== undefined ? newParams.page : 0, // Reset to first page when other params change
+            }
+            console.log("Updated search params:", updated) // Debug log
+            return updated
+        })
     }, [])
 
     const changePage = useCallback((page: number) => {
@@ -78,12 +119,15 @@ export function usePrograms(initialParams: ProgramSearchParams = {}) {
         setSearchParams((prev) => ({ ...prev, size, page: 0 }))
     }, [])
 
-    const search = useCallback(
-        (keyword: string) => {
-            updateSearchParams({ keyword, page: 0 })
-        },
-        [updateSearchParams],
-    )
+    // Update search function to use searchTerm state
+    const search = useCallback((keyword: string) => {
+        setSearchTerm(keyword)
+    }, [])
+
+    // Add clear search function
+    const clearSearch = useCallback(() => {
+        setSearchTerm("")
+    }, [])
 
     const refresh = useCallback(() => {
         fetchPrograms()
@@ -95,15 +139,18 @@ export function usePrograms(initialParams: ProgramSearchParams = {}) {
         error,
         pagination,
         searchParams,
+        searchTerm,
+        debouncedSearchTerm,
         updateSearchParams,
         changePage,
         changePageSize,
         search,
+        clearSearch,
         refresh,
     }
 }
 
-// Hook for programs by type
+// Hook for programs by type with improved search
 export function useProgramsByType(programType: string, initialParams: ProgramSearchParams = {}) {
     const [programs, setPrograms] = useState<ProgramResponseDTO[]>([])
     const [loading, setLoading] = useState(false)
@@ -124,6 +171,28 @@ export function useProgramsByType(programType: string, initialParams: ProgramSea
         direction: "DESC" as const,
         ...initialParams,
     })
+
+    // Add debounced search term state
+    const [searchTerm, setSearchTerm] = useState(initialParams.keyword || "")
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialParams.keyword || "")
+
+    // Debounce search term
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm)
+        }, 300)
+
+        return () => clearTimeout(timer)
+    }, [searchTerm])
+
+    // Update search params when debounced term changes
+    useEffect(() => {
+        setSearchParams((prev) => ({
+            ...prev,
+            keyword: debouncedSearchTerm || undefined,
+            page: 0, // Reset to first page when search changes
+        }))
+    }, [debouncedSearchTerm])
 
     const fetchPrograms = useCallback(async () => {
         if (!programType) return
@@ -164,13 +233,27 @@ export function useProgramsByType(programType: string, initialParams: ProgramSea
         setSearchParams((prev) => ({ ...prev, size, page: 0 }))
     }, [])
 
+    // Add search function
+    const search = useCallback((keyword: string) => {
+        setSearchTerm(keyword)
+    }, [])
+
+    // Add clear search function
+    const clearSearch = useCallback(() => {
+        setSearchTerm("")
+    }, [])
+
     return {
         programs,
         loading,
         error,
         pagination,
+        searchTerm,
+        debouncedSearchTerm,
         changePage,
         changePageSize,
+        search,
+        clearSearch,
         refresh: fetchPrograms,
     }
 }
@@ -298,7 +381,6 @@ export function useProgramAdmin() {
             return count
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Failed to count programs by creator"
-            setError(errorMessage)
             toast.error(errorMessage)
             throw err
         } finally {
@@ -313,5 +395,3 @@ export function useProgramAdmin() {
         error,
     }
 }
-
-

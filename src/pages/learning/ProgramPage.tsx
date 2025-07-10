@@ -10,40 +10,45 @@ import { Badge } from "@/components/ui/badge"
 import { ProgramList } from "./components/ProgramList"
 import { ProgramDetail } from "./components/ProgramDetail"
 import { usePrograms } from "@/hooks/use-programs"
-import type { ProgramResponseDTO } from "@/types/program"
-import { ProgramType, ProgramTypeLabels } from "@/types/program"
+import type { ProgramResponseDTO, ProgramType } from "@/types/program"
+import { ProgramType as ProgramTypeEnum, ProgramTypeLabels } from "@/types/program"
 
 export default function ProgramPage() {
     const [selectedProgram, setSelectedProgram] = useState<ProgramResponseDTO | null>(null)
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
-    const [searchKeyword, setSearchKeyword] = useState("")
-    const [selectedType, setSelectedType] = useState<string>("")
+    const [selectedType, setSelectedType] = useState<ProgramType | "">("")
 
-    const { programs, loading, error, pagination, search, updateSearchParams, changePage, changePageSize, refresh } =
-        usePrograms()
+    const {
+        programs,
+        loading,
+        error,
+        pagination,
+        searchTerm,
+        debouncedSearchTerm,
+        search,
+        clearSearch,
+        updateSearchParams,
+        changePage,
+        changePageSize,
+        refresh,
+    } = usePrograms()
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault()
-        const params: any = {}
-        if (searchKeyword.trim()) {
-            params.keyword = searchKeyword.trim()
-        }
-        if (selectedType) {
-            params.programType = selectedType
-        }
-        updateSearchParams(params)
+    // Handle search input change
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        search(e.target.value)
     }
 
+    // Handle type filter change - Fixed logic
     const handleTypeFilter = (type: string) => {
-        setSelectedType(type)
-        const params: any = {}
-        if (searchKeyword.trim()) {
-            params.keyword = searchKeyword.trim()
-        }
-        if (type) {
-            params.programType = type
-        }
-        updateSearchParams(params)
+        console.log("Selected type:", type) // Debug log
+        const programType = type as ProgramType | ""
+        setSelectedType(programType)
+
+        // Update search params immediately
+        updateSearchParams({
+            programType: programType || undefined,
+            page: 0,
+        })
     }
 
     const handleProgramSelect = (program: ProgramResponseDTO) => {
@@ -55,9 +60,13 @@ export default function ProgramPage() {
     }
 
     const handleClearFilters = () => {
-        setSearchKeyword("")
+        clearSearch()
         setSelectedType("")
-        updateSearchParams({})
+        updateSearchParams({
+            keyword: undefined,
+            programType: undefined,
+            page: 0,
+        })
     }
 
     if (selectedProgram) {
@@ -114,24 +123,18 @@ export default function ProgramPage() {
                     <CardContent>
                         <div className="flex flex-col lg:flex-row gap-6">
                             {/* Enhanced Search */}
-                            <form onSubmit={handleSearch} className="flex-1">
+                            <div className="flex-1">
                                 <div className="relative group">
                                     <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 h-5 w-5 transition-colors" />
                                     <Input
                                         type="text"
                                         placeholder="Tìm kiếm chương trình theo tiêu đề, tên hoặc mô tả..."
-                                        value={searchKeyword}
-                                        onChange={(e) => setSearchKeyword(e.target.value)}
+                                        value={searchTerm}
+                                        onChange={handleSearchChange}
                                         className="pl-12 h-12 text-lg border-2 border-slate-200 dark:border-slate-600 focus:border-emerald-500 dark:focus:border-emerald-400 rounded-xl bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm transition-all"
                                     />
-                                    <Button
-                                        type="submit"
-                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-br from-emerald-400 to-emerald-600 hover:from-emerald-600 hover:to-blue-600 rounded-lg dark:text-white"
-                                    >
-                                        Tìm kiếm
-                                    </Button>
                                 </div>
-                            </form>
+                            </div>
 
                             {/* Enhanced Type Filter */}
                             <div className="w-full lg:w-64">
@@ -141,7 +144,7 @@ export default function ProgramPage() {
                                     className="w-full h-12 px-4 border-2 border-slate-200 dark:border-slate-600 rounded-xl bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm text-slate-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 transition-all"
                                 >
                                     <option value="">🎯 Tất cả loại chương trình</option>
-                                    {Object.values(ProgramType).map((type) => (
+                                    {Object.values(ProgramTypeEnum).map((type) => (
                                         <option key={type} value={type}>
                                             📚 {ProgramTypeLabels[type]}
                                         </option>
@@ -156,8 +159,8 @@ export default function ProgramPage() {
                                     size="sm"
                                     onClick={() => setViewMode("grid")}
                                     className={`rounded-lg transition-all ${viewMode === "grid"
-                                            ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg"
-                                            : "hover:bg-white/50 dark:hover:bg-slate-600"
+                                        ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg"
+                                        : "hover:bg-white/50 dark:hover:bg-slate-600"
                                         }`}
                                 >
                                     <Grid className="h-4 w-4 mr-2" />
@@ -168,8 +171,8 @@ export default function ProgramPage() {
                                     size="sm"
                                     onClick={() => setViewMode("list")}
                                     className={`rounded-lg transition-all ${viewMode === "list"
-                                            ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg"
-                                            : "hover:bg-white/50 dark:hover:bg-slate-600"
+                                        ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg"
+                                        : "hover:bg-white/50 dark:hover:bg-slate-600"
                                         }`}
                                 >
                                     <List className="h-4 w-4 mr-2" />
@@ -179,22 +182,16 @@ export default function ProgramPage() {
                         </div>
 
                         {/* Enhanced Active Filters */}
-                        {(searchKeyword || selectedType) && (
+                        {(debouncedSearchTerm || selectedType) && (
                             <div className="flex flex-wrap gap-3 mt-6 p-4 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-xl border border-emerald-200/50 dark:border-emerald-700/50">
                                 <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Bộ lọc đang áp dụng:</span>
-                                {searchKeyword && (
+                                {debouncedSearchTerm && (
                                     <Badge
                                         variant="secondary"
                                         className="flex items-center gap-2 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700 px-3 py-1 rounded-full"
                                     >
-                                        🔍 Tìm kiếm: {searchKeyword}
-                                        <button
-                                            onClick={() => {
-                                                setSearchKeyword("")
-                                                handleSearch({ preventDefault: () => { } } as React.FormEvent)
-                                            }}
-                                            className="ml-1 hover:text-red-500 transition-colors font-bold"
-                                        >
+                                        🔍 Tìm kiếm: {debouncedSearchTerm}
+                                        <button onClick={() => search("")} className="ml-1 hover:text-red-500 transition-colors font-bold">
                                             ×
                                         </button>
                                     </Badge>
@@ -204,7 +201,7 @@ export default function ProgramPage() {
                                         variant="secondary"
                                         className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700 px-3 py-1 rounded-full"
                                     >
-                                        📚 Loại: {ProgramTypeLabels[selectedType as ProgramType]}
+                                        📚 Loại: {ProgramTypeLabels[selectedType]}
                                         <button
                                             onClick={() => handleTypeFilter("")}
                                             className="ml-1 hover:text-red-500 transition-colors font-bold"

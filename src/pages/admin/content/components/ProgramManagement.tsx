@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import type React from "react"
+import { useState } from "react"
 import { Plus, Search, Edit, Trash2, Eye, Filter, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,15 +19,14 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { usePrograms, useProgramMutations } from "@/hooks/use-programs"
-import type { ProgramResponseDTO } from "@/types/program"
+import type { ProgramResponseDTO, ProgramType } from "@/types/program"
 import { CreateProgramDialog } from "./dialogs/CreateProgramDialog"
 import { EditProgramDialog } from "./dialogs/EditProgramDialog"
 import { ProgramDetailDialog } from "./dialogs/ProgramDetailDialog"
-import { ProgramType, ProgramTypeLabels } from "@/types/program"
+import { ProgramType as ProgramTypeEnum, ProgramTypeLabels } from "@/types/program"
 
 export function ProgramManagement() {
-    const [searchKeyword, setSearchKeyword] = useState("")
-    const [selectedType, setSelectedType] = useState<string>("")
+    const [selectedType, setSelectedType] = useState<ProgramType | "">("")
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
     const [programToDelete, setProgramToDelete] = useState<ProgramResponseDTO | null>(null)
     const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -39,10 +39,13 @@ export function ProgramManagement() {
         loading,
         error,
         pagination,
-        searchParams,
+        searchTerm,
+        debouncedSearchTerm,
         updateSearchParams,
         changePage,
         changePageSize,
+        search,
+        clearSearch,
         refresh,
     } = usePrograms({
         page: 0,
@@ -53,26 +56,30 @@ export function ProgramManagement() {
 
     const { deleteProgram, loading: mutationLoading } = useProgramMutations()
 
-    // Auto search when keyword or type changes
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            const params: any = {}
-            if (searchKeyword.trim()) {
-                params.keyword = searchKeyword.trim()
-            }
-            if (selectedType) {
-                params.programType = selectedType
-            }
-            updateSearchParams(params)
-        }, 300) // Debounce 300ms
+    // Handle search input change
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        search(e.target.value)
+    }
 
-        return () => clearTimeout(timeoutId)
-    }, [searchKeyword, selectedType, updateSearchParams])
+    // Handle type filter change
+    const handleTypeFilter = (type: string) => {
+        const programType = type as ProgramType | ""
+        setSelectedType(programType)
+        updateSearchParams({
+            programType: programType || undefined,
+            page: 0,
+        })
+    }
 
     // Handle clear filters
     const handleClearFilters = () => {
-        setSearchKeyword("")
+        clearSearch()
         setSelectedType("")
+        updateSearchParams({
+            keyword: undefined,
+            programType: undefined,
+            page: 0,
+        })
     }
 
     // Handle delete
@@ -197,7 +204,7 @@ export function ProgramManagement() {
                 </Button>
             </div>
 
-            {/* Filters */}
+            {/* Search and Filters */}
             <Card className="border border-gray-200 dark:border-gray-700">
                 <CardContent className="p-4">
                     <div className="flex flex-col sm:flex-row gap-4">
@@ -206,8 +213,8 @@ export function ProgramManagement() {
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                                 <Input
                                     placeholder="Tìm kiếm theo tên chương trình..."
-                                    value={searchKeyword}
-                                    onChange={(e) => setSearchKeyword(e.target.value)}
+                                    value={searchTerm}
+                                    onChange={handleSearchChange}
                                     className="pl-10 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
                                 />
                             </div>
@@ -215,13 +222,13 @@ export function ProgramManagement() {
                         <div className="w-full sm:w-48">
                             <select
                                 value={selectedType}
-                                onChange={(e) => setSelectedType(e.target.value)}
+                                onChange={(e) => handleTypeFilter(e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="" className="text-gray-900 dark:text-white">
                                     Tất cả loại
                                 </option>
-                                {Object.values(ProgramType).map((type) => (
+                                {Object.values(ProgramTypeEnum).map((type) => (
                                     <option key={type} value={type} className="text-gray-900 dark:text-white">
                                         {ProgramTypeLabels[type]}
                                     </option>
@@ -235,6 +242,29 @@ export function ProgramManagement() {
                             </Button>
                         </div>
                     </div>
+
+                    {/* Active Filters Display */}
+                    {(debouncedSearchTerm || selectedType) && (
+                        <div className="flex flex-wrap gap-2 mt-4 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Bộ lọc đang áp dụng:</span>
+                            {debouncedSearchTerm && (
+                                <Badge variant="secondary" className="flex items-center gap-1">
+                                    Tìm kiếm: {debouncedSearchTerm}
+                                    <button onClick={() => search("")} className="ml-1 hover:text-red-500 transition-colors">
+                                        ×
+                                    </button>
+                                </Badge>
+                            )}
+                            {selectedType && (
+                                <Badge variant="secondary" className="flex items-center gap-1">
+                                    Loại: {ProgramTypeLabels[selectedType]}
+                                    <button onClick={() => handleTypeFilter("")} className="ml-1 hover:text-red-500 transition-colors">
+                                        ×
+                                    </button>
+                                </Badge>
+                            )}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -252,7 +282,11 @@ export function ProgramManagement() {
                         </div>
                     ) : programs.length === 0 ? (
                         <div className="text-center py-8">
-                            <p className="text-gray-500 dark:text-gray-400">Không có chương trình nào</p>
+                            <p className="text-gray-500 dark:text-gray-400">
+                                {debouncedSearchTerm || selectedType
+                                    ? "Không tìm thấy chương trình nào phù hợp với bộ lọc"
+                                    : "Không có chương trình nào"}
+                            </p>
                         </div>
                     ) : (
                         <div className="space-y-4">

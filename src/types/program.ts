@@ -10,9 +10,9 @@ export const ProgramType = {
     SUPPORT_GROUP: "SUPPORT_GROUP",
     EDUCATIONAL: "EDUCATIONAL",
     MOTIVATIONAL: "MOTIVATIONAL",
-} as const;
+} as const
 
-export type ProgramType = typeof ProgramType[keyof typeof ProgramType];
+export type ProgramType = (typeof ProgramType)[keyof typeof ProgramType]
 
 // Program Type Labels for display
 export const ProgramTypeLabels: Record<ProgramType, string> = {
@@ -88,6 +88,36 @@ export interface ProgramResponseDTO {
 }
 
 export interface SpringPageResponse<T> {
+    content: T[]
+    pageable: {
+        pageNumber: number
+        pageSize: number
+        sort: {
+            empty: boolean
+            sorted: boolean
+            unsorted: boolean
+        }
+        offset: number
+        paged: boolean
+        unpaged: boolean
+    }
+    last: boolean
+    totalPages: number
+    totalElements: number
+    size: number
+    number: number
+    sort: {
+        empty: boolean
+        sorted: boolean
+        unsorted: boolean
+    }
+    first: boolean
+    numberOfElements: number
+    empty: boolean
+}
+
+// Add PaginatedResponse type for compatibility
+export interface PaginatedResponse<T> {
     content: T[]
     pageable: {
         pageNumber: number
