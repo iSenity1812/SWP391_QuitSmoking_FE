@@ -314,28 +314,4 @@ export function useProgramAdmin() {
     }
 }
 
-// Hook for program types (utility)
-export function useProgramTypes() {
-    const [types, setTypes] = useState<string[]>([])
-    const [loading, setLoading] = useState(false)
 
-    // This could be extended to fetch from API if needed
-    useEffect(() => {
-        // For now, using static types - can be made dynamic later
-        setTypes([
-            "Meditation",
-            "Exercise",
-            "Nutrition",
-            "Therapy",
-            "Support Group",
-            "Educational",
-            "Mindfulness",
-            "Behavioral",
-        ])
-    }, [])
-
-    return {
-        types,
-        loading,
-    }
-}

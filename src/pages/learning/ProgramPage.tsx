@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ProgramList } from "./components/ProgramList"
 import { ProgramDetail } from "./components/ProgramDetail"
-import { usePrograms, useProgramTypes } from "@/hooks/use-programs"
+import { usePrograms } from "@/hooks/use-programs"
 import type { ProgramResponseDTO } from "@/types/program"
+import { ProgramType, ProgramTypeLabels } from "@/types/program"
 
 export default function ProgramPage() {
     const [selectedProgram, setSelectedProgram] = useState<ProgramResponseDTO | null>(null)
@@ -21,16 +22,28 @@ export default function ProgramPage() {
     const { programs, loading, error, pagination, search, updateSearchParams, changePage, changePageSize, refresh } =
         usePrograms()
 
-    const { types } = useProgramTypes()
-
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
-        search(searchKeyword)
+        const params: any = {}
+        if (searchKeyword.trim()) {
+            params.keyword = searchKeyword.trim()
+        }
+        if (selectedType) {
+            params.programType = selectedType
+        }
+        updateSearchParams(params)
     }
 
     const handleTypeFilter = (type: string) => {
         setSelectedType(type)
-        updateSearchParams({ programType: type || undefined })
+        const params: any = {}
+        if (searchKeyword.trim()) {
+            params.keyword = searchKeyword.trim()
+        }
+        if (type) {
+            params.programType = type
+        }
+        updateSearchParams(params)
     }
 
     const handleProgramSelect = (program: ProgramResponseDTO) => {
@@ -39,6 +52,12 @@ export default function ProgramPage() {
 
     const handleBackToList = () => {
         setSelectedProgram(null)
+    }
+
+    const handleClearFilters = () => {
+        setSearchKeyword("")
+        setSelectedType("")
+        updateSearchParams({})
     }
 
     if (selectedProgram) {
@@ -122,9 +141,9 @@ export default function ProgramPage() {
                                     className="w-full h-12 px-4 border-2 border-slate-200 dark:border-slate-600 rounded-xl bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm text-slate-900 dark:text-white focus:border-emerald-500 dark:focus:border-emerald-400 transition-all"
                                 >
                                     <option value="">🎯 Tất cả loại chương trình</option>
-                                    {types.map((type) => (
+                                    {Object.values(ProgramType).map((type) => (
                                         <option key={type} value={type}>
-                                            📚 {type}
+                                            📚 {ProgramTypeLabels[type]}
                                         </option>
                                     ))}
                                 </select>
@@ -137,8 +156,8 @@ export default function ProgramPage() {
                                     size="sm"
                                     onClick={() => setViewMode("grid")}
                                     className={`rounded-lg transition-all ${viewMode === "grid"
-                                        ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg"
-                                        : "hover:bg-white/50 dark:hover:bg-slate-600"
+                                            ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg"
+                                            : "hover:bg-white/50 dark:hover:bg-slate-600"
                                         }`}
                                 >
                                     <Grid className="h-4 w-4 mr-2" />
@@ -149,8 +168,8 @@ export default function ProgramPage() {
                                     size="sm"
                                     onClick={() => setViewMode("list")}
                                     className={`rounded-lg transition-all ${viewMode === "list"
-                                        ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg"
-                                        : "hover:bg-white/50 dark:hover:bg-slate-600"
+                                            ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg"
+                                            : "hover:bg-white/50 dark:hover:bg-slate-600"
                                         }`}
                                 >
                                     <List className="h-4 w-4 mr-2" />
@@ -172,7 +191,7 @@ export default function ProgramPage() {
                                         <button
                                             onClick={() => {
                                                 setSearchKeyword("")
-                                                search("")
+                                                handleSearch({ preventDefault: () => { } } as React.FormEvent)
                                             }}
                                             className="ml-1 hover:text-red-500 transition-colors font-bold"
                                         >
@@ -185,7 +204,7 @@ export default function ProgramPage() {
                                         variant="secondary"
                                         className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-700 px-3 py-1 rounded-full"
                                     >
-                                        📚 Loại: {selectedType}
+                                        📚 Loại: {ProgramTypeLabels[selectedType as ProgramType]}
                                         <button
                                             onClick={() => handleTypeFilter("")}
                                             className="ml-1 hover:text-red-500 transition-colors font-bold"
@@ -194,6 +213,14 @@ export default function ProgramPage() {
                                         </button>
                                     </Badge>
                                 )}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={handleClearFilters}
+                                    className="text-slate-600 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400"
+                                >
+                                    Xóa tất cả bộ lọc
+                                </Button>
                             </div>
                         )}
                     </CardContent>

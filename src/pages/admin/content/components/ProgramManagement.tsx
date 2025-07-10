@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Plus, Search, Edit, Trash2, Eye, Filter, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,11 +17,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { usePrograms, useProgramMutations, useProgramTypes } from "@/hooks/use-programs"
+import { usePrograms, useProgramMutations } from "@/hooks/use-programs"
 import type { ProgramResponseDTO } from "@/types/program"
 import { CreateProgramDialog } from "./dialogs/CreateProgramDialog"
 import { EditProgramDialog } from "./dialogs/EditProgramDialog"
 import { ProgramDetailDialog } from "./dialogs/ProgramDetailDialog"
+import { ProgramType, ProgramTypeLabels } from "@/types/program"
 
 export function ProgramManagement() {
     const [searchKeyword, setSearchKeyword] = useState("")
@@ -42,7 +43,6 @@ export function ProgramManagement() {
         updateSearchParams,
         changePage,
         changePageSize,
-        search,
         refresh,
     } = usePrograms({
         page: 0,
@@ -52,25 +52,27 @@ export function ProgramManagement() {
     })
 
     const { deleteProgram, loading: mutationLoading } = useProgramMutations()
-    const { types } = useProgramTypes()
 
-    // Handle search
-    const handleSearch = () => {
-        const params: any = {}
-        if (searchKeyword.trim()) {
-            params.keyword = searchKeyword.trim()
-        }
-        if (selectedType) {
-            params.programType = selectedType
-        }
-        updateSearchParams(params)
-    }
+    // Auto search when keyword or type changes
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            const params: any = {}
+            if (searchKeyword.trim()) {
+                params.keyword = searchKeyword.trim()
+            }
+            if (selectedType) {
+                params.programType = selectedType
+            }
+            updateSearchParams(params)
+        }, 300) // Debounce 300ms
+
+        return () => clearTimeout(timeoutId)
+    }, [searchKeyword, selectedType, updateSearchParams])
 
     // Handle clear filters
     const handleClearFilters = () => {
         setSearchKeyword("")
         setSelectedType("")
-        updateSearchParams({})
     }
 
     // Handle delete
@@ -126,16 +128,23 @@ export function ProgramManagement() {
     // Get program type color
     const getTypeColor = (type?: string) => {
         const colors: Record<string, string> = {
-            Meditation: "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300",
-            Exercise: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300",
-            Nutrition: "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300",
-            Therapy: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300",
-            "Support Group": "bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-300",
-            Educational: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300",
-            Mindfulness: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300",
-            Behavioral: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300",
+            BEGINNER: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300",
+            INTERMEDIATE: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300",
+            ADVANCED: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300",
+            MEDITATION: "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300",
+            EXERCISE: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300",
+            NUTRITION: "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300",
+            PSYCHOLOGY: "bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-300",
+            SUPPORT_GROUP: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-300",
+            EDUCATIONAL: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-300",
+            MOTIVATIONAL: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300",
         }
         return colors[type || ""] || "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300"
+    }
+
+    const getProgramTypeLabel = (type?: string) => {
+        if (!type) return "Chưa phân loại"
+        return ProgramTypeLabels[type as keyof typeof ProgramTypeLabels] || type
     }
 
     // Get proper image URL
@@ -200,7 +209,6 @@ export function ProgramManagement() {
                                     value={searchKeyword}
                                     onChange={(e) => setSearchKeyword(e.target.value)}
                                     className="pl-10 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-                                    onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                                 />
                             </div>
                         </div>
@@ -213,18 +221,14 @@ export function ProgramManagement() {
                                 <option value="" className="text-gray-900 dark:text-white">
                                     Tất cả loại
                                 </option>
-                                {types.map((type) => (
+                                {Object.values(ProgramType).map((type) => (
                                     <option key={type} value={type} className="text-gray-900 dark:text-white">
-                                        {type}
+                                        {ProgramTypeLabels[type]}
                                     </option>
                                 ))}
                             </select>
                         </div>
                         <div className="flex gap-2">
-                            <Button onClick={handleSearch} variant="default">
-                                <Search className="h-4 w-4 mr-2" />
-                                Tìm kiếm
-                            </Button>
                             <Button onClick={handleClearFilters} variant="outline">
                                 <Filter className="h-4 w-4 mr-2" />
                                 Xóa bộ lọc
@@ -280,7 +284,9 @@ export function ProgramManagement() {
                                                         {program.programTitle}
                                                     </h3>
                                                     {program.programType && (
-                                                        <Badge className={getTypeColor(program.programType)}>{program.programType}</Badge>
+                                                        <Badge className={getTypeColor(program.programType)}>
+                                                            {getProgramTypeLabel(program.programType)}
+                                                        </Badge>
                                                     )}
                                                 </div>
                                                 {program.programName && (

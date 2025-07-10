@@ -15,8 +15,10 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useProgramMutations } from "@/hooks/use-programs"
 import type { ProgramRequestDTO } from "@/types/program"
+import { ProgramType, ProgramTypeLabels } from "@/types/program"
 import { toast } from "react-toastify"
 import { Loader2, X } from "lucide-react"
 
@@ -33,7 +35,7 @@ export function CreateProgramDialog({ open, onOpenChange, onSuccess }: CreatePro
     const [formData, setFormData] = useState({
         programTitle: "",
         programName: "",
-        programType: "",
+        programType: "" as ProgramType | "",
         contentUrl: "",
         description: "",
     })
@@ -161,13 +163,25 @@ export function CreateProgramDialog({ open, onOpenChange, onSuccess }: CreatePro
                         <Label htmlFor="type" className="text-right text-gray-700 dark:text-gray-300">
                             Loại chương trình
                         </Label>
-                        <Input
-                            id="type"
+                        <Select
                             value={formData.programType}
-                            onChange={(e) => setFormData({ ...formData, programType: e.target.value })}
-                            className="col-span-3 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
-                            placeholder="Ví dụ: Video, Audio, Document, Course"
-                        />
+                            onValueChange={(value: ProgramType) => setFormData({ ...formData, programType: value })}
+                        >
+                            <SelectTrigger className="col-span-3 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white">
+                                <SelectValue placeholder="Chọn loại chương trình" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                                {Object.values(ProgramType).map((type) => (
+                                    <SelectItem
+                                        key={type}
+                                        value={type}
+                                        className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    >
+                                        {ProgramTypeLabels[type]}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className="grid grid-cols-4 items-start gap-4">

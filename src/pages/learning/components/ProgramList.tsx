@@ -115,7 +115,6 @@ export function ProgramList({
                     <ProgramCard
                         key={program.programId}
                         program={program}
-                        viewMode={viewMode}
                         onClick={() => onProgramSelect(program)}
                     />
                 ))}
