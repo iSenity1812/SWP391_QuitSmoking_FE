@@ -5,15 +5,14 @@ import { LogIn, X } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
-import type { UserRole } from "../types/blog-types"
+import type { Role } from "@/types/auth"
 
 interface LoginPromptDialogProps {
     isOpen: boolean
     onClose: () => void
-    handleDemoLogin: (role: UserRole) => void
 }
 
-const LoginPromptDialog: React.FC<LoginPromptDialogProps> = ({ isOpen, onClose, handleDemoLogin }) => {
+const LoginPromptDialog: React.FC<LoginPromptDialogProps> = ({ isOpen, onClose }) => {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[400px]">
@@ -42,32 +41,6 @@ const LoginPromptDialog: React.FC<LoginPromptDialogProps> = ({ isOpen, onClose, 
                                 Đăng ký tài khoản mới
                             </Button>
                         </Link>
-                        <div className="text-center">
-                            <span className="text-sm text-slate-500 dark:text-slate-400">hoặc đăng nhập demo:</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                            <Button
-                                variant="ghost"
-                                className="text-blue-600 hover:text-blue-700"
-                                onClick={() => handleDemoLogin("Premium member")}
-                            >
-                                Premium Member
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                className="text-purple-600 hover:text-purple-700"
-                                onClick={() => handleDemoLogin("Coach")}
-                            >
-                                Coach
-                            </Button>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            className="text-red-600 hover:text-red-700"
-                            onClick={() => handleDemoLogin("Content Admin")}
-                        >
-                            Content Admin (để test)
-                        </Button>
                     </div>
                 </div>
             </DialogContent>

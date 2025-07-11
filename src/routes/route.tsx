@@ -3,12 +3,14 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { AuthRedirect } from "@/components/auth/AuthRedirect"
 
 // Public pages
-import { LandingPage } from "@/pages/landing/LandingPage"
+import { LandingPage } from "@/pages/Landing/LandingPage"
 import BlogPage from "@/pages/blog/BlogPage"
 import AboutPage from "@/pages/about/AboutPage"
 import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
 import { OnboardingPage } from "@/pages/onboarding/onBoardingPage"
+import ProgramPage from "@/pages/learning/ProgramPage"
+import TaskPage from "@/pages/task/TaskPage"
 // import { PlanSelectionDirectPage } from "@/pages/plan-selection/PlanDirectPage"
 
 // Protected pages
@@ -34,7 +36,8 @@ import HealthBenefitsPage from "@/pages/health-benefits/HealthBenefitsPage"
 export function AppRoutes() {
   return (
     <Routes>
-      {/* Public Routes - accessible by guests and members only (NOT admin/coach except blog for coach) */}      <Route
+      {/* Public Routes - accessible by guests and members only (NOT admin/coach except blog for coach) */}
+      <Route
         path="/"
         element={
           <ProtectedRoute
@@ -111,6 +114,30 @@ export function AppRoutes() {
             <PlanPagePref />
           </ProtectedRoute>
         }
+      />
+
+      {/* Program Page - accessible by PREMIUM_MEMBER only -- Made by Duy */}
+      <Route
+        path="/program"
+        element={
+          <ProtectedRoute allowedRoles={["PREMIUM_MEMBER"]} requireAuth={true}>
+            <ProgramPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Member Routes - NORMAL_MEMBER & PREMIUM_MEMBER */}
+      <Route
+        path="/task"
+        element={
+          <ProtectedRoute
+            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER', 'COACH']}
+            requireAuth={false}
+          >
+            <TaskPage />
+          </ProtectedRoute>
+        }
+
       />
 
       <Route

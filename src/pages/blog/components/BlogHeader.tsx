@@ -53,7 +53,9 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({ searchTerm, setSearchTerm }) =>
                             />
                         </div>
                     </div>
+
                 </div>
+
             </AnimatedSection>
         </section>
     )

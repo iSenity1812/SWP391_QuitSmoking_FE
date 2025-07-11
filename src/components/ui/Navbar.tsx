@@ -29,6 +29,7 @@ const memberNavLinks = [
   { href: "/plan", label: "Tiến trình", icon: ChartColumnIncreasing },
   { href: "/about", label: "Thông tin", icon: Info },
   { href: "/subscription", label: "Gói trả phí", icon: Gem },
+  { href: "/task", label: "Nhiệm vụ", icon: Wind },
 ];
 
 const coachNavLinks = [
@@ -43,6 +44,14 @@ export function Navbar() {
   // Determine which nav links to show
   const getNavLinks = () => {
     if (!isAuthenticated) return publicNavLinks;
+
+    // Add Program link only for PREMIUM_MEMBER
+    if (user?.role === "PREMIUM_MEMBER") {
+      const programLink = { href: "/program", label: "Program", icon: Gem }
+      // Insert Program link after Plan
+      const planIndex = memberNavLinks.findIndex((link) => link.href === "/plan")
+      memberNavLinks.splice(planIndex + 1, 0, programLink)
+    }
 
     if (!user) return publicNavLinks;
 
