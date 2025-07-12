@@ -49,13 +49,16 @@ export const NotificationDropdown = ({ onClose }: NotificationDropdownProps) => 
             <p>Không có thông báo nào</p>
           </div>
         ) : (
-          notifications.slice(0, 5).map((notification) => (
-            <NotificationItem
-              key={notification.notificationId}
-              notification={notification}
-              onDelete={deleteNotification}
-            />
-          ))
+          [...notifications]
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 5)
+            .map((notification) => (
+              <NotificationItem
+                key={notification.notificationId}
+                notification={notification}
+                onDelete={deleteNotification}
+              />
+            ))
         )}
       </div>
 

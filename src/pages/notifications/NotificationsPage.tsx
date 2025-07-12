@@ -105,13 +105,15 @@ export const NotificationsPage = () => {
               </p>
             </div>
           ) : (
-            filteredNotifications.map((notification) => (
-              <NotificationItem
-                key={notification.notificationId}
-                notification={notification}
-                onDelete={deleteNotification}
-              />
-            ))
+            [...filteredNotifications]
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .map((notification) => (
+                <NotificationItem
+                  key={notification.notificationId}
+                  notification={notification}
+                  onDelete={deleteNotification}
+                />
+              ))
           )}
         </div>
       </div>
