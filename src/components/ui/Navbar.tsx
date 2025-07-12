@@ -1,4 +1,4 @@
-import { ChartColumnIncreasing, Gem, Home, Menu, Wind } from "lucide-react";
+import { Calendar, ChartColumnIncreasing, Gem, Home, Menu, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,7 +23,7 @@ const publicNavLinks = [
   { href: "/about", label: "Thông tin", icon: Info },
 ];
 
-const memberNavLinks = [
+const baseMemberNavLinks = [
   { href: "/", label: "Trang chủ", icon: Home },
   { href: "/blog", label: "Blog", icon: BookOpen },
   { href: "/plan", label: "Tiến trình", icon: ChartColumnIncreasing },
@@ -41,21 +41,10 @@ export function Navbar() {
   const { isAuthenticated, user } = useAuth();
   const { canAccessPlan, canAccessCoach, canAccessAdmin, canAccessContentAdmin } = useUserRoutes();
 
-  // Determine which nav links to show
   const getNavLinks = () => {
     if (!isAuthenticated) return publicNavLinks;
 
-    // Add Program link only for PREMIUM_MEMBER
-    if (user?.role === "PREMIUM_MEMBER") {
-      const programLink = { href: "/program", label: "Program", icon: Gem }
-      // Insert Program link after Plan
-      const planIndex = memberNavLinks.findIndex((link) => link.href === "/plan")
-      memberNavLinks.splice(planIndex + 1, 0, programLink)
-    }
-
-    if (!user) return publicNavLinks;
-
-    // Admin and Content Admin should only see dashboard
+    // Admin and Content Admin should only see dashboard (hoặc không thấy gì)
     if (canAccessAdmin || canAccessContentAdmin) {
       return []; // No public nav links for admins
     }
@@ -65,12 +54,42 @@ export function Navbar() {
       return coachNavLinks;
     }
 
-    // For members (normal/premium)
-    if (canAccessPlan) return memberNavLinks;
+    // Đối với thành viên (normal/premium)
+    if (canAccessPlan) {
+      // Bắt đầu với một bản sao của baseMemberNavLinks
+      const currentMemberNavLinks = [...baseMemberNavLinks];
 
-    // Default fallback
+      // Thêm Program link chỉ cho PREMIUM_MEMBER
+      if (user?.role === "PREMIUM_MEMBER") {
+        const programLink = { href: "/program", label: "Chương trình", icon: Gem };
+        const planIndex = currentMemberNavLinks.findIndex((link) => link.href === "/plan");
+        if (planIndex !== -1) { // Đảm bảo tìm thấy link "Plan" trước khi thêm
+          currentMemberNavLinks.splice(planIndex + 1, 0, programLink);
+        } else {
+          // Fallback nếu không tìm thấy "Plan" (có thể thêm ở cuối hoặc ở vị trí mong muốn khác)
+          currentMemberNavLinks.push(programLink);
+        }
+      }
+
+      // Thêm booking page chỉ cho PREMIUM_MEMBER
+      if (user?.role === "PREMIUM_MEMBER") {
+        const bookingLink = { href: "/booking", label: "Đặt lịch", icon: Calendar };
+        const taskIndex = currentMemberNavLinks.findIndex((link) => link.href === "/task");
+        if (taskIndex !== -1) { // Đảm bảo tìm thấy link "Task" trước khi thêm
+          currentMemberNavLinks.splice(taskIndex + 1, 0, bookingLink);
+        } else {
+          // Fallback nếu không tìm thấy "Task"
+          currentMemberNavLinks.push(bookingLink);
+        }
+      }
+      return currentMemberNavLinks;
+    }
+
+    // Default fallback (nếu không phải authenticated, admin, coach, hoặc canAccessPlan)
     return publicNavLinks;
   };
+
+
   const navLinks = getNavLinks();
 
   return (

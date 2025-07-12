@@ -94,7 +94,10 @@ export default function PublicUserProfilePage() {
             {profile.profilePicture ? (
               <img src={profile.profilePicture} alt={profile.username} className="w-20 h-20 rounded-full object-cover" />
             ) : (
-              "👤"
+              /* rounded image */
+              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full text-2xl font-bold text-slate-800 dark:text-white">
+                {profile.username.charAt(0).toUpperCase()}
+              </span>
             )}
           </div>
           <CardTitle className="text-2xl font-bold">{profile.username}</CardTitle>
@@ -164,6 +167,6 @@ export default function PublicUserProfilePage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </div >
   );
 } 

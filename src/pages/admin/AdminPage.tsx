@@ -31,12 +31,23 @@ import { ReceiptManagement } from "./receipts/components/ReceiptManagement"
 import { useTheme } from "@/context/ThemeContext"
 import { CoachManagement } from "./staff/CoachManagement"
 import { motion, AnimatePresence } from "framer-motion"
+import { useDailyUsersData } from "@/hooks/useDailyUsersData"
+
 
 export default function AdminPage() {
     const [activeTab, setActiveTab] = useState("dashboard")
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const { theme, toggleTheme } = useTheme()
+
+    const {
+        data: dailyUsersData,
+        isLoading: usersLoading,
+        error: usersError,
+        lastUpdated: usersLastUpdated,
+        refetch: refetchUsers
+    } = useDailyUsersData()
+
 
     const navItems = [
         { id: "dashboard", label: "Tổng Quan", icon: BarChart3 },
@@ -420,7 +431,7 @@ export default function AdminPage() {
                             animate="visible"
                         >
                             {[
-                                { title: "Tổng Người Dùng", value: "2,847", change: "+12%", icon: Users, color: "blue" },
+                                { title: "Tổng Người Dùng", value: dailyUsersData[dailyUsersData.length - 1]?.users.toLocaleString(), change: "", icon: Users, color: "blue" },
                                 { title: "Kế Hoạch Đang Hoạt Đng", value: "1,234", change: "+8%", icon: Target, color: "green" },
                                 { title: "Tỷ Lệ Thành Công", value: "73%", change: "+5%", icon: Heart, color: "red" },
                                 { title: "Doanh Thu", value: "$12,847", change: "+15%", icon: DollarSign, color: "yellow" },
@@ -472,7 +483,6 @@ export default function AdminPage() {
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ duration: 0.5, delay: index * 0.1 + 0.7 }}
                                                 >
-                                                    {stat.change} so với tháng trước
                                                 </motion.p>
                                             </CardContent>
                                         </Card>

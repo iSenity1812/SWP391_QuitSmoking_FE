@@ -54,9 +54,25 @@ export function QuizManagement() {
         try {
             await TaskService.deleteQuiz(quizId)
             await loadQuizzes()
-            alert("Xóa quiz thành công!")
+            toast.success("Xóa quiz thành công", {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            })
         } catch (err: any) {
-            alert(`Lỗi xóa quiz: ${err.message}`)
+            toast.error(`Xóa quiz thất bại: ${err.message}`, {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+            })
         }
     }
 

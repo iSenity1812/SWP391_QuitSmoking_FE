@@ -11,18 +11,19 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { TrendingUp, Users, Target, Clock, Star, Loader2, BarChart3, AlertCircle, RefreshCw, ChevronDown, DollarSign, Receipt } from "lucide-react"
-import { adminService, type DashboardStats, type Activity, type SystemAlert } from "@/pages/admin/component/service/adminService"
-import { ChartContainer, LineChartComponent } from "@/components/ui/Chart"
+import { adminService, type DashboardStats, type SystemAlert } from "@/pages/admin/component/service/adminService"
+import { ChartContainer, LineChartComponent, BarChartComponent } from "@/components/ui/Chart"
 import { useTheme } from "@/context/ThemeContext"
 import { formatCurrency } from "@/utils/chartUtils"
 import type { PeriodType } from "@/types/dashboard"
 import { useMultiPeriodRevenueData } from "@/hooks/useRevenueData"
+import { useDailyUsersData } from "@/hooks/useDailyUsersData"
+import { useDailyBlogsData } from "@/hooks/useDailyBlogsData"
 import TransactionTable from "@/pages/admin/transactions/components/TransactionTable"
 import { PlanAnalyticsDashboard } from "@/pages/admin/plans/components/PlanAnalyticsDashboard"
 
 export function AdminDashboard() {
     const [stats, setStats] = useState<DashboardStats | null>(null)
-    const [activities, setActivities] = useState<Activity[]>([])
     const [alerts, setAlerts] = useState<SystemAlert[]>([])
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState<string>('overview')
@@ -41,6 +42,25 @@ export function AdminDashboard() {
         refetch: refetchRevenue
     } = useMultiPeriodRevenueData(selectedPeriod)
 
+    // Users growth data
+    const {
+        data: dailyUsersData,
+        isLoading: usersLoading,
+        error: usersError,
+        lastUpdated: usersLastUpdated,
+        refetch: refetchUsers
+    } = useDailyUsersData()
+
+    // Blogs growth data
+    const {
+        data: dailyBlogsData,
+        statusData: blogsStatusData,
+        isLoading: blogsLoading,
+        error: blogsError,
+        lastUpdated: blogsLastUpdated,
+        refetch: refetchBlogs
+    } = useDailyBlogsData()
+
     // Handle period change - instant switch with cached data
     const handlePeriodChange = (period: PeriodType) => {
         setSelectedPeriod(period)
@@ -56,14 +76,12 @@ export function AdminDashboard() {
         const fetchDashboardData = async () => {
             try {
                 setLoading(true)
-                const [statsData, activitiesData, alertsData] = await Promise.all([
+                const [statsData, alertsData] = await Promise.all([
                     adminService.getDashboardStats(),
-                    adminService.getRecentActivities(5),
                     adminService.getSystemAlerts(),
                 ])
 
                 setStats(statsData)
-                setActivities(activitiesData)
                 setAlerts(alertsData)
             } catch (error) {
                 console.error("Lỗi khi tải dữ liệu dashboard:", error)
@@ -73,11 +91,7 @@ export function AdminDashboard() {
         }
 
         fetchDashboardData()
-
-        // Auto refresh every 30 seconds for dashboard data only
-        const interval = setInterval(fetchDashboardData, 30000)
-        return () => clearInterval(interval)
-    }, []) // Revenue data is handled by React Query
+    }, [])
 
     if (loading) {
         return (
@@ -134,8 +148,6 @@ export function AdminDashboard() {
     // Empty data arrays - replace with real API data when available
     const weeklyGrowthData: Array<{ day: string, users: number, plans: number, success: number }> = []
     const dailyActivityData: Array<{ hour: string, activity: number }> = []
-    const monthlyUsersData: Array<{ month: string, users: number }> = []
-    const monthlyPlansData: Array<{ month: string, plans: number }> = []
 
     // Clean console logging for production
     if (revenueError) {
@@ -177,85 +189,142 @@ export function AdminDashboard() {
                 {/* Overview Tab */}
                 <TabsContent value="overview" className="space-y-6">
                     {/* Monthly Metrics Charts */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                         {/* Total Users Chart */}
                         <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
                             <CardHeader>
-                                <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-gray-100">
-                                    <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                                    <span>Tổng Người Dùng Theo Tháng</span>
-                                </CardTitle>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-gray-100">
+                                        <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                        <span>Tổng Người Dùng Theo 14 Ngày Gần Nhất</span>
+                                        {usersLoading && (
+                                            <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                                        )}
+                                    </CardTitle>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={refetchUsers}
+                                        disabled={usersLoading}
+                                    >
+                                        <RefreshCw className="w-4 h-4 mr-2" />
+                                        Cập nhật
+                                    </Button>
+                                </div>
                                 <CardDescription className="text-gray-600 dark:text-gray-400">
-                                    {monthlyUsersData.length === 0 ?
-                                        'Chưa có dữ liệu người dùng' :
-                                        `Tổng năm 2024: ${monthlyUsersData.reduce((sum, item) => sum + item.users, 0).toLocaleString()} người dùng`
-                                    }
+                                    {usersError ? (
+                                        <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
+                                            <AlertCircle className="w-4 h-4" />
+                                            <span>Lỗi: {usersError.message}</span>
+                                        </div>
+                                    ) : dailyUsersData.length === 0 && !usersLoading ? (
+                                        'Chưa có dữ liệu người dùng'
+                                    ) : dailyUsersData.length > 0 ? (
+                                        <div>
+                                            <span>Tổng hiện tại: {dailyUsersData[dailyUsersData.length - 1]?.users.toLocaleString()} người dùng</span>
+                                            <br />
+                                            <span className="text-sm">Người dùng mới hôm nay: {dailyUsersData[dailyUsersData.length - 1]?.newUsers.toLocaleString()}</span>
+                                            {usersLastUpdated && (
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    Cập nhật: {new Date(usersLastUpdated).toLocaleTimeString('vi-VN')} - {new Date(usersLastUpdated).toLocaleDateString('vi-VN')}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : null}
                                 </CardDescription>
+
+                                {/* Users Statistics Cards */}
+                                {dailyUsersData && dailyUsersData.length > 0 && !usersLoading && !usersError && (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+                                            <div className="flex items-center space-x-2">
+                                                <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Tổng Người Dùng</span>
+                                            </div>
+                                            <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">
+                                                {dailyUsersData[dailyUsersData.length - 1]?.users.toLocaleString()}
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-700">
+                                            <div className="flex items-center space-x-2">
+                                                <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                                <span className="text-sm font-medium text-green-800 dark:text-green-200">Hôm Nay</span>
+                                            </div>
+                                            <p className="text-2xl font-bold text-green-900 dark:text-green-100 mt-1">
+                                                +{dailyUsersData[dailyUsersData.length - 1]?.newUsers.toLocaleString()}
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+                                            <div className="flex items-center space-x-2">
+                                                <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                                <span className="text-sm font-medium text-purple-800 dark:text-purple-200">Số Ngày</span>
+                                            </div>
+                                            <p className="text-2xl font-bold text-purple-900 dark:text-purple-100 mt-1">
+                                                {dailyUsersData.length}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
                             </CardHeader>
                             <CardContent>
-                                {monthlyUsersData.length === 0 ? (
+                                {usersLoading ? (
+                                    <div className="h-[300px] flex items-center justify-center">
+                                        <div className="text-center">
+                                            <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-2" />
+                                            <p className="text-gray-500">Đang tải dữ liệu người dùng...</p>
+                                        </div>
+                                    </div>
+                                ) : usersError ? (
+                                    <div className="h-[300px] flex items-center justify-center">
+                                        <div className="text-center">
+                                            <AlertCircle className="w-8 h-8 mx-auto text-red-500 mb-2" />
+                                            <p className="text-red-600 dark:text-red-400">Không thể tải dữ liệu người dùng</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{usersError.message}</p>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={refetchUsers}
+                                                className="mt-4"
+                                            >
+                                                <RefreshCw className="w-4 h-4 mr-2" />
+                                                Thử lại
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : dailyUsersData.length === 0 ? (
                                     <div className="h-[300px] flex items-center justify-center">
                                         <div className="text-center">
                                             <Users className="w-8 h-8 mx-auto text-gray-400 mb-2" />
                                             <p className="text-gray-600 dark:text-gray-400">Không có dữ liệu người dùng</p>
                                             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                                Dữ liệu sẽ được hiển thị khi có API tích hợp
+                                                Dữ liệu sẽ được hiển thị khi có người dùng đăng ký
                                             </p>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={refetchUsers}
+                                                className="mt-4"
+                                            >
+                                                <RefreshCw className="w-4 h-4 mr-2" />
+                                                Thử lại
+                                            </Button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <ChartContainer className="h-[300px]">
+                                    <ChartContainer className="h-[400px]">
                                         <LineChartComponent
-                                            dataset={monthlyUsersData}
-                                            xAxis={[{ scaleType: "point", dataKey: "month" }]}
-                                            series={[{ dataKey: "users", label: "Người dùng", color: chartColors.primary }]}
-                                            width={500}
-                                            height={300}
+                                            dataset={dailyUsersData}
+                                            xAxis={[{ scaleType: "point", dataKey: "day" }]}
+                                            series={[{ dataKey: "users", label: "Tổng người dùng", color: chartColors.primary }]}
+                                            width={800}
+                                            height={400}
                                         />
                                     </ChartContainer>
                                 )}
                             </CardContent>
                         </Card>
-
-                        {/* Active Plans Chart */}
-                        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
-                            <CardHeader>
-                                <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-gray-100">
-                                    <Target className="w-5 h-5 text-green-600 dark:text-green-400" />
-                                    <span>Kế Hoạch Hoạt Động Theo Tháng</span>
-                                </CardTitle>
-                                <CardDescription className="text-gray-600 dark:text-gray-400">
-                                    {monthlyPlansData.length === 0 ?
-                                        'Chưa có dữ liệu kế hoạch' :
-                                        `Tổng năm 2024: ${monthlyPlansData.reduce((sum, item) => sum + item.plans, 0).toLocaleString()} kế hoạch`
-                                    }
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                {monthlyPlansData.length === 0 ? (
-                                    <div className="h-[300px] flex items-center justify-center">
-                                        <div className="text-center">
-                                            <Target className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                                            <p className="text-gray-600 dark:text-gray-400">Không có dữ liệu kế hoạch</p>
-                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                                Dữ liệu sẽ được hiển thị khi có API tích hợp
-                                            </p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <ChartContainer className="h-[300px]">
-                                        <LineChartComponent
-                                            dataset={monthlyPlansData}
-                                            xAxis={[{ scaleType: "point", dataKey: "month" }]}
-                                            series={[{ dataKey: "plans", label: "Kế hoạch", color: chartColors.success }]}
-                                            width={500}
-                                            height={300}
-                                        />
-                                    </ChartContainer>
-                                )}
-                            </CardContent>
-                        </Card>
-
                     </div>
 
                     {/* Revenue Chart - Full Width */}
@@ -509,89 +578,6 @@ export function AdminDashboard() {
                             </CardContent>
                         </Card>
                     </div>
-
-                    {/* Recent Activity */}
-                    <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
-                        <CardHeader>
-                            <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-gray-100">
-                                <Clock className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                                <span>Hoạt Động Gần Đây</span>
-                            </CardTitle>
-                            <CardDescription className="text-gray-600 dark:text-gray-400">
-                                Các hoạt động mới nhất của người dùng và hệ thống
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {activities.map((activity) => (
-                                    <div
-                                        key={activity.id}
-                                        className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50"
-                                    >
-                                        <div className="flex items-center space-x-3">
-                                            <div
-                                                className={`w-3 h-3 rounded-full ${activity.type === "success"
-                                                    ? "bg-green-500"
-                                                    : activity.type === "warning"
-                                                        ? "bg-yellow-500"
-                                                        : activity.type === "error"
-                                                            ? "bg-red-500"
-                                                            : "bg-blue-500"
-                                                    }`}
-                                            />
-                                            <div>
-                                                <p className="font-medium text-gray-900 dark:text-gray-100">{activity.user}</p>
-                                                <p className="text-sm text-gray-600 dark:text-gray-400">{activity.action}</p>
-                                            </div>
-                                        </div>
-                                        <span className="text-sm text-gray-500 dark:text-gray-400">{activity.time}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Quick Actions */}
-                    {/* <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
-                        <CardHeader>
-                            <CardTitle className="text-gray-900 dark:text-gray-100">Thao Tác Nhanh</CardTitle>
-                            <CardDescription className="text-gray-600 dark:text-gray-400">
-                                Các tác vụ quản trị thường dùng
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <Button
-                                    variant="outline"
-                                    className="h-20 flex flex-col space-y-2 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                >
-                                    <Users className="w-6 h-6" />
-                                    <span>Thêm Người Dùng</span>
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="h-20 flex flex-col space-y-2 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                >
-                                    <Calendar className="w-6 h-6" />
-                                    <span>Tạo Kế Hoạch</span>
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="h-20 flex flex-col space-y-2 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                >
-                                    <Target className="w-6 h-6" />
-                                    <span>Xem Báo Cáo</span>
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="h-20 flex flex-col space-y-2 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                >
-                                    <Star className="w-6 h-6" />
-                                    <span>Gửi Thông Báo</span>
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card> */}
                 </TabsContent>
 
                 {/* Transactions Tab */}
@@ -607,26 +593,280 @@ export function AdminDashboard() {
                 {/* Analytics Tab */}
                 <TabsContent value="analytics" className="space-y-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Blog Analytics Chart */}
                         <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
                             <CardHeader>
-                                <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-gray-100">
-                                    <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
-                                    <span>Phân tích chi tiết</span>
-                                </CardTitle>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-gray-100">
+                                        <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                        <span>Phân Tích Blog Theo 14 Ngày Gần Nhất</span>
+                                        {blogsLoading && (
+                                            <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                                        )}
+                                    </CardTitle>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={refetchBlogs}
+                                        disabled={blogsLoading}
+                                    >
+                                        <RefreshCw className="w-4 h-4 mr-2" />
+                                        Cập nhật
+                                    </Button>
+                                </div>
                                 <CardDescription className="text-gray-600 dark:text-gray-400">
-                                    Phân tích doanh thu và giao dịch chi tiết
+                                    {blogsError ? (
+                                        <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
+                                            <AlertCircle className="w-4 h-4" />
+                                            <span>Lỗi: {blogsError.message}</span>
+                                        </div>
+                                    ) : dailyBlogsData.length === 0 && !blogsLoading ? (
+                                        'Chưa có dữ liệu blog'
+                                    ) : dailyBlogsData.length > 0 ? (
+                                        <div>
+                                            <span>Tổng hiện tại: {dailyBlogsData[dailyBlogsData.length - 1]?.blogs.toLocaleString()} blog</span>
+                                            <br />
+                                            <span className="text-sm">Blog mới hôm nay: {dailyBlogsData[dailyBlogsData.length - 1]?.newBlogs.toLocaleString()}</span>
+                                            {blogsLastUpdated && (
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    Cập nhật: {new Date(blogsLastUpdated).toLocaleTimeString('vi-VN')} - {new Date(blogsLastUpdated).toLocaleDateString('vi-VN')}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : null}
+                                </CardDescription>
+
+                                {/* Blogs Statistics Cards */}
+                                {dailyBlogsData && dailyBlogsData.length > 0 && !blogsLoading && !blogsError && (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+                                            <div className="flex items-center space-x-2">
+                                                <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Tổng Blog</span>
+                                            </div>
+                                            <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">
+                                                {dailyBlogsData[dailyBlogsData.length - 1]?.blogs.toLocaleString()}
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 rounded-lg border border-green-200 dark:border-green-700">
+                                            <div className="flex items-center space-x-2">
+                                                <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                                <span className="text-sm font-medium text-green-800 dark:text-green-200">Hôm Nay</span>
+                                            </div>
+                                            <p className="text-2xl font-bold text-green-900 dark:text-green-100 mt-1">
+                                                +{dailyBlogsData[dailyBlogsData.length - 1]?.newBlogs.toLocaleString()}
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 rounded-lg border border-purple-200 dark:border-purple-700">
+                                            <div className="flex items-center space-x-2">
+                                                <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                                <span className="text-sm font-medium text-purple-800 dark:text-purple-200">Số Ngày</span>
+                                            </div>
+                                            <p className="text-2xl font-bold text-purple-900 dark:text-purple-100 mt-1">
+                                                {dailyBlogsData.length}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </CardHeader>
+                            <CardContent>
+                                {blogsLoading ? (
+                                    <div className="h-[300px] flex items-center justify-center">
+                                        <div className="text-center">
+                                            <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-2" />
+                                            <p className="text-gray-500">Đang tải dữ liệu blog...</p>
+                                        </div>
+                                    </div>
+                                ) : blogsError ? (
+                                    <div className="h-[300px] flex items-center justify-center">
+                                        <div className="text-center">
+                                            <AlertCircle className="w-8 h-8 mx-auto text-red-500 mb-2" />
+                                            <p className="text-red-600 dark:text-red-400">Không thể tải dữ liệu blog</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{blogsError.message}</p>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={refetchBlogs}
+                                                className="mt-4"
+                                            >
+                                                <RefreshCw className="w-4 h-4 mr-2" />
+                                                Thử lại
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : dailyBlogsData.length === 0 ? (
+                                    <div className="h-[300px] flex items-center justify-center">
+                                        <div className="text-center">
+                                            <Target className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                                            <p className="text-gray-600 dark:text-gray-400">Không có dữ liệu blog</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                Dữ liệu sẽ được hiển thị khi có blog được tạo
+                                            </p>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={refetchBlogs}
+                                                className="mt-4"
+                                            >
+                                                <RefreshCw className="w-4 h-4 mr-2" />
+                                                Thử lại
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <ChartContainer className="h-[400px]">
+                                        <LineChartComponent
+                                            dataset={dailyBlogsData.map(item => ({
+                                                ...item,
+                                                dayLabel: item.day.split(' ')[1]?.replace(/[()]/g, '') || item.day
+                                            }))}
+                                            xAxis={[{ scaleType: "point", dataKey: "dayLabel" }]}
+                                            series={[{ dataKey: "blogs", label: "Tổng blog", color: chartColors.success }]}
+                                        // width={700}
+                                        // height={400}
+                                        />
+                                    </ChartContainer>
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <CardTitle className="flex items-center space-x-2 text-gray-900 dark:text-gray-100">
+                                        <BarChart3 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                        <span>Phân Bố Trạng Thái Blog</span>
+                                        {blogsLoading && (
+                                            <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                                        )}
+                                    </CardTitle>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={refetchBlogs}
+                                        disabled={blogsLoading}
+                                    >
+                                        <RefreshCw className="w-4 h-4 mr-2" />
+                                        Cập nhật
+                                    </Button>
+                                </div>
+                                <CardDescription className="text-gray-600 dark:text-gray-400">
+                                    {blogsError ? (
+                                        <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
+                                            <AlertCircle className="w-4 h-4" />
+                                            <span>Lỗi: {blogsError.message}</span>
+                                        </div>
+                                    ) : blogsStatusData && blogsStatusData.total > 0 ? (
+                                        <div>
+                                            <span>Tổng blog: {blogsStatusData.total.toLocaleString()}</span>
+                                            {blogsLastUpdated && (
+                                                <div className="text-xs text-gray-500 mt-1">
+                                                    Cập nhật: {new Date(blogsLastUpdated).toLocaleTimeString('vi-VN')} - {new Date(blogsLastUpdated).toLocaleDateString('vi-VN')}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : 'Chưa có dữ liệu trạng thái blog'}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="h-[300px] flex items-center justify-center">
-                                    <div className="text-center">
-                                        <TrendingUp className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                                        <p className="text-gray-600 dark:text-gray-400">Đang phát triển</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                            Tính năng phân tích chi tiết sẽ có trong phiên bản tiếp theo
-                                        </p>
+                                {blogsLoading ? (
+                                    <div className="h-[300px] flex items-center justify-center">
+                                        <div className="text-center">
+                                            <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-2" />
+                                            <p className="text-gray-500">Đang tải dữ liệu trạng thái...</p>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : blogsError ? (
+                                    <div className="h-[300px] flex items-center justify-center">
+                                        <div className="text-center">
+                                            <AlertCircle className="w-8 h-8 mx-auto text-red-500 mb-2" />
+                                            <p className="text-red-600 dark:text-red-400">Không thể tải dữ liệu trạng thái</p>
+                                        </div>
+                                    </div>
+                                ) : blogsStatusData && blogsStatusData.total > 0 ? (
+                                    <div className="space-y-4">
+                                        {/* Status Statistics */}
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div className="p-3 rounded-lg border bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
+                                                <div className="text-sm font-medium text-green-800 dark:text-green-200">
+                                                    Đã xuất bản
+                                                </div>
+                                                <div className="text-2xl font-bold mt-1 text-green-900 dark:text-green-100">
+                                                    {blogsStatusData.published}
+                                                </div>
+                                            </div>
+
+                                            <div className="p-3 rounded-lg border bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700">
+                                                <div className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                                    Chờ duyệt
+                                                </div>
+                                                <div className="text-2xl font-bold mt-1 text-yellow-900 dark:text-yellow-100">
+                                                    {blogsStatusData.pending}
+                                                </div>
+                                            </div>
+
+                                            <div className="p-3 rounded-lg border bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700">
+                                                <div className="text-sm font-medium text-red-800 dark:text-red-200">
+                                                    Bị từ chối
+                                                </div>
+                                                <div className="text-2xl font-bold mt-1 text-red-900 dark:text-red-100">
+                                                    {blogsStatusData.rejected}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Bar Chart */}
+                                        {(() => {
+                                            return blogsStatusData &&
+                                                typeof blogsStatusData.published === 'number' &&
+                                                typeof blogsStatusData.pending === 'number' &&
+                                                typeof blogsStatusData.rejected === 'number'
+                                        })() ? (
+                                            <ChartContainer className="h-[300px]">
+                                                <BarChartComponent
+                                                    data={[
+                                                        {
+                                                            label: 'Đã xuất bản',
+                                                            value: blogsStatusData.published,
+                                                            color: '#22c55e' // Green
+                                                        },
+                                                        {
+                                                            label: 'Chờ duyệt',
+                                                            value: blogsStatusData.pending,
+                                                            color: '#eab308' // Yellow
+                                                        },
+                                                        {
+                                                            label: 'Bị từ chối',
+                                                            value: blogsStatusData.rejected,
+                                                            color: '#ef4444' // Red
+                                                        }
+                                                    ]}
+                                                    width={700}
+                                                    height={400}
+                                                />
+                                            </ChartContainer>
+                                        ) : (
+                                            <div className="h-[300px] flex items-center justify-center">
+                                                <div className="text-center">
+                                                    <BarChart3 className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                                                    <p className="text-gray-600 dark:text-gray-400">Dữ liệu chưa sẵn sàng</p>
+                                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                        Vui lòng đợi dữ liệu tải xong
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="h-[300px] flex items-center justify-center">
+                                        <div className="text-center">
+                                            <BarChart3 className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                                            <p className="text-gray-600 dark:text-gray-400">Không có dữ liệu trạng thái</p>
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

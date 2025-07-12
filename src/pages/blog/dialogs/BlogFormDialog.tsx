@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Upload, ImageIcon, Trash2 } from "lucide-react"
-// import { Suspense, lazy } from "react"
+import { Suspense } from "react"
 const ReactQuill = React.lazy(() => import("react-quill"))
 
 
@@ -294,18 +294,22 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
                     <div className="grid gap-2">
                         <Label htmlFor="blog-content">Nội dung</Label>
                         <div className="border rounded-md">
-                            <ReactQuill
-                                theme="snow"
-                                value={formData.content}
-                                onChange={handleContentChange}
-                                modules={quillModules}
-                                formats={quillFormats}
-                                placeholder="Viết nội dung bài viết của bạn..."
-                                style={{
-                                    height: "300px",
-                                    marginBottom: "42px", // Space for toolbar
-                                }}
-                            />
+                            <Suspense fallback={<div className="p-4">Đang tải editor...</div>}>
+
+
+                                <ReactQuill
+                                    theme="snow"
+                                    value={formData.content}
+                                    onChange={handleContentChange}
+                                    modules={quillModules}
+                                    formats={quillFormats}
+                                    placeholder="Viết nội dung bài viết của bạn..."
+                                    style={{
+                                        height: "300px",
+                                        marginBottom: "42px", // Space for toolbar
+                                    }}
+                                />
+                            </Suspense>
                         </div>
                     </div>
                     {currentUserRole === "COACH" && !isEdit && (
