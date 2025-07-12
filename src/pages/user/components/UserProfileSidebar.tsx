@@ -37,8 +37,6 @@ const sidebarItems: Array<{
         { id: "progress", label: "Tiến trình", icon: ChartBar },
         { id: "achievements", label: "Thành tựu", icon: Award },
         { id: "health", label: "Sức khỏe", icon: Heart },
-        { id: "social", label: "Cộng đồng", icon: Users },
-        { id: "booking", label: "Đặt Lịch Chuyên Gia", icon: Calendar, premium: true },
     ]
 
 export function UserProfileSidebar({

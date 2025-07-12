@@ -82,6 +82,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     initializeAuth();
   }, [clearAuthData]);
 
+  // Update user from localStorage without API call
+  const updateUserFromLocalStorage = useCallback((): void => {
+    try {
+      const userInfo = localStorage.getItem('user_info');
+      if (userInfo) {
+        const parsedUser = JSON.parse(userInfo);
+        setUser(parsedUser);
+        console.log('User info updated from localStorage:', parsedUser);
+      }
+    } catch (error) {
+      console.error('Failed to update user from localStorage:', error);
+    }
+  }, []);
+
   const refreshUserInfo = useCallback(async (): Promise<void> => {
     try {
       const updatedUser = await authService.refreshUserInfo();
@@ -91,21 +105,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     } catch (error) {
       console.error('Failed to refresh user info in AuthContext:', error);
+      // Fallback to localStorage if API fails
+      updateUserFromLocalStorage();
     }
-  }, []);
+  }, [updateUserFromLocalStorage]);
 
   // Add effect to listen for userInfoUpdated events
   useEffect(() => {
     const handleUserInfoUpdate = () => {
-      console.log('User info update event received, refreshing...');
-      refreshUserInfo();
+      console.log('User info update event received, updating from localStorage...');
+      // First try to update from localStorage (immediate update)
+      updateUserFromLocalStorage();
+
+      // Then try to refresh from API (for full sync, but don't fail if it errors)
+      setTimeout(() => {
+        refreshUserInfo().catch(error => {
+          console.log('API refresh failed, but localStorage update succeeded:', error.message);
+        });
+      }, 500);
     };
 
     window.addEventListener('userInfoUpdated', handleUserInfoUpdate);
     return () => {
       window.removeEventListener('userInfoUpdated', handleUserInfoUpdate);
     };
-  }, [refreshUserInfo]);
+  }, [refreshUserInfo, updateUserFromLocalStorage]);
 
   const login = useCallback(async (credentials: LoginRequest): Promise<ApiResponse<AccountResponse>> => {
     setIsLoading(true);

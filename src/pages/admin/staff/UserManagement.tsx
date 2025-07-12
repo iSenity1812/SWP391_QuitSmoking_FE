@@ -399,10 +399,10 @@ export function UserManagement() {
                     </DialogHeader>
 
                     <Tabs defaultValue="profile" className="w-full">
-                        <TabsList className="grid w-full grid-cols-3">
+                        <TabsList className="grid w-full grid-cols-1">
                             <TabsTrigger value="profile">Thông tin cá nhân</TabsTrigger>
-                            <TabsTrigger value="subscriptions">Gói đăng ký</TabsTrigger>
-                            <TabsTrigger value="quit-plans">Kế hoạch cai thuốc</TabsTrigger>
+                            {/* <TabsTrigger value="subscriptions">Gói đăng ký</TabsTrigger>
+                            <TabsTrigger value="quit-plans">Kế hoạch cai thuốc</TabsTrigger> */}
                         </TabsList>
 
                         <TabsContent value="profile" className="space-y-4">

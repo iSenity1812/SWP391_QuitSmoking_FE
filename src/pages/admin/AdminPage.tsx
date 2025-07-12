@@ -7,11 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
     Users,
-    MessageSquare,
     BarChart3,
-    Target,
-    Heart,
-    DollarSign,
     Activity,
     Menu,
     X,
@@ -20,8 +16,7 @@ import {
     Sun,
     Moon,
     UserCheck,
-    FileText,
-    Receipt,
+    FileText
 } from "lucide-react"
 import { AdminDashboard } from "./component/AdminDashBoard"
 import { UserManagement } from "./staff/UserManagement"
@@ -31,7 +26,7 @@ import { ReceiptManagement } from "./receipts/components/ReceiptManagement"
 import { useTheme } from "@/context/ThemeContext"
 import { CoachManagement } from "./staff/CoachManagement"
 import { motion, AnimatePresence } from "framer-motion"
-import { useDailyUsersData } from "@/hooks/useDailyUsersData"
+import { useAuth } from "@/hooks/useAuth"
 
 
 export default function AdminPage() {
@@ -40,22 +35,15 @@ export default function AdminPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const { theme, toggleTheme } = useTheme()
 
-    const {
-        data: dailyUsersData,
-        isLoading: usersLoading,
-        error: usersError,
-        lastUpdated: usersLastUpdated,
-        refetch: refetchUsers
-    } = useDailyUsersData()
+    const { user, logout } = useAuth();
 
 
     const navItems = [
         { id: "dashboard", label: "Tổng Quan", icon: BarChart3 },
         { id: "users", label: "Người Dùng", icon: Users },
         { id: "coaches", label: "Coach", icon: UserCheck },
-        { id: "content", label: "Quản Lý Blog", icon: MessageSquare },
         { id: "reports", label: "Báo Cáo Người Dùng", icon: FileText },
-        { id: "receipts", label: "Hóa Đơn & Thanh Toán", icon: Receipt },
+        // { id: "receipts", label: "Hóa Đơn & Thanh Toán", icon: Receipt },
 
     ]
 
@@ -304,9 +292,11 @@ export default function AdminPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 }}
                 >
+                    {/* logout button */}
                     <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        className={`flex items-center space-x-3 p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg ${sidebarCollapsed ? "justify-center" : ""}`}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center justify-between space-x-3 p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg"
                     >
                         <motion.div whileHover={{ scale: 1.1 }}>
                             <Avatar className="h-8 w-8">
@@ -323,8 +313,19 @@ export default function AdminPage() {
                                     transition={{ duration: 0.2 }}
                                     className="flex-1 min-w-0"
                                 >
-                                    <p className="text-slate-900 dark:text-white text-sm font-medium truncate">Admin User</p>
-                                    <p className="text-slate-600 dark:text-slate-400 text-xs truncate">admin@quitsmoking.com</p>
+                                    <p className="text-slate-900 dark:text-white text-sm font-medium truncate">{user?.username}</p>
+                                    <p className="text-slate-600 dark:text-slate-400 text-xs truncate">{user?.email}</p>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="mt-2 w-full"
+                                        onClick={() => {
+                                            logout()
+                                            setMobileMenuOpen(false)
+                                        }}
+                                    >
+                                        Đăng xuất
+                                    </Button>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -424,74 +425,6 @@ export default function AdminPage() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
                 >
-                    {activeTab === "dashboard" && (
-                        <motion.div
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-                            initial="hidden"
-                            animate="visible"
-                        >
-                            {[
-                                { title: "Tổng Người Dùng", value: dailyUsersData[dailyUsersData.length - 1]?.users.toLocaleString(), change: "", icon: Users, color: "blue" },
-                                { title: "Kế Hoạch Đang Hoạt Đng", value: "1,234", change: "+8%", icon: Target, color: "green" },
-                                { title: "Tỷ Lệ Thành Công", value: "73%", change: "+5%", icon: Heart, color: "red" },
-                                { title: "Doanh Thu", value: "$12,847", change: "+15%", icon: DollarSign, color: "yellow" },
-                            ].map((stat, index) => {
-                                const Icon = stat.icon
-                                return (
-                                    <motion.div
-                                        key={stat.title}
-                                        custom={index}
-                                        variants={cardVariants}
-                                        whileHover={{
-                                            scale: 1.05,
-                                            boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-                                            transition: { duration: 0.2 },
-                                        }}
-                                    >
-                                        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-slate-200 dark:border-slate-700/50 overflow-hidden">
-                                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                                <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                    {stat.title}
-                                                </CardTitle>
-                                                <motion.div
-                                                    animate={{
-                                                        rotate: [0, 10, -10, 0],
-                                                        scale: [1, 1.1, 1],
-                                                    }}
-                                                    transition={{
-                                                        duration: 2,
-                                                        repeat: Number.POSITIVE_INFINITY,
-                                                        repeatDelay: 3,
-                                                        delay: index * 0.5,
-                                                    }}
-                                                >
-                                                    <Icon className={`h-4 w-4 text-${stat.color}-500 dark:text-${stat.color}-400`} />
-                                                </motion.div>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <motion.div
-                                                    className="text-2xl font-bold text-slate-900 dark:text-white"
-                                                    initial={{ scale: 0 }}
-                                                    animate={{ scale: 1 }}
-                                                    transition={{ duration: 0.5, delay: index * 0.1 + 0.5 }}
-                                                >
-                                                    {stat.value}
-                                                </motion.div>
-                                                <motion.p
-                                                    className="text-xs text-green-600 dark:text-green-400"
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ duration: 0.5, delay: index * 0.1 + 0.7 }}
-                                                >
-                                                </motion.p>
-                                            </CardContent>
-                                        </Card>
-                                    </motion.div>
-                                )
-                            })}
-                        </motion.div>
-                    )}
-
                     {/* Dynamic Content with Page Transitions */}
                     <AnimatePresence mode="wait">
                         <motion.div

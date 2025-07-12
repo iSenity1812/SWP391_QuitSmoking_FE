@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { vnpayService } from "@/services/vnpayService";
-import { Calendar1, CheckCircle, Home, Loader2, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { CheckCircle, Home, Loader2, XCircle } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 export default function PaymentReturnPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const hasProcessedRef = useRef(false);
   const [paymentResult, setPaymentResult] = useState<{
     success: boolean;
     message: string;
@@ -67,59 +68,77 @@ export default function PaymentReturnPage() {
     });
   };
 
-  // processPaymentReturn này giờ không cần async/await cho Axios nữa
-  const processPaymentReturn = () => {
-    setLoading(true);
-    try {
-      // Gọi hàm mới để đọc thông tin từ URL
-      const data = vnpayService.getPaymentReturnFromUrl();
+  // Gọi hàm xử lý khi component mount
+  useEffect(() => {
+    // Chỉ chạy 1 lần khi component mount
+    if (!hasProcessedRef.current) {
+      hasProcessedRef.current = true;
 
-      if (!data) {
-        throw new Error("Không thể đọc thông tin thanh toán từ URL.");
-      }
+      // Xử lý payment return inline
+      setLoading(true);
+      try {
+        // Gọi hàm mới để đọc thông tin từ URL
+        const data = vnpayService.getPaymentReturnFromUrl();
 
-      const isSuccess = data.status === 'success'; // Dựa vào trường 'status' mới từ backend
+        if (!data) {
+          throw new Error("Không thể đọc thông tin thanh toán từ URL.");
+        }
 
-      console.log('Payment processing result:', {
-        responseCode: data.vnp_ResponseCode,
-        transactionStatus: data.vnp_TransactionStatus,
-        isSuccess: isSuccess,
-        message: data.message, // Log thêm message từ backend
-        urlParamsData: data // Log toàn bộ data đọc được
-      });
+        const isSuccess = data.status === 'success'; // Dựa vào trường 'status' mới từ backend
 
-      // let decodedOrderInfo = data.vnp_OrderInfo;
-      // try {
-      //   decodedOrderInfo = decodeURIComponent(data.vnp_OrderInfo);
-      //   decodedOrderInfo = decodedOrderInfo.replace(/\+/g, ' ');
-      // } catch (e) {
-      //   console.log('Could not decode order info:', e);
-      // }
-
-      const decodedOrderInfo = decodePaymentResult(data.vnp_OrderInfo);
-      const formattedPayDate = formatPaymentDate(data.vnp_PayDate);
-
-      setPaymentResult({
-        success: isSuccess,
-        message: data.message, // Sử dụng message từ backend
-        orderInfo: decodedOrderInfo,
-        amount: data.vnp_Amount * 100,
-        transactionRef: data.vnp_TxnRef,
-        paymentDate: formattedPayDate, // Thêm ngày thanh toán đã định dạng
-      });
-
-      if (isSuccess) {
-        toast.success("Thanh toán thành công! Giờ bạn có thể sử dụng các tính năng Premium.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
+        console.log('Payment processing result:', {
+          responseCode: data.vnp_ResponseCode,
+          transactionStatus: data.vnp_TransactionStatus,
+          isSuccess: isSuccess,
+          message: data.message, // Log thêm message từ backend
+          urlParamsData: data // Log toàn bộ data đọc được
         });
-      } else {
-        toast.error(`Thanh toán thất bại: ${data.message || 'Lỗi không xác định'}. Vui lòng thử lại sau.`, { // Hiển thị message từ backend
+
+        const decodedOrderInfo = decodePaymentResult(data.vnp_OrderInfo);
+        const formattedPayDate = formatPaymentDate(data.vnp_PayDate);
+
+        setPaymentResult({
+          success: isSuccess,
+          message: data.message, // Sử dụng message từ backend
+          orderInfo: decodedOrderInfo,
+          amount: data.vnp_Amount * 100,
+          transactionRef: data.vnp_TxnRef,
+          paymentDate: formattedPayDate, // Thêm ngày thanh toán đã định dạng
+        });
+
+        if (isSuccess) {
+          toast.success(`Thanh toán thành công! ${data.message || ''}`, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+        } else {
+          toast.error(`Thanh toán thất bại: ${data.message || 'Lỗi không xác định'}. Vui lòng thử lại sau.`, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+
+          setTimeout(() => {
+            navigate("/subscription");
+          }, 5000);
+        }
+      } catch (error: unknown) {
+        console.error("Lỗi khi xử lý kết quả thanh toán:", error);
+        setPaymentResult({
+          success: false,
+          message: error instanceof Error ? error.message : "Đã xảy ra lỗi khi xử lý kết quả thanh toán."
+        });
+
+        toast.error("Đã xảy ra lỗi khi xử lý kết quả thanh toán. Vui lòng thử lại sau.", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -132,36 +151,11 @@ export default function PaymentReturnPage() {
         setTimeout(() => {
           navigate("/subscription");
         }, 5000);
+      } finally {
+        setLoading(false);
       }
-    } catch (error: unknown) {
-      console.error("Lỗi khi xử lý kết quả thanh toán:", error);
-      setPaymentResult({
-        success: false,
-        message: error instanceof Error ? error.message : "Đã xảy ra lỗi khi xử lý kết quả thanh toán."
-      });
-
-      toast.error("Đã xảy ra lỗi khi xử lý kết quả thanh toán. Vui lòng thử lại sau.", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-
-      setTimeout(() => {
-        navigate("/subscription");
-      }, 5000);
-    } finally {
-      setLoading(false);
     }
-  };
-
-  // Gọi hàm xử lý khi component mount
-  useEffect(() => {
-    processPaymentReturn();
-  }, []);
+  }, [navigate]);
 
   const handleGoHome = () => {
     navigate("/");
@@ -301,19 +295,6 @@ export default function PaymentReturnPage() {
               <Home className="w-4 h-4 mr-2" />
               Về trang chủ
             </Button>
-
-            {
-              paymentResult?.success && (
-                <Button
-                  // history payment sẽ thay sau
-                  onClick={() => navigate("/plan")}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold"
-                >
-                  <Calendar1 className="w-4 h-4 mr-2" />
-                  Xem lịch sử thanh toán
-                </Button>
-              )
-            }
           </div>
 
           {/* auto redirect */}

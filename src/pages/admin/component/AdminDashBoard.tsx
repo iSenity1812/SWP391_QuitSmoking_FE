@@ -182,7 +182,7 @@ export function AdminDashboard() {
                     </TabsTrigger>
                     <TabsTrigger value="analytics" className="flex items-center space-x-2">
                         <TrendingUp className="w-4 h-4" />
-                        <span>Phân tích</span>
+                        <span>Phân tích Blog</span>
                     </TabsTrigger>
                 </TabsList>
 

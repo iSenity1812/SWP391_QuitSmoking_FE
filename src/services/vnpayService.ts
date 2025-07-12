@@ -106,13 +106,21 @@ class VNPayService {
       if (response.data.status === 200 && response.data.data) {
         // Nếu thanh toán thành công, refresh user info để cập nhật role
         if (response.data.data.vnp_ResponseCode === '00') {
-          console.log('Payment successful, refreshing user info...');
-          try {
-            await authService.refreshUserInfo();
-            console.log('User info refreshed successfully');
-          } catch (error) {
-            console.error('Failed to refresh user info after payment:', error);
+          console.log('Payment successful, updating localStorage...');
+
+          // cập nhật role trong localStorage
+          const userInfo = localStorage.getItem('user_info');
+          if (userInfo) {
+            const user = JSON.parse(userInfo);
+            user.role = 'PREMIUM_MEMBER'; // Cập nhật role thành PREMIUM_MEMBER
+            localStorage.setItem('user_info', JSON.stringify(user));
           }
+
+          // Trigger event để notify AuthContext
+          setTimeout(() => {
+            console.log('Triggering userInfoUpdated event...');
+            window.dispatchEvent(new CustomEvent('userInfoUpdated'));
+          }, 100);
         }
         return response.data;
       } else {
@@ -164,17 +172,20 @@ class VNPayService {
 
       // Nếu thanh toán thành công, refresh user info
       if (responseCode === '00' || status === 'success') {
-        console.log('Payment successful detected from URL, refreshing user info...');
-        // Sử dụng setTimeout để không block return
-        setTimeout(async () => {
-          try {
-            await authService.refreshUserInfo();
-            console.log('User info refreshed successfully from URL method');
-            // Trigger custom event để notify các component khác
-            window.dispatchEvent(new CustomEvent('userInfoUpdated'));
-          } catch (error) {
-            console.error('Failed to refresh user info after payment (URL method):', error);
-          }
+        console.log('Payment successful detected from URL, updating localStorage...');
+
+        // Cập nhật role trong localStorage ngay lập tức
+        const userInfo = localStorage.getItem('user_info');
+        if (userInfo) {
+          const user = JSON.parse(userInfo);
+          user.role = 'PREMIUM_MEMBER';
+          localStorage.setItem('user_info', JSON.stringify(user));
+        }
+
+        // Chỉ trigger event một lần, không gọi trực tiếp refreshUserInfo
+        setTimeout(() => {
+          console.log('Triggering userInfoUpdated event...');
+          window.dispatchEvent(new CustomEvent('userInfoUpdated'));
         }, 100);
       }
 

@@ -66,10 +66,6 @@ const UserAuthSection: React.FC<UserAuthSectionProps> = ({ currentUser, handleCr
                     Tạo bài viết mới
                 </Button>
             </div>
-
-
-
-
         </div>
     )
 }

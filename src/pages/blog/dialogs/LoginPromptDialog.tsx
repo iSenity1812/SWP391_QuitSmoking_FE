@@ -23,7 +23,6 @@ const LoginPromptDialog: React.FC<LoginPromptDialogProps> = ({ isOpen, onClose }
                             Đăng nhập để tiếp tục
                         </DialogTitle>
                         <Button variant="ghost" size="icon" className="rounded-full h-6 w-6 p-0" onClick={onClose}>
-                            <X className="h-4 w-4" />
                             <span className="sr-only">Đóng</span>
                         </Button>
                     </div>
