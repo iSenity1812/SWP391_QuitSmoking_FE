@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 interface LungHealthIndicatorProps {
-  healthLevel: "healthy" | "recovering" | "stressed" | "critical"
+  healthLevel: "healthy" | "recovering" | "stressed" | "critical" | "unknown"
   size?: "sm" | "md" | "lg"
   showLabel?: boolean
 }
@@ -13,6 +13,8 @@ export function LungHealthIndicator({ healthLevel, size = "md", showLabel = true
   const getHealthColor = () => {
     switch (healthLevel) {
       case "healthy":
+        return "#10b981"
+      case "unknown":
         return "#10b981" // emerald-500
       case "recovering":
         return "#f59e0b" // amber-500
@@ -35,6 +37,8 @@ export function LungHealthIndicator({ healthLevel, size = "md", showLabel = true
         return "Phổi của bạn đang mệt mỏi, hãy ngừng hút thuốc"
       case "critical":
         return "Phổi của bạn đang hấp hối, cần ngừng hút thuốc ngay"
+      case "unknown":
+        return "Chưa có dữ liệu ghi nhận, chưa thể đánh giá tình trạng phổi"
       default:
         return "Phổi của bạn đang khỏe mạnh, hãy tiếp tục duy trì"
     }
@@ -56,6 +60,7 @@ export function LungHealthIndicator({ healthLevel, size = "md", showLabel = true
             healthLevel === "recovering" && "text-amber-600",
             healthLevel === "stressed" && "text-orange-600",
             healthLevel === "critical" && "text-red-600",
+            healthLevel === "unknown" && "text-gray-600",
           )}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -108,7 +113,7 @@ export function LungHealthIndicator({ healthLevel, size = "md", showLabel = true
         </svg>
       </motion.div>
 
-    
+
     </div>
   )
 }

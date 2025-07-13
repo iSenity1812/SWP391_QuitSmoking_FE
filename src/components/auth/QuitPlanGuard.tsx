@@ -21,7 +21,7 @@ export function QuitPlanGuard({ children }: QuitPlanGuardProps) {
                 const currentPlan = await quitPlanService.getCurrentQuitPlan()
 
                 // If we successfully received a plan, and its status is IN_PROGRESS, user has an active plan
-                if (currentPlan && currentPlan.status === 'IN_PROGRESS') {
+                if (currentPlan && (currentPlan.status === 'IN_PROGRESS' || currentPlan.status === 'NOT_STARTED')) {
                     setHasActivePlan(true)
                     toast.error("Bạn chỉ có thể có một kế hoạch đang hoạt động. Không thể tạo kế hoạch mới bây giờ")
                 } else {

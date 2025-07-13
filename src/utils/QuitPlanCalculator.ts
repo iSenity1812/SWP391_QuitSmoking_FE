@@ -4,28 +4,55 @@ export class QuitPlanCalculator {
   static calculateDailyLimit(
     reductionType: ReductionQuitPlanType,
     initialAmount: number,
-    daysSinceStart: number,
+    daysSinceStart: number, // Đây là 'i' trong logic backend, bắt đầu từ 0 cho ngày đầu tiên
     totalDays: number,
   ): number {
+    if (totalDays <= 0) {
+      return initialAmount; // Hoặc ném lỗi, tùy thuộc vào cách bạn muốn xử lý.
+    }
+
     if (reductionType === "IMMEDIATE") {
       return 0
     }
 
-    const progress = Math.min(daysSinceStart / totalDays, 1)
+    // Điều chỉnh daysSinceStart để phù hợp với chỉ số 0-based của backend (ngày 1 là index 0)
+    // và đảm bảo progress đạt 1.0 vào ngày cuối cùng.
+    let progress: number
+    if (totalDays === 1) { // Nếu kế hoạch chỉ có 1 ngày, progress sẽ là 1 (ngay lập tức)
+      progress = 1
+    } else {
+      progress = Math.min(daysSinceStart / (totalDays - 1), 1) // Điều chỉnh để khớp với logic Java
+    }
+
+
+    let calculatedValue: number
 
     switch (reductionType) {
       case "LINEAR":
-        return Math.max(0, Math.round(initialAmount * (1 - progress)))
-
+        calculatedValue = initialAmount * (1 - progress)
+        break
       case "EXPONENTIAL":
-        return Math.max(0, Math.round(initialAmount * Math.pow(1 - progress, 2)))
-
+        calculatedValue = initialAmount * Math.pow(1 - progress, 2)
+        break
       case "LOGARITHMIC":
-        return Math.max(0, Math.round(initialAmount * (1 - Math.log(1 + progress * (Math.E - 1)) / Math.log(Math.E))))
-
+        calculatedValue = initialAmount * (1 - Math.log(1 + progress * (Math.E - 1)) / Math.log(Math.E))
+        break
       default:
-        return Math.max(0, Math.round(initialAmount * (1 - progress)))
+        calculatedValue = initialAmount * (1 - progress)
+        break
     }
+
+    let roundedCigarettes = Math.round(calculatedValue)
+
+    // Đảm bảo số điếu không bao giờ âm
+    roundedCigarettes = Math.max(0, roundedCigarettes)
+
+    // Ép số điếu về 0 vào ngày cuối cùng, giống logic backend
+    if (daysSinceStart >= totalDays - 1) { // Nếu là ngày cuối cùng hoặc đã qua ngày cuối cùng
+      roundedCigarettes = 0
+    }
+
+    return roundedCigarettes
   }
 
   static calculateMoneySaved(
@@ -49,6 +76,18 @@ export class QuitPlanCalculator {
     return Math.round(diffTime / (1000 * 60 * 60 * 24))
   }
 
+  static getDaysBetweenDates(startDate: string, endDate: string): number {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    const diffTime = end.getTime() - start.getTime();
+    return Math.round(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+
   static getDaysUntilGoal(goalDate: string): number {
     const goal = new Date(goalDate)
     const now = new Date()
@@ -68,9 +107,7 @@ export class QuitPlanCalculator {
     goal.setHours(0, 0, 0, 0);
 
     const diffTime = goal.getTime() - start.getTime();
-    // Tính số ngày và thêm 1 để bao gồm cả ngày bắt đầu và ngày kết thúc
-    // Math.round được sử dụng để xử lý các vấn đề về múi giờ hoặc DST có thể gây ra phần lẻ nhỏ
-    const totalDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    return totalDays;
-}
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays + 1); // +1 để bao gồm cả ngày bắt đầu và ngày kết thúc
+  }
 }

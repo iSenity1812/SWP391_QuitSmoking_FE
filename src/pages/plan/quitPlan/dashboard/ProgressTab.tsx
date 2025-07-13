@@ -11,9 +11,11 @@ import { Badge } from "@/components/ui/badge"
 import { Bar, BarChart, Line, LineChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts"
 import type { DailyRecord, QuitPlanResponseDTO } from "@/services/quitPlanService"
 import { QuitPlanCalculator } from "@/utils/QuitPlanCalculator"
+import type { DailyChartDataResponse } from "@/services/dataVisualizationService"
 
 interface ProgressTabProps {
-  quitPlan: QuitPlanResponseDTO
+  quitPlan: QuitPlanResponseDTO;
+  dailyData: DailyChartDataResponse[]; // Dữ liệu daily summary lịch sử từ cha (dùng cho biểu đồ)
 }
 
 export function ProgressTab({ quitPlan }: ProgressTabProps) {

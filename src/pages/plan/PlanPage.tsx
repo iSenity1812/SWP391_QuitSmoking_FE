@@ -465,25 +465,25 @@ export default function PlanPage() {
           <TabsContent value="streak">
             {currentPlan && streakData ? (
               <div className="space-y-8">
-                <AnimatedSection animation="fadeUp" delay={200}>
+                {/* <AnimatedSection animation="fadeUp" delay={200}>
                   <div className="text-center space-y-4">
                     <h1 className="text-4xl lg:text-5xl font-black text-slate-800 dark:text-white">Streak Tự Động</h1>
                     <p className="text-xl text-slate-600 dark:text-slate-300">
                       Theo dõi chuỗi ngày thành công được tính tự động
                     </p>
                   </div>
-                </AnimatedSection>
+                </AnimatedSection> */}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   <div className="lg:col-span-2 space-y-6">
-                    <AnimatedSection animation="fadeUp" delay={300}>
+                    {/* <AnimatedSection animation="fadeUp" delay={300}>
                       <StreakTracker
                         streakData={streakData}
                         onCheckIn={checkIn}
                         canCheckIn={canCheckInToday()}
                         motivationalMessage={getMotivationalMessage()}
                       />
-                    </AnimatedSection>
+                    </AnimatedSection> */}
 
                     <AnimatedSection animation="fadeUp" delay={400}>
                       <StreakCalendar streakData={streakData} />
