@@ -295,4 +295,6 @@ const BarChartComponent = ({
   }
 }
 
+const CustomBarChart = LineChartComponent
+
 export { Chart, ChartContainer, BarChart, LineChart, PieChart, LineChartComponent, BarChartComponent }

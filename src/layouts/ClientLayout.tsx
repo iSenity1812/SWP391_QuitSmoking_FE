@@ -7,11 +7,7 @@ import { ThemeProvider } from "@/context/ThemeContext"
 import { motion } from "framer-motion"
 import { FlowerIcon as Butterfly, Cloud, Heart, Leaf } from "lucide-react"
 
-export default function ClientLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function ClientLayout({children}: {children: React.ReactNode}) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {

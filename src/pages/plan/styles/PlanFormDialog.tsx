@@ -29,6 +29,7 @@ interface PlanFormDialogProps {
     onNumberChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     onSubmit: () => void
     onCancel: () => void
+    onOpenChange: (open: boolean) => void
     cigarettePrices: { [key: string]: number }
     isEditing?: boolean
     isPremium?: boolean
@@ -218,8 +219,8 @@ export const PlanFormDialog: React.FC<PlanFormDialogProps> = ({
                     {selectedPlanType && (
                         <div
                             className={`p-4 rounded-lg border-2 ${selectedPlanType === "gradual"
-                                    ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700"
-                                    : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700"
+                                ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700"
+                                : "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700"
                                 }`}
                         >
                             <div className="flex items-center gap-3">
@@ -236,16 +237,16 @@ export const PlanFormDialog: React.FC<PlanFormDialogProps> = ({
                                 <div>
                                     <h3
                                         className={`font-semibold ${selectedPlanType === "gradual"
-                                                ? "text-blue-800 dark:text-blue-300"
-                                                : "text-red-800 dark:text-red-300"
+                                            ? "text-blue-800 dark:text-blue-300"
+                                            : "text-red-800 dark:text-red-300"
                                             }`}
                                     >
                                         {selectedPlanType === "gradual" ? "Phương Pháp Giảm Dần" : "Phương Pháp Dứt Khoát"}
                                     </h3>
                                     <p
                                         className={`text-sm ${selectedPlanType === "gradual"
-                                                ? "text-blue-600 dark:text-blue-400"
-                                                : "text-red-600 dark:text-red-400"
+                                            ? "text-blue-600 dark:text-blue-400"
+                                            : "text-red-600 dark:text-red-400"
                                             }`}
                                     >
                                         {selectedPlanType === "gradual"
@@ -441,8 +442,8 @@ export const PlanFormDialog: React.FC<PlanFormDialogProps> = ({
                     <Button
                         onClick={onSubmit}
                         className={`text-white ${selectedPlanType === "gradual"
-                                ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
-                                : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                            ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                            : "bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
                             }`}
                     >
                         {isEditing ? "Cập Nhật Kế Hoạch" : "Tạo Kế Hoạch"}

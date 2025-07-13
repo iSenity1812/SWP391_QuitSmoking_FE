@@ -38,8 +38,8 @@ const UserProfileHeader = ({ user }: UserProfileHeaderProps) => {
                             <Bell className="h-4 w-4 mr-2" />
                             Thông báo
                         </Button>
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => setIsSettingsOpen(true)}
                         >
@@ -49,10 +49,10 @@ const UserProfileHeader = ({ user }: UserProfileHeaderProps) => {
                     </div>
                 </div>
             </div>
-            
-            <SettingsModal 
-                isOpen={isSettingsOpen} 
-                onClose={() => setIsSettingsOpen(false)} 
+
+            <SettingsModal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
             />
         </div>
     )

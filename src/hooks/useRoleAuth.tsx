@@ -48,7 +48,6 @@ export function useUserRoutes() {
 
 export function getDefaultRouteForRole(role: Role): string {
   const roleRouteMap: Record<Role, string> = {
-    'MEMBER': '/',
     'NORMAL_MEMBER': '/',
     'PREMIUM_MEMBER': '/',
     'COACH': '/coach',

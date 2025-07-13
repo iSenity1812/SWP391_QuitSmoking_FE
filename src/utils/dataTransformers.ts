@@ -106,13 +106,11 @@ export class DataTransformer {
   static getWeekStart(date: Date): Date {
     const weekStart = new Date(date)
     const day = weekStart.getDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-
     // Calculate days to subtract to get to Monday
     // If day = 0 (Sunday), subtract 6 days to get previous Monday
     // If day = 1 (Monday), subtract 0 days
     // If day = 2 (Tuesday), subtract 1 day, etc.
     const diff = day === 0 ? 6 : day - 1
-
     weekStart.setDate(weekStart.getDate() - diff)
     weekStart.setHours(0, 0, 0, 0)
     return weekStart
@@ -124,18 +122,15 @@ export class DataTransformer {
   static formatWeekRange(weekStart: Date): string {
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekStart.getDate() + 6)
-
     const startStr = weekStart.toLocaleDateString('vi-VN', {
       day: '2-digit',
       month: '2-digit'
     })
-
     const endStr = weekEnd.toLocaleDateString('vi-VN', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     })
-
     return `${startStr} - ${endStr}`
   }
 }

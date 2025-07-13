@@ -116,12 +116,12 @@ export function OverviewTab({ user: profileUser, onTestAchievement }: OverviewTa
                             <div key={index} className="flex items-center gap-4 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
                                 <div
                                     className={`rounded-full p-2 ${activity.type === "achievement"
-                                            ? "bg-yellow-100 dark:bg-yellow-900"
-                                            : activity.type === "milestone"
-                                                ? "bg-green-100 dark:bg-green-900"
-                                                : activity.type === "social"
-                                                    ? "bg-blue-100 dark:bg-blue-900"
-                                                    : "bg-purple-100 dark:bg-purple-900"
+                                        ? "bg-yellow-100 dark:bg-yellow-900"
+                                        : activity.type === "milestone"
+                                            ? "bg-green-100 dark:bg-green-900"
+                                            : activity.type === "social"
+                                                ? "bg-blue-100 dark:bg-blue-900"
+                                                : "bg-purple-100 dark:bg-purple-900"
                                         }`}
                                 >
                                     {activity.type === "achievement" && <Trophy className="h-4 w-4 text-yellow-600" />}

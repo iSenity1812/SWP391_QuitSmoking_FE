@@ -3,8 +3,11 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute"
 import { AuthRedirect } from "@/components/auth/AuthRedirect"
 
 // Public pages
-import { LandingPage } from "@/pages/Landing/LandingPage"
 import BlogPage from "@/pages/blog/BlogPage"
+import { QuitPlanGuard } from "@/components/auth/QuitPlanGuard"
+
+// Public pages
+import { LandingPage } from "@/pages/Landing/LandingPage"
 import AboutPage from "@/pages/about/AboutPage"
 import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
@@ -34,6 +37,9 @@ import PublicUserProfilePage from "@/pages/user/PublicUserProfilePage"
 import HealthBenefitsPage from "@/pages/health-benefits/HealthBenefitsPage"
 import { NotificationsPage } from "@/pages/notifications/NotificationsPage"
 import { LeaderboardPage } from "@/pages/leaderboard/LeaderboardPage"
+import CreateQuitPlanLayout from "@/layouts/CreateQuitPlanLayout"
+import PlanPage from "@/pages/plan/PlanPage"
+import { QuitPlanDashboard } from "@/pages/plan/quitPlan/QuitPlanDashboard"
 
 export function AppRoutes() {
   return (
@@ -112,8 +118,7 @@ export function AppRoutes() {
             allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
             requireAuth={true}
           >
-            {/* <PlanPage /> */}
-            <PlanPagePref />
+            <QuitPlanDashboard />
           </ProtectedRoute>
         }
       />

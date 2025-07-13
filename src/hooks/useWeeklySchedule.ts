@@ -27,13 +27,11 @@ export function useWeeklySchedule(requestedCoachId: string | null, currentWeek: 
     try {
       setIsLoading(true)
       setError(null)
-
       // 🔧 FIX: Gửi ngày giữa tuần thay vì start date
       // currentWeek là start of week (Sunday), ta cần gửi 1 ngày trong tuần đó
       const middleOfWeek = new Date(currentWeek)
       middleOfWeek.setDate(currentWeek.getDate() + 3) // Thêm 3 ngày = Wednesday
       const dateInWeek = DataTransformer.formatDateForApi(middleOfWeek)
-
       // 🐛 DEBUG: Log request info
       console.log('=== WEEKLY SCHEDULE REQUEST DEBUG ===')
       console.log('Current user:', user.username, '| Role:', user.role, '| ID:', user.userId)
@@ -133,11 +131,9 @@ export function useWeeklySchedule(requestedCoachId: string | null, currentWeek: 
  */
 export function useCurrentCoachId(): string | null {
   const { user } = useAuth()
-
   // Chỉ trả về ID nếu user là coach
   if (user && user.role === 'COACH') {
     return user.userId  // ← Sử dụng userId (theo interface đầu tiên)
   }
-
   return null
 }
