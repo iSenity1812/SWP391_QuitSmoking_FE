@@ -110,7 +110,6 @@ export function CoachSelectionModal({ isOpen, onClose, coaches, schedules, timeS
                         className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                       >
                         <Info className="w-4 h-4 mr-1" />
-                        Hồ sơ
                       </Button>
                       <Button
                         size="sm"

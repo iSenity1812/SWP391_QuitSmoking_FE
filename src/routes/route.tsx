@@ -32,6 +32,8 @@ import { MeetingPage } from "@/pages/meeting/MeetingPage"
 import QuitStatsPage from "@/pages/user/QuitStatsPage"
 import PublicUserProfilePage from "@/pages/user/PublicUserProfilePage"
 import HealthBenefitsPage from "@/pages/health-benefits/HealthBenefitsPage"
+import { NotificationsPage } from "@/pages/notifications/NotificationsPage"
+import { LeaderboardPage } from "@/pages/leaderboard/LeaderboardPage"
 
 export function AppRoutes() {
   return (
@@ -126,6 +128,19 @@ export function AppRoutes() {
         }
       />
 
+      {/* Leaderboard - accessible by all members */}
+      <Route
+        path="/leaderboard"
+        element={
+          <ProtectedRoute
+            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+            requireAuth={true}
+          >
+            <LeaderboardPage />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Member Routes - NORMAL_MEMBER & PREMIUM_MEMBER */}
       <Route
         path="/task"
@@ -208,6 +223,15 @@ export function AppRoutes() {
             requireAuth={true}
           >
             <QuitStatsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute requireAuth={true}>
+            <NotificationsPage />
           </ProtectedRoute>
         }
       />

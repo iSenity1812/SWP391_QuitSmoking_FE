@@ -1,9 +1,9 @@
-import UserProfile from "./component/user-profile"
+import UserProfileNew from "./components/UserProfileNew"
 
 export default function UserProfilePage() {
     return (
         <div className="min-h-screen">
-            <UserProfile />
+            <UserProfileNew />
         </div>
     )
 }

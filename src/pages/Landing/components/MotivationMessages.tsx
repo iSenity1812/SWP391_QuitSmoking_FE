@@ -3,13 +3,13 @@ import { AnimatedSection } from "@/components/ui/AnimatedSection";
 
 export function MotivationMessages() {
   const messages = [
-    "Every day smoke-free is a victory. Keep going!",
-    "You are stronger than your cravings. Believe in yourself!",
-    "Each moment without smoking is a step towards a healthier you.",
-    "Remember why you started. Your future self will thank you!",
-    "Stay focused on your goals. You've got this!",
-    "Celebrate your progress, no matter how small.",
-    "You are not alone. We're here to support you every step of the way.",
+    "Mỗi ngày không hút thuốc là một chiến thắng. Hãy tiếp tục cố gắng nhé!",
+    "Bạn mạnh mẽ hơn những cơn thèm thuốc. Hãy tin vào chính mình!",
+    "Mỗi khoảnh khắc không thuốc lá là một bước tiến đến một phiên bản khỏe mạnh hơn của bạn.",
+    "Hãy nhớ lý do bạn bắt đầu. Bản thân bạn trong tương lai sẽ biết ơn điều đó!",
+    "Luôn tập trung vào mục tiêu của bạn. Bạn làm được mà!",
+    "Hãy ăn mừng những tiến bộ của bạn, dù là nhỏ nhất.",
+    "Bạn không hề đơn độc. Chúng tôi luôn ở đây để đồng hành cùng bạn trên mọi chặng đường.",
   ];
 
   const randomQuote = messages[Math.floor(Math.random() * messages.length)];

@@ -138,7 +138,7 @@ export function BookingNoteModal({
 
           {/* Note Input */}
           <div className="space-y-3">
-            <Label htmlFor="note" className="text-sm font-medium text-slate-700">
+            <Label htmlFor="note" className="text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
               Ghi chú cho buổi tư vấn <span className="text-red-500">*</span>
             </Label>
             <Textarea

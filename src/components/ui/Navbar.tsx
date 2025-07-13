@@ -15,6 +15,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoutes } from "@/hooks/useRoleAuth";
 import { UserDropdown } from "@/pages/auth/components/UserDropdown";
+import { NotificationIcon } from "./NotificationIcon";
 
 // Define navigation links for different user states
 const publicNavLinks = [
@@ -118,7 +119,10 @@ export function Navbar() {
           <ThemeToggle />
           {/* Authenticated User Menu */}
           {isAuthenticated && user ? (
-            <UserDropdown />
+            <>
+              <NotificationIcon />
+              <UserDropdown />
+            </>
           ) : (
             /* Guest User Buttons */
             <>

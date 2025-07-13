@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { AnimatePresence, motion } from "framer-motion"
 import {
     FileText,
     Flag,
@@ -28,8 +29,10 @@ import { BlogManagement } from "./components/BlogManagement"
 import { QuizManagement } from "./components/QuizManagement"
 import { TipManagement } from "./components/TipManagement"
 import { ProgramManagement } from "./components/ProgramManagement"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function ContentAdminPage() {
+    const { user, logout } = useAuth()
     const [activeTab, setActiveTab] = useState("dashboard")
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -41,6 +44,7 @@ export default function ContentAdminPage() {
         { id: "quizzes", label: "Quản Lý Quiz", icon: Flag },
         { id: "tips", label: "Quản Lý Tips", icon: FileText },
         { id: "blogs", label: "Blog", icon: FileText },
+        { id: "achievements", label: "Quản Lý Thành Tựu", icon: Activity },
     ]
 
     const renderContent = () => {
@@ -71,179 +75,219 @@ export default function ContentAdminPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
-            {/* Mobile Menu Overlay */}
-            {mobileMenuOpen && (
-                <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setMobileMenuOpen(false)} />
-            )}
-
-            {/* Sidebar */}
-            <div
-                className={`fixed left-0 top-0 h-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border-r border-slate-200 dark:border-slate-700/50 z-50 transition-all duration-300 ${sidebarCollapsed ? "w-16" : "w-64"
-                    } ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        <AnimatePresence>
+            <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
             >
-                {/* Sidebar Header */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700/50">
-                    {!sidebarCollapsed && (
-                        <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold text-sm">CM</span>
-                            </div>
-                            <div>
-                                <h2 className="text-slate-900 dark:text-white font-semibold">Content Admin</h2>
-                                <p className="text-slate-600 dark:text-slate-400 text-xs">Quản lý nội dung</p>
-                            </div>
-                        </div>
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
+                    {/* Mobile Menu Overlay */}
+                    {mobileMenuOpen && (
+                        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setMobileMenuOpen(false)} />
                     )}
 
-                    {/* Collapse Button - Desktop */}
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                        className="hidden lg:flex text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
-                    >
-                        {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-                    </Button>
-
-                    {/* Close Button - Mobile */}
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="lg:hidden text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
-                    >
-                        <X size={16} />
-                    </Button>
-                </div>
-
-                {/* Navigation Items */}
-                <nav className="p-4 space-y-2">
-                    {navItems.map((item) => {
-                        const Icon = item.icon
-                        const isActive = activeTab === item.id
-
-                        return (
-                            <button
-                                key={item.id}
-                                onClick={() => {
-                                    setActiveTab(item.id)
-                                    setMobileMenuOpen(false)
-                                }}
-                                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${isActive
-                                    ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-slate-900 dark:text-white border border-purple-500/30"
-                                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
-                                    }`}
-                            >
-                                <Icon size={20} className={isActive ? "text-purple-500" : ""} />
-                                {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}
-                            </button>
-                        )
-                    })}
-                </nav>
-
-                {/* Theme Toggle */}
-                <div className="px-4 mb-4">
-                    <Button
-                        onClick={toggleTheme}
-                        variant="outline"
-                        size={sidebarCollapsed ? "sm" : "default"}
-                        className={`${sidebarCollapsed ? "w-8 h-8 p-0" : "w-full"} bg-slate-100 dark:bg-slate-700 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300`}
-                    >
-                        {theme === "light" ? (
-                            <>
-                                <Moon size={16} />
-                                {!sidebarCollapsed && <span className="ml-2">Chế độ tối</span>}
-                            </>
-                        ) : (
-                            <>
-                                <Sun size={16} />
-                                {!sidebarCollapsed && <span className="ml-2">Chế độ sáng</span>}
-                            </>
-                        )}
-                    </Button>
-                </div>
-
-                {/* User Profile - Bottom */}
-                <div className="absolute bottom-4 left-4 right-4">
+                    {/* Sidebar */}
                     <div
-                        className={`flex items-center space-x-3 p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg ${sidebarCollapsed ? "justify-center" : ""}`}
+                        className={`fixed left-0 top-0 h-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border-r border-slate-200 dark:border-slate-700/50 z-50 transition-all duration-300 ${sidebarCollapsed ? "w-16" : "w-64"
+                            } ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
                     >
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                            <AvatarFallback className="bg-purple-500 text-white">CM</AvatarFallback>
-                        </Avatar>
-                        {!sidebarCollapsed && (
-                            <div className="flex-1 min-w-0">
-                                <p className="text-slate-900 dark:text-white text-sm font-medium truncate">Content Manager</p>
-                                <p className="text-slate-600 dark:text-slate-400 text-xs truncate">content@quitsmoking.com</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+                        {/* Sidebar Header */}
 
-            {/* Main Content */}
-            <div className={`transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"}`}>
-                {/* Top Header */}
-                <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-700/50 p-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                            {/* Mobile Menu Button */}
+                        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700/50">
+                            {!sidebarCollapsed && (
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                                        <span className="text-white font-bold text-sm">CM</span>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-slate-900 dark:text-white font-semibold">Content Admin</h2>
+                                        <p className="text-slate-600 dark:text-slate-400 text-xs">Quản lý nội dung</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Collapse Button - Desktop */}
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setMobileMenuOpen(true)}
-                                className="lg:hidden text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                                className="hidden lg:flex text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
                             >
-                                <Menu size={20} />
+                                {sidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                             </Button>
 
-                            <div>
-                                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Quản Lý Nội Dung</h1>
-                                <p className="text-slate-600 dark:text-slate-400 text-sm">
-                                    Quản lý đánh giá, blog, thành tựu và nội dung hệ thống
-                                </p>
-                            </div>
+                            {/* Close Button - Mobile */}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="lg:hidden text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                            >
+                                <X size={16} />
+                            </Button>
                         </div>
 
-                        <div className="flex items-center space-x-4">
-                            {/* Desktop Theme Toggle */}
+
+                        {/* Navigation Items */}
+                        <nav className="p-4 space-y-2">
+                            {navItems.map((item) => {
+                                const Icon = item.icon
+                                const isActive = activeTab === item.id
+
+                                return (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => {
+                                            setActiveTab(item.id)
+                                            setMobileMenuOpen(false)
+                                        }}
+                                        className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${isActive
+                                            ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-slate-900 dark:text-white border border-purple-500/30"
+                                            : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                                            }`}
+                                    >
+                                        <Icon size={20} className={isActive ? "text-purple-500" : ""} />
+                                        {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}
+                                    </button>
+                                )
+                            })}
+                        </nav>
+
+                        {/* Theme Toggle */}
+                        <div className="px-4 mb-4">
                             <Button
                                 onClick={toggleTheme}
                                 variant="outline"
-                                size="sm"
-                                className="hidden lg:flex bg-slate-100 dark:bg-slate-700 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300"
+                                size={sidebarCollapsed ? "sm" : "default"}
+                                className={`${sidebarCollapsed ? "w-8 h-8 p-0" : "w-full"} bg-slate-100 dark:bg-slate-700 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300`}
                             >
                                 {theme === "light" ? (
                                     <>
                                         <Moon size={16} />
-                                        <span className="ml-2">Tối</span>
+                                        {!sidebarCollapsed && <span className="ml-2">Chế độ tối</span>}
                                     </>
                                 ) : (
                                     <>
                                         <Sun size={16} />
-                                        <span className="ml-2">Sáng</span>
+                                        {!sidebarCollapsed && <span className="ml-2">Chế độ sáng</span>}
                                     </>
                                 )}
                             </Button>
+                        </div>
 
-                            <Badge
-                                variant="outline"
-                                className="px-3 py-1 border-purple-500/30 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10"
+                        {/* User Profile - Bottom */}
+                        {/* User Profile - Bottom */}
+                        <motion.div
+                            className="absolute bottom-4 left-4 right-4"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.4 }}
+                        >
+                            {/* logout button */}
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="flex items-center justify-between space-x-3 p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg"
                             >
-                                <Activity className="w-4 h-4 mr-2" />
-                                Content System
-                            </Badge>
+                                <motion.div whileHover={{ scale: 1.1 }}>
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src="/placeholder.svg?height=32&width=32" />
+                                        <AvatarFallback className="bg-fuchsia-700 text-white">C</AvatarFallback>
+                                    </Avatar>
+                                </motion.div>
+                                <AnimatePresence>
+                                    {!sidebarCollapsed && (
+                                        <motion.div
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: -10 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="flex-1 min-w-0"
+                                        >
+                                            <p className="text-slate-900 dark:text-white text-sm font-medium truncate">{user?.username}</p>
+                                            <p className="text-slate-600 dark:text-slate-400 text-xs truncate">{user?.email}</p>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="mt-2 w-full"
+                                                onClick={() => {
+                                                    logout()
+                                                    setMobileMenuOpen(false)
+                                                }}
+                                            >
+                                                Đăng xuất
+                                            </Button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
+                        </motion.div>
+                    </div>
+
+                    {/* Main Content */}
+                    <div className={`transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"}`}>
+                        {/* Top Header */}
+                        <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-700/50 p-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-4">
+                                    {/* Mobile Menu Button */}
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setMobileMenuOpen(true)}
+                                        className="lg:hidden text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                                    >
+                                        <Menu size={20} />
+                                    </Button>
+
+                                    <div>
+                                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Quản Lý Nội Dung</h1>
+                                        <p className="text-slate-600 dark:text-slate-400 text-sm">
+                                            Quản lý đánh giá, blog, thành tựu và nội dung hệ thống
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-4">
+                                    {/* Desktop Theme Toggle */}
+                                    <Button
+                                        onClick={toggleTheme}
+                                        variant="outline"
+                                        size="sm"
+                                        className="hidden lg:flex bg-slate-100 dark:bg-slate-700 border-slate-300 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300"
+                                    >
+                                        {theme === "light" ? (
+                                            <>
+                                                <Moon size={16} />
+                                                <span className="ml-2">Tối</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Sun size={16} />
+                                                <span className="ml-2">Sáng</span>
+                                            </>
+                                        )}
+                                    </Button>
+
+                                    <Badge
+                                        variant="outline"
+                                        className="px-3 py-1 border-purple-500/30 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10"
+                                    >
+                                        <Activity className="w-4 h-4 mr-2" />
+                                        Content System
+                                    </Badge>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Main Content Area */}
+                        <div className="p-6">
+                            <div className="space-y-6">{renderContent()}</div>
                         </div>
                     </div>
                 </div>
-
-                {/* Main Content Area */}
-                <div className="p-6">
-                    <div className="space-y-6">{renderContent()}</div>
-                </div>
-            </div>
-        </div>
+            </motion.div>
+        </AnimatePresence>
     )
 }

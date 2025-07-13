@@ -11,9 +11,12 @@ import { OverviewTab } from "../components/tabs/OverviewTab"
 import { ProgressTab } from "../components/tabs/ProgressTab"
 import { AchievementsTab } from "../components/tabs/AchievementsTab"
 import { HealthTab } from "../components/tabs/HealthTab"
+import { SocialTab } from "../components/tabs/SocialTab"
+import { BookingTab } from "../components/tabs/BookingtTab"
 import CertificationTab from "../components/tabs/CertificationTab"
 import type { AchievementNotification, User } from "../types/user-types"
 import { userService } from "@/services/userService"
+import OverviewTabRemake from "../components/tabs/OverviewTabRemake"
 
 export default function UserProfile() {
     const [activeTab, setActiveTab] = useState("social")
@@ -120,16 +123,22 @@ export default function UserProfile() {
         return () => document.removeEventListener("mousedown", handleClickOutside)
     }, [sidebarOpen])
 
+
     const renderTabContent = () => {
         switch (activeTab) {
             case "overview":
-                return <OverviewTab user={user} onTestAchievement={handleTestAchievement} />
+                // return <OverviewTab user={user} onTestAchievement={handleTestAchievement} />
+                return <OverviewTabRemake />
             case "progress":
                 return <ProgressTab user={user} />
             case "achievements":
                 return <AchievementsTab />
             case "health":
                 return <HealthTab />
+            case "social":
+                return <SocialTab user={user} />
+            case "booking":
+                return <BookingTab user={user} />
             case "certification":
                 return <CertificationTab />
             default:

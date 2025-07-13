@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { motion } from "framer-motion"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -198,16 +199,24 @@ export function ProgramManagement() {
     return (
         <div className="p-6 space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Quản lý Chương trình</h1>
-                    <p className="text-gray-600 dark:text-gray-400">Quản lý các chương trình học tập và hỗ trợ</p>
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="flex flex-col gap-4 mb-6"
+            >
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Quản lý Chương trình</h1>
+                        <p className="text-gray-600 dark:text-gray-400">Quản lý các chương trình học tập và hỗ trợ</p>
+                    </div>
+                    <Button onClick={() => setCreateDialogOpen(true)} className="flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        Tạo chương trình mới
+                    </Button>
                 </div>
-                <Button onClick={() => setCreateDialogOpen(true)} className="flex items-center gap-2">
-                    <Plus className="h-4 w-4" />
-                    Tạo chương trình mới
-                </Button>
-            </div>
+            </motion.div>
+
 
             {/* Search and Filters */}
             <Card className="border border-gray-200 dark:border-gray-700">

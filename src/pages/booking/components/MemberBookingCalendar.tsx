@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, Loader2, AlertCircle, CheckCircle, RefreshCcw } from "lucide-react"
 import { WeekNavigation } from "./WeekNavigation"
-import { FilterSidebar } from "./FilterSidebar"
+// import { FilterSidebar } from "./FilterSidebar"
 import { TimeSlotCell } from "./TimeSlotCell"
 import { CoachSelectionModal } from "./CoachSelectionModal"
 import { BookingNoteModal } from "./BookingNoteModal"
@@ -20,13 +20,13 @@ import type { Coach, TimeSlot } from "@/services/timeSlotService"
 export function MemberBookingCalendar() {
   const {
     currentWeekStart,
-    filters,
+    // filters,
     timeSlots,
     selectedSlots,
     loading,
     error,
     setCurrentWeekStart,
-    setFilters,
+    // setFilters,
     weekDates,
     getCoachesForSlot,
     getSchedulesForSlot,
@@ -51,7 +51,7 @@ export function MemberBookingCalendar() {
     clearLastBookedAppointment,
   } = useAppointmentBooking()
 
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  // const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState<{
     timeSlot: TimeSlot
     date: string
@@ -130,12 +130,12 @@ export function MemberBookingCalendar() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filter Sidebar */}
           <div className="lg:col-span-1">
-            <FilterSidebar
+            {/* <FilterSidebar
               filters={filters}
               onFiltersChange={setFilters}
               isOpen={isFilterOpen}
               onToggle={() => setIsFilterOpen(!isFilterOpen)}
-            />
+            /> */}
 
             {/* Upcoming Appointments */}
             <UpcomingAppointments />

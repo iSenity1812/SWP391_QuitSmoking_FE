@@ -14,6 +14,11 @@ import { SocialTab } from "../components/tabs/SocialTab"
 import { BookingTab } from "../components/tabs/BookingtTab"
 import CertificationTab from "../components/tabs/CertificationTab"
 import type { AchievementNotification } from "../types/user-types"
+import ProfileCard from "./ProfileCard"
+import { motion } from "framer-motion"
+import type { UserProfile } from "../types/UserProfile"
+import SettingsTab from "./tabs/SettingTab"
+
 
 export default function UserProfile() {
     const [activeTab, setActiveTab] = useState("overview")
@@ -85,14 +90,52 @@ export default function UserProfile() {
                 return <BookingTab user={user} />
             case "certification":
                 return <CertificationTab />
+            case "settings":
+                return <SettingsTab user={mockUser} />
             default:
                 return <OverviewTab user={user} onTestAchievement={handleTestAchievement} />
         }
     }
 
+
+    // Mock user data - replace with actual data from your API
+    const mockUser: UserProfile = {
+        userId: "user-123",
+        username: "chamcham3",
+        displayName: "Cham Cham",
+        email: "chamcham@example.com",
+        profilePicture: null,
+        createdAt: "2025-07-10T23:30:44.442925",
+        role: "PREMIUM_MEMBER",
+        streakCount: 15,
+        totalAchievements: 8,
+        followerCount: 24,
+        followingCount: 12,
+    }
+
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
             <UserProfileHeader user={user} />
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col">
+                <main className="flex-1 p-6 max-w-4xl mx-auto w-full">
+                    {/* Profile Card */}
+                    <div className="mb-8">
+                        <ProfileCard user={mockUser} />
+                    </div>
+
+                    {/* Tab Content */}
+                    <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        {renderTabContent()}
+                    </motion.div>
+                </main>
+            </div>
 
             <div className="flex">
                 <div id="sidebar">
