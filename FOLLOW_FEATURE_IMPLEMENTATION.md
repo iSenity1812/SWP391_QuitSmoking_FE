@@ -13,6 +13,7 @@
 ### 🎯 **Tính năng Follow/Follower:**
 
 #### **Sidebar Features:**
+
 - ✅ Hiển thị 5 followers/following đầu tiên
 - ✅ Tab chuyển đổi giữa Followers và Following
 - ✅ Tìm kiếm realtime người dùng với debounce (300ms)
@@ -21,6 +22,7 @@
 - ✅ Nút "Xem thêm X người" khi > 5 người
 
 #### **Modal Features:**
+
 - ✅ Popup modal khi click "Xem thêm"
 - ✅ Tìm kiếm trong modal
 - ✅ Scroll danh sách đầy đủ
@@ -29,7 +31,8 @@
 - ✅ Smooth animations với Framer Motion
 
 #### **API Integration:**
-- ✅ **Search API**: `GET /public/users/search` 
+
+- ✅ **Search API**: `GET /public/users/search`
 - ✅ **Follow API**: `POST /follows` với `{followedUserId}`
 - ✅ **Unfollow API**: `DELETE /follows/{userId}` (giả định)
 - ✅ **Get Followers**: `GET /users/{userId}/followers`
@@ -39,12 +42,14 @@
 ### 🎨 **UI/UX Improvements:**
 
 #### **Visual States:**
+
 - **Chưa follow**: Icon UserPlus (xám)
 - **Đã follow**: Icon UserMinus (xanh emerald)
 - **Loading**: Spinner animation
 - **Premium users**: Crown icon 👑
 
 #### **Interactions:**
+
 - ✅ Hover effects trên tất cả buttons
 - ✅ Smooth transitions
 - ✅ Toast notifications cho success/error
@@ -52,24 +57,28 @@
 - ✅ Modal backdrop blur effect
 
 ### 📱 **Responsive Design:**
+
 - ✅ Sidebar width: 320px (80rem)
 - ✅ Sticky positioning
 - ✅ Dark mode support
 - ✅ Mobile-friendly components
 
 ### 🔄 **State Management:**
+
 - ✅ Following states tracking
 - ✅ Loading states per user
 - ✅ Search results caching
 - ✅ Auto-refresh sau follow/unfollow actions
 
 ### 🛡️ **Error Handling:**
+
 - ✅ API error catching
 - ✅ Toast error messages
 - ✅ Fallback states
 - ✅ Loading indicators
 
 ### 📝 **Code Quality:**
+
 - ✅ TypeScript strict typing
 - ✅ No ESLint errors
 - ✅ Proper async/await handling
@@ -79,7 +88,7 @@
 
 1. **Sidebar Search**: Gõ tên user để tìm kiếm → Click follow/unfollow
 2. **Followers Tab**: Xem danh sách người theo dõi
-3. **Following Tab**: Xem danh sách đang theo dõi  
+3. **Following Tab**: Xem danh sách đang theo dõi
 4. **View More**: Click "Xem thêm" để mở modal với danh sách đầy đủ
 5. **Modal**: Tìm kiếm và quản lý follow trong modal
 
@@ -93,7 +102,7 @@ GET /public/users/search?query={searchTerm}
 POST /follows
 Body: { "followedUserId": "user-id" }
 
-// Unfollow user  
+// Unfollow user
 DELETE /follows/{userId}
 
 // Get followers
@@ -107,6 +116,7 @@ GET /follows/check/{userId}
 ```
 
 ## 📋 **Files Structure:**
+
 ```
 src/pages/user/components/
 ├── SidebarRightComplete.tsx    # Main sidebar với follow features

@@ -13,17 +13,20 @@ import { CoachProfile } from "./components/CoachProfile"
 import { CoachBlogManagement } from "./components/CoachBlogManagement"
 // import { AppointmentScheduler } from "./components/AppointmentScheduler"
 import { AppointmentScheduler } from "./components/AppointmentSchedulerNew"
+import { AnimatePresence, motion } from "framer-motion"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function CoachDashboard() {
-    const [activeTab, setActiveTab] = useState("overview")
+    const { user, logout } = useAuth()
+    const [activeTab, setActiveTab] = useState("appointments")
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
     const navItems = [
-        { id: "overview", label: "Tổng Quan", icon: Activity },
-        { id: "customers", label: "Quản Lý Khách Hàng", icon: Users },
+        // { id: "overview", label: "Tổng Quan", icon: Activity },
+        // { id: "customers", label: "Quản Lý Khách Hàng", icon: Users },
         { id: "appointments", label: "Lịch Hẹn", icon: Calendar },
-        { id: "communication", label: "Giao Tiếp", icon: MessageSquare },
+        // { id: "communication", label: "Giao Tiếp", icon: MessageSquare },
         { id: "blog", label: "Quản Lý Blog", icon: BookOpen },
         { id: "profile", label: "Hồ Sơ Cá Nhân", icon: User },
     ]
@@ -43,7 +46,7 @@ export default function CoachDashboard() {
             case "profile":
                 return <CoachProfile />
             default:
-                return <CoachOverview />
+                return <AppointmentScheduler />
         }
     }
 
@@ -119,12 +122,31 @@ export default function CoachDashboard() {
                             <AvatarImage src="/placeholder.svg?height=32&width=32" />
                             <AvatarFallback className="bg-blue-500 text-white">HLV</AvatarFallback>
                         </Avatar>
-                        {!sidebarCollapsed && (
-                            <div className="flex-1 min-w-0">
-                                <p className="text-slate-900 dark:text-white text-sm font-medium truncate">Huấn Luyện Viên Minh</p>
-                                <p className="text-slate-600 dark:text-slate-400 text-xs truncate">coach@quitsmoking.com</p>
-                            </div>
-                        )}
+                        <AnimatePresence>
+                            {!sidebarCollapsed && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="flex-1 min-w-0"
+                                >
+                                    <p className="text-slate-900 dark:text-white text-sm font-medium truncate">{user?.username}</p>
+                                    <p className="text-slate-600 dark:text-slate-400 text-xs truncate">{user?.email}</p>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="mt-2 w-full"
+                                        onClick={() => {
+                                            logout()
+                                            setMobileMenuOpen(false)
+                                        }}
+                                    >
+                                        Đăng xuất
+                                    </Button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
             </div>
@@ -152,11 +174,11 @@ export default function CoachDashboard() {
                         </div>
 
                         <div className="flex items-center space-x-4">
-                            <Button variant="outline" size="sm" className="hidden md:flex">
+                            {/* <Button variant="outline" size="sm" className="hidden md:flex">
                                 <Bell className="w-4 h-4 mr-2" />
                                 Thông báo
                                 <Badge className="ml-2 bg-red-500 text-white">3</Badge>
-                            </Button>
+                            </Button> */}
 
                             <Badge
                                 variant="outline"

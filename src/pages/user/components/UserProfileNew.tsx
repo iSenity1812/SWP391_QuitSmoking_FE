@@ -5,11 +5,9 @@ import { motion } from "framer-motion"
 import SidebarLeft from "./SidebarLeft"
 import SidebarRight from "./SidebarRight"
 import ProfileCard from "./ProfileCard"
-import { OverviewTab } from "./tabs/OverviewTab"
 import { AchievementsTab } from "./tabs/AchievementsTab"
 import SettingsTab from "./tabs/SettingsTab"
 import type { UserProfile } from "../types/UserProfile"
-import type { User } from "../types/user-types"
 import { useAuth } from "@/hooks/useAuth"
 
 export default function UserProfileNew() {
@@ -50,61 +48,6 @@ export default function UserProfileNew() {
     }
   }, [user])
 
-  // Convert auth user data to User format for OverviewTab
-  const mockUser: User = useMemo(() => {
-    if (!user) {
-      return {
-        userId: "",
-        name: "Loading...",
-        email: "",
-        avatar: "",
-        joinDate: new Date().toISOString(),
-        daysSmokeFreee: 0,
-        cigarettesAvoided: 0,
-        moneySaved: "0 VNĐ",
-        healthImprovement: 0,
-        level: "Người mới bắt đầu",
-        streak: 0,
-        achievements: [],
-        achievementCategories: [],
-        nextMilestone: {
-          name: "Cai thuốc 30 ngày",
-          daysLeft: 30,
-          reward: "Huy hiệu bạc"
-        },
-        healthBenefits: [],
-        weeklyProgress: [],
-        friends: [],
-        recentActivities: []
-      }
-    }
-
-    return {
-      userId: user.userId,
-      name: user.username,
-      email: user.email,
-      avatar: user.profilePicture || "",
-      joinDate: new Date().toISOString(), // Would need to be fetched from API
-      daysSmokeFreee: 0, // These would need to be fetched from separate APIs
-      cigarettesAvoided: 0,
-      moneySaved: "0 VNĐ",
-      healthImprovement: 0,
-      level: "Người mới bắt đầu",
-      streak: 0,
-      achievements: [],
-      achievementCategories: [],
-      nextMilestone: {
-        name: "Cai thuốc 30 ngày",
-        daysLeft: 30,
-        reward: "Huy hiệu bạc"
-      },
-      healthBenefits: [],
-      weeklyProgress: [],
-      friends: [],
-      recentActivities: []
-    }
-  }, [user])
-
   // Show loading state if auth is still loading
   if (isLoading) {
     return (
@@ -137,13 +80,25 @@ export default function UserProfileNew() {
   const renderMainContent = () => {
     switch (activeTab) {
       case "overview":
-        return <OverviewTab user={mockUser} onTestAchievement={() => { }} />
+        return (
+          <div className="text-center py-8">
+            <p className="text-slate-500 dark:text-slate-400">
+              Thông tin tổng quan đã được hiển thị trong ProfileCard ở trên
+            </p>
+          </div>
+        )
       case "achievements":
         return <AchievementsTab />
       case "settings":
         return <SettingsTab user={userProfile} />
       default:
-        return <OverviewTab user={mockUser} onTestAchievement={() => { }} />
+        return (
+          <div className="text-center py-8">
+            <p className="text-slate-500 dark:text-slate-400">
+              Thông tin tổng quan đã được hiển thị trong ProfileCard ở trên
+            </p>
+          </div>
+        )
     }
   }
 
@@ -157,7 +112,7 @@ export default function UserProfileNew() {
         <main className="flex-1 p-6 max-w-4xl mx-auto w-full">
           {/* Profile Card */}
           <div className="mb-8">
-            <ProfileCard user={userProfile} />
+            <ProfileCard />
           </div>
 
           {/* Tab Content */}

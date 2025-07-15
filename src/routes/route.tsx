@@ -30,7 +30,6 @@ import ContentAdminPage from "@/pages/admin/content/ContentAdminPage"
 // Test components (remove in production)
 import { RouteTestDashboard } from "@/components/auth/RouteTestDashboard"
 import BookingPage from "@/pages/booking/BookingPage"
-import PlanPagePref from "@/pages/plan/PlanPagePref"
 import { MeetingPage } from "@/pages/meeting/MeetingPage"
 import QuitStatsPage from "@/pages/user/QuitStatsPage"
 import PublicUserProfilePage from "@/pages/user/PublicUserProfilePage"
@@ -53,6 +52,18 @@ export function AppRoutes() {
             requireAuth={false}
           >
             <LandingPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/plan/create"
+        element={
+          <ProtectedRoute
+            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+            requireAuth={false}
+          >
+            <CreateQuitPlanLayout />
           </ProtectedRoute>
         }
       />

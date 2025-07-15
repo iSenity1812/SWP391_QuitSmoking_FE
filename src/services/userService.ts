@@ -10,6 +10,43 @@ export interface UserProfileResponse {
     isActive?: boolean;
 }
 
+export interface DailyChartData {
+    date: string;
+    cigarettesSmoked: number;
+    cravings: number;
+}
+
+export interface UserProfileMeResponse {
+    userId: string;
+    username: string;
+    email: string;
+    profilePicture?: string | null;
+    role: string;
+    accountCreationDate: string;
+    currentStreakCount: number;
+    currentQuitPlanId: number;
+    quitPlanStatus: string;
+    progressSnapshot: string;
+    daysWithoutSmoking: number;
+    cigarettesAvoided: number;
+    moneySaved: number;
+    totalMoneySaved: number;
+    totalCigarettesSmokedSinceStart: number;
+    totalCravings: number;
+    averageDailyCravings: number;
+    dailyChartData: DailyChartData[];
+    followersCount: number;
+    followingCount: number;
+    subscriptionId?: number;
+    packageName?: string;
+    price?: number;
+    subscriptionStartDate?: string;
+    subscriptionEndDate?: string;
+    daysRemaining?: number;
+    subscriptionStatus?: string;
+    last5Achievements: unknown[];
+}
+
 export interface UpdateProfileRequest {
     name: string;
     email: string;
@@ -56,6 +93,18 @@ export const userService = {
     getCurrentUser: async (): Promise<UserProfileResponse> => {
         const response = await axiosConfig.get<UserProfileResponse>("/profile");
         return response.data;
+    },
+
+    getProfileMe: async (): Promise<UserProfileMeResponse> => {
+        const response = await axiosConfig.get<{
+            status: number;
+            message: string;
+            data: UserProfileMeResponse;
+            error: null;
+            errorCode: null;
+            timestamp: string;
+        }>("/profiles/me");
+        return response.data.data;
     },
 
     getQuitStats: async (): Promise<UserQuitStatsResponse> => {

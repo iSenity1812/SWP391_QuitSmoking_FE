@@ -18,6 +18,7 @@ const tabs = [
   { id: "settings", label: "Tùy chỉnh cá nhân", icon: Settings },
   { id: "booking", label: "Đặt lịch", icon: Calendar },
   { id: "leaderboard", label: "Bảng xếp hạng", icon: Trophy, premium: true },
+  { id: "progress", label: "Tiến trình", icon: BarChart3 },
 ]
 
 export default function SidebarLeft({ activeTab, onTabChange }: SidebarLeftProps) {
@@ -27,6 +28,8 @@ export default function SidebarLeft({ activeTab, onTabChange }: SidebarLeftProps
       window.location.href = "/booking"
     } else if (tabId === "leaderboard") {
       window.location.href = "/leaderboard"
+    } else if (tabId === "progress") {
+      window.location.href = "/plan"
     }
     else {
       onTabChange(tabId)

@@ -17,7 +17,7 @@ import type { AchievementNotification } from "../types/user-types"
 import ProfileCard from "./ProfileCard"
 import { motion } from "framer-motion"
 import type { UserProfile } from "../types/UserProfile"
-import SettingsTab from "./tabs/SettingTab"
+import SettingsTab from "./tabs/SettingsTab"
 
 
 export default function UserProfile() {

@@ -21,7 +21,6 @@ import {
   Clock,
   X,
   Calendar,
-  Settings,
   CheckCircle2,
   Loader2,
   AlertCircle,
@@ -132,7 +131,7 @@ function WeekNavigation({ currentWeekStart, onWeekChange, setIsRegistrationOpen,
           )}
         </Button>
       </div>      <div className="flex items-center space-x-2">
-        <Button
+        {/* <Button
           variant="outline"
           size="sm"
           className="bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200 dark:border-emerald-700 hover:from-emerald-100 hover:to-emerald-200 dark:hover:from-emerald-900/30 dark:hover:to-emerald-800/30"
@@ -140,7 +139,7 @@ function WeekNavigation({ currentWeekStart, onWeekChange, setIsRegistrationOpen,
         >
           <Settings className="w-4 h-4 mr-2" />
           Đăng ký Slots
-        </Button>
+        </Button> */}
 
         <Button
           variant="outline"
