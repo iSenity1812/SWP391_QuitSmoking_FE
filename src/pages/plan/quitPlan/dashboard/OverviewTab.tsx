@@ -159,12 +159,13 @@ export function OverviewTab({
         refetchCravingTrackings();
     }
 
-    // Xử lý khi ghi nhận cơn thèm thuốc
-    const handleCravingSupport = (data: { cigarettesSmoked: number; cravingCount: number }) => {
-        console.log("Craving support data:", data)
-        // Sau khi ghi nhận, làm mới dailySummary và quitPlan để cập nhật UI
+    // Xử lý khi ghi nhận cơn thèm thuốc. This function will now be passed to CravingSupportModal's onRecordSuccess
+    // Its signature needs to match the new onRecordSuccess in CravingSupportModalProps
+    const handleCravingSupportSuccess = () => { // Changed name and removed data argument
+        console.log("Craving support flow completed, refreshing data.");
         refetchDailySummary();
         refetchQuitPlan();
+        refetchCravingTrackings(); // Also refetch craving trackings
     }
 
     // Hiển thị null hoặc trạng thái tải/lỗi nếu quitPlan chưa có
@@ -174,7 +175,7 @@ export function OverviewTab({
 
     return (
         <div className="space-y-6 relative">
-            <SmokeOverlay intensity={smokeIntensity} />
+            {/* <SmokeOverlay intensity={smokeIntensity} /> */}
 
             <div className="max-w-7xl mx-auto space-y-6">
                 {/* Header */}
@@ -506,7 +507,7 @@ export function OverviewTab({
                                     </div>
                                     <div className="text-center">
                                         <div className="text-lg font-bold text-blue-500">{avgSmokings}</div>
-                                        <div className="text-xs text-gray-600">Trung Bình Số Thuốc Đã Hút</div>
+                                        <div className="text-xs text-gray-600">Trung Bình Số Điếu Hút Mỗi Ngày</div>
                                     </div>
                                 </div>
                             </div>
@@ -537,7 +538,7 @@ export function OverviewTab({
             <CravingSupportModal
                 isOpen={isCravingSupportOpen}
                 onClose={() => setIsCravingSupportOpen(false)}
-                onRecordSmoking={handleCravingSupport}
+                onRecordSuccess={handleCravingSupportSuccess}
                 planType={quitPlan.reductionType}
             />
         </div>

@@ -1,10 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { RefreshCw, Sparkles } from "lucide-react"
+import { Card } from "@/components/ui/card"
 import { useTask } from "@/hooks/use-task"
 import { TaskHeader } from "./components/TaskHeader"
 import { QuizTaskComponent } from "./components/QuizTaskComponent"
@@ -13,7 +11,6 @@ import { TaskLoadingState } from "./components/TaskLoadingState"
 import { TaskErrorState } from "./components/TaskErrorState"
 import { TaskEmptyState } from "./components/TaskEmptyState"
 import { TaskCompletionModal } from "./components/TaskCompletionModal"
-import type { QuizAttemptResponseDTO } from "@/types/task"
 
 export default function TaskPage() {
     const {
@@ -21,142 +18,135 @@ export default function TaskPage() {
         isLoading,
         error,
         stats,
-        generateRandomTask,
-        submitQuizAttempt,
-        markTipCompleted,
+        generateNewTask,
+        handleQuizAnswer,
+        markQuizTaskCompleted,
+        markTipTaskCompleted,
         resetTask,
         isQuizTask,
         isTipTask,
+        currentQuizIndex,
+        quizResults,
+        totalCorrectAnswers,
+        goToNextQuiz,
+        resetSession,
+        isDataLoaded,
     } = useTask()
 
     const [showCompletionModal, setShowCompletionModal] = useState(false)
-    const [completionData, setCompletionData] = useState<QuizAttemptResponseDTO | null>(null)
+    const [completionData, setCompletionData] = useState<{
+        type: 'QUIZ' | 'TIP';
+        correctAnswersCount?: number;
+        totalQuestions?: number;
+        message: string;
+    } | null>(null)
 
     useEffect(() => {
-        // Auto-generate a task when page loads if no current task
-        if (!currentTask && !isLoading && !error) {
-            generateRandomTask()
+        // Auto-generate a task when page loads if no current task and data is loaded
+        if (!currentTask && !isLoading && !error && isDataLoaded) {
+            generateNewTask()
         }
-    }, [currentTask, isLoading, error, generateRandomTask])
+    }, [currentTask, isLoading, error, isDataLoaded, generateNewTask])
 
-    const handleQuizSubmit = async (selectedOptionId: number, timeSpent = 30) => {
-        if (!currentTask || !currentTask.quizzes || currentTask.quizzes.length === 0) return
+    // Xử lý khi một câu hỏi quiz được trả lời
+    const handleAnswerAndAdvance = useCallback((quizId: string, selectedOptionId: number | null) => {
+        // Step 1: Update the quiz result in the hook's state
+        // This will cause TaskPage to re-render, and QuizTaskComponent will receive the updated quizAttemptResult prop.
+        handleQuizAnswer(quizId, selectedOptionId || 0); // Pass 0 if null for consistency with BE logic
 
-        try {
-            const quiz = currentTask.quizzes[0] // Get first quiz
-            const result = await submitQuizAttempt({
-                taskId: currentTask.taskId,
-                quizId: quiz.quizId,
-                userAnswers: [{ selectedOptionId }],
-            })
-
-            setCompletionData(result)
-            setShowCompletionModal(true)
-        } catch (error) {
-            console.error("Failed to submit quiz:", error)
-        }
-    }
-
-    const handleTipComplete = () => {
-        if (!currentTask) return
-
-        markTipCompleted(currentTask.taskId)
-        // Auto generate new task after completing tip
+        // Step 2: After a delay, advance to the next quiz or complete the task
         setTimeout(() => {
-            generateRandomTask()
-        }, 1500)
-    }
+            if (currentTask && currentTask.type === 'QUIZ' && currentTask.quizzes) {
+                if (currentQuizIndex < currentTask.quizzes.length - 1) {
+                    goToNextQuiz(); // Move to the next quiz
+                } else {
+                    // All quizzes in the task are completed
+                    markQuizTaskCompleted();
+                    setCompletionData({
+                        type: 'QUIZ',
+                        correctAnswersCount: totalCorrectAnswers + (quizResults.get(quizId) ? 1 : 0), // Ensure final correct count is accurate
+                        totalQuestions: currentTask.quizzes.length,
+                        message: "Bạn đã hoàn thành thử thách Quiz!",
+                    });
+                    setShowCompletionModal(true);
+                }
+            }
+        }, 1500); // Wait 1.5 seconds before advancing
+    }, [currentTask, currentQuizIndex, handleQuizAnswer, goToNextQuiz, markQuizTaskCompleted, quizResults, totalCorrectAnswers]);
 
-    const handleNewTask = async () => {
-        resetTask()
-        await generateRandomTask()
-    }
 
-    const handleCloseModal = () => {
-        setShowCompletionModal(false)
-        setCompletionData(null)
-        // Auto generate new task after closing modal
+    // Xử lý khi tip task hoàn thành
+    const handleTipComplete = useCallback(() => {
+        markTipTaskCompleted();
+        setCompletionData({
+            type: 'TIP',
+            message: "Bạn đã hoàn thành thử thách Tip!",
+        });
+        setShowCompletionModal(true);
+    }, [markTipTaskCompleted]);
+
+    const handleCloseModal = useCallback(() => {
+        setShowCompletionModal(false);
+        setCompletionData(null);
+        resetTask(); // Reset task hiện tại sau khi đóng modal
+    }, [resetTask]);
+
+    const handleNewTaskFromModal = useCallback(() => {
+        handleCloseModal(); // Đóng modal
+        generateNewTask(); // Tạo thử thách mới
+    }, [handleCloseModal, generateNewTask]);
+
+    const handleResetSessionFromModal = useCallback(() => {
+        handleCloseModal(); // Đóng modal
+        resetSession(); // Reset phiên
+        // Chờ một chút để state được cập nhật trước khi tạo task mới
         setTimeout(() => {
-            generateRandomTask()
-        }, 500)
+            generateNewTask(); // Tạo thử thách mới
+        }, 100);
+    }, [handleCloseModal, resetSession, generateNewTask]);
+
+
+    if (isLoading) {
+        return <TaskLoadingState />
+    }
+
+    if (error) {
+        return <TaskErrorState error={error} onRetry={generateNewTask} />
+    }
+
+    if (!currentTask) {
+        return <TaskEmptyState onCreateTask={generateNewTask} />
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-            <div className="container mx-auto px-4 py-8 pt-24">
-                {/* Header */}
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 dark:from-slate-900 dark:to-gray-950 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+            <div className="w-full max-w-4xl">
                 <TaskHeader />
 
-                {/* Control Panel */}
-                <Card className="mb-8 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-lg">
-                    <CardContent className="p-6">
-                        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                            <div className="text-center sm:text-left">
-                                <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-200">Vượt qua cơn thèm thuốc lá</h2>
-                                <p className="text-slate-600 dark:text-slate-400 mt-1">
-                                    Hãy thử thách bản thân với các câu hỏi và mẹo hay
-                                </p>
-                            </div>
-                            <div className="flex gap-3">
-                                {currentTask && (
-                                    <Button
-                                        variant="outline"
-                                        onClick={resetTask}
-                                        disabled={isLoading}
-                                        className="flex items-center gap-2 bg-transparent"
-                                    >
-                                        <RefreshCw className="w-4 h-4" />
-                                        Làm mới
-                                    </Button>
-                                )}
-                                <Button
-                                    onClick={handleNewTask}
-                                    disabled={isLoading}
-                                    className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-                                >
-                                    <Sparkles className="w-4 h-4" />
-                                    {currentTask ? "Tạo task mới" : "Bắt đầu"}
-                                </Button>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Main Content */}
-                <div className="max-w-4xl mx-auto">
+                <div className="mt-8">
                     <AnimatePresence mode="wait">
-                        {isLoading && (
-                            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                <TaskLoadingState />
-                            </motion.div>
-                        )}
-
-                        {error && (
-                            <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                <TaskErrorState error={error} onRetry={generateRandomTask} />
-                            </motion.div>
-                        )}
-
-                        {!isLoading && !error && !currentTask && (
-                            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                                <TaskEmptyState onCreateTask={generateRandomTask} />
-                            </motion.div>
-                        )}
-
-                        {!isLoading && !error && currentTask && (
+                        {currentTask && (
                             <motion.div
-                                key={`task-${currentTask.taskId}`}
-                                initial={{ opacity: 0, y: 20 }}
+                                key={`${currentTask.type}-${currentQuizIndex}`} // Key để kích hoạt animation khi task hoặc quiz index thay đổi
+                                initial={{ opacity: 0, y: -20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.5 }}
                             >
                                 {isQuizTask && currentTask.quizzes && currentTask.quizzes.length > 0 && (
-                                    <QuizTaskComponent task={currentTask} quiz={currentTask.quizzes[0]} onSubmit={handleQuizSubmit} />
+                                    <QuizTaskComponent
+                                        quiz={currentTask.quizzes[currentQuizIndex]} // Truyền câu hỏi hiện tại
+                                        onAnswerSelected={handleAnswerAndAdvance} // Callback khi chọn đáp án
+                                        isLastQuiz={currentQuizIndex === currentTask.quizzes.length - 1} // Kiểm tra có phải câu cuối không
+                                        quizAttemptResult={quizResults.get(currentTask.quizzes[currentQuizIndex].quizId)} // Truyền kết quả của câu hiện tại
+                                    />
                                 )}
 
-                                {isTipTask && currentTask.tips && (
-                                    <TipTaskComponent task={currentTask} tip={currentTask.tips} onComplete={handleTipComplete} />
+                                {isTipTask && currentTask.tips && currentTask.tips.length > 0 && (
+                                    <TipTaskComponent
+                                        tips={currentTask.tips} // Truyền danh sách tips
+                                        onComplete={handleTipComplete}
+                                    />
                                 )}
                             </motion.div>
                         )}
@@ -169,7 +159,18 @@ export default function TaskPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
                     >
-
+                        <Card className="p-4 text-center bg-white dark:bg-slate-800 shadow-md rounded-lg">
+                            <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400">Tổng số thử thách đã hoàn thành</h4>
+                            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">{stats.totalCompleted}</p>
+                        </Card>
+                        <Card className="p-4 text-center bg-white dark:bg-slate-800 shadow-md rounded-lg">
+                            <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400">Độ chính xác Quiz</h4>
+                            <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">{stats.accuracy.toFixed(0)}%</p>
+                        </Card>
+                        <Card className="p-4 text-center bg-white dark:bg-slate-800 shadow-md rounded-lg">
+                            <h4 className="text-sm font-medium text-slate-500 dark:text-slate-400">Chuỗi hoàn thành</h4>
+                            <p className="text-3xl font-bold text-purple-600 dark:text-purple-400 mt-2">{stats.streak} ngày</p>
+                        </Card>
                     </motion.div>
                 </div>
 
@@ -178,7 +179,8 @@ export default function TaskPage() {
                     isOpen={showCompletionModal}
                     onClose={handleCloseModal}
                     completionData={completionData}
-                    onNewTask={handleNewTask}
+                    onNewTask={handleNewTaskFromModal}
+                    onResetSession={handleResetSessionFromModal}
                 />
             </div>
         </div>

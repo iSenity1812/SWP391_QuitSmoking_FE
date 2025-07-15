@@ -94,7 +94,7 @@ const TimelineCard = ({
             </div>
 
             <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">You could save</p>
+              <p className="text-sm text-gray-600 mb-2">Bạn có thể tiết kiệm đến</p>
               {isVisible && <AnimatedCounter value={milestone.amount} delay={index * 200} />}
             </div>
           </div>
@@ -103,7 +103,7 @@ const TimelineCard = ({
             {/* <p className="text-sm text-gray-700 italic leading-relaxed">{milestone.emotionalNote}</p> */}
             <div className="flex items-center gap-2 text-xs text-emerald-600">
               <Calendar className="w-3 h-3" />
-              <span>{milestone.days} smoke-free days</span>
+              <span>{milestone.days} ngày không hút thuốc</span>
             </div>
           </div>
         </CardContent>
@@ -121,42 +121,42 @@ const CreateQuitPlanStep2 = ({ onNext, onBack }: { onNext: () => void; onBack: (
 
     return [
       {
-        period: "1 week smoke-free",
+        period: "1 tuần không thuốc",
         days: 7,
         amount: dailyCost * 7,
-        emotionalNote: "Your sense of taste and smell begin to improve",
+        emotionalNote: "Vị giác và khứu giác của bạn bắt đầu cải thiện",
         icon: "🌱",
         color: "from-emerald-100 to-green-50",
       },
       {
-        period: "1 month smoke-free",
+        period: "1 tháng không thuốc",
         days: 30,
         amount: dailyCost * 30,
-        emotionalNote: "More energy for the things you love",
+        emotionalNote: "Bạn sẽ có nhiều năng lượng hơn cho các hoạt động hàng ngày",
         icon: "💪",
         color: "from-blue-100 to-cyan-50",
       },
       {
-        period: "3 months smoke-free",
+        period: "3 tháng không thuốc",
         days: 90,
         amount: dailyCost * 90,
-        emotionalNote: "Your lung function starts to improve significantly",
+        emotionalNote: "Chức năng phổi của bạn bắt đầu cải thiện rõ rệt",
         icon: "🫁",
         color: "from-purple-100 to-pink-50",
       },
       {
-        period: "6 months smoke-free",
+        period: "6 tháng không thuốc",
         days: 180,
         amount: dailyCost * 180,
-        emotionalNote: "You can treat yourself to something special",
+        emotionalNote: "Bạn có thể tự thưởng cho bản thân một điều đặc biệt",
         icon: "🎁",
         color: "from-orange-100 to-yellow-50",
       },
       {
-        period: "1 year smoke-free",
+        period: "1 năm không thuốc",
         days: 365,
         amount: dailyCost * 365,
-        emotionalNote: "A whole new chapter of your life begins",
+        emotionalNote: "Một chương hoàn toàn mới trong cuộc đời bạn bắt đầu",
         icon: "🎉",
         color: "from-rose-100 to-red-50",
       },
@@ -190,13 +190,13 @@ const CreateQuitPlanStep2 = ({ onNext, onBack }: { onNext: () => void; onBack: (
             className="text-center mb-12"
           >
             <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-4">
-              Your{" "}
+              Hành trình đến với{" "}
               <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 bg-clip-text text-transparent">
-                Journey to Freedom
+                Một Chương Mới
               </span>
             </h1>
             <p className="text-xl text-muted-foreground">
-              Discover the amazing benefits waiting for you at every milestone
+              Khám phá những lợi ích tuyệt vời đang chờ đón bạn ở mỗi cột mốc
             </p>
           </motion.div>
 
@@ -214,7 +214,7 @@ const CreateQuitPlanStep2 = ({ onNext, onBack }: { onNext: () => void; onBack: (
               className="px-8 py-3 text-base font-medium border-emerald-300 text-emerald-700 hover:bg-emerald-50 bg-transparent"
             >
               <ChevronLeft className="w-5 h-5 mr-2" />
-              Back to Previous Step
+              Quay lại bước trước
             </Button>
 
             <Button
@@ -224,7 +224,7 @@ const CreateQuitPlanStep2 = ({ onNext, onBack }: { onNext: () => void; onBack: (
             >
               <span className="relative z-10 flex items-center">
                 <Star className="w-5 h-5 mr-2" />
-                Start My Personalized Plan
+                Tạo kế hoạch cá nhân hóa
                 <ChevronRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -317,10 +317,10 @@ const CreateQuitPlanStep2 = ({ onNext, onBack }: { onNext: () => void; onBack: (
               <div className="text-center mb-8">
                 <div className="flex items-center justify-center gap-2 mb-4">
                   <Heart className="w-6 h-6 text-red-500 animate-pulse" />
-                  <h3 className="text-2xl font-bold text-foreground">Your Health Journey: Next Milestones</h3>
+                  <h3 className="text-2xl font-bold text-foreground">Sức Khỏe Của Bạn: Các Cột Mốc Tiếp Theo</h3>
                 </div>
                 <p className="text-muted-foreground">
-                  Discover the incredible positive changes happening in your body as you stay smoke-free
+                  Khám phá những thay đổi tích cực sẽ xảy ra trong cơ thể bạn khi duy trì không hút thuốc
                 </p>
               </div>
 
@@ -339,11 +339,11 @@ const CreateQuitPlanStep2 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                     </div>
                     <div className="flex-1">
                       <h4 className="text-lg font-semibold text-emerald-700 dark:text-emerald-300 mb-2">
-                        Right Now - You've Already Started!
+                        Chính ngay lúc này – Sức khỏe của bạn đã được cải thiện!
                       </h4>
                       <p className="text-emerald-600 dark:text-emerald-400 text-sm leading-relaxed">
-                        Within 20 minutes of your last cigarette, your heart rate and blood pressure begin to drop.
-                        Your body is already starting to heal itself!
+                        Trong vòng 20 phút sau khi ngừng hút thuốc, nhịp tim và huyết áp của bạn đã bắt đầu giảm.
+                        Cơ thể bạn bắt đầu tự chữa lành!
                       </p>
                     </div>
                   </div>
@@ -362,10 +362,9 @@ const CreateQuitPlanStep2 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                         <span className="text-blue-600 text-lg">🫁</span>
                       </div>
                       <div>
-                        <h5 className="font-semibold text-foreground mb-1">After 2 Weeks</h5>
+                        <h5 className="font-semibold text-foreground mb-1">Sau 2 tuần</h5>
                         <p className="text-sm text-muted-foreground leading-relaxed">
-                          Your blood's carbon monoxide levels return to normal. You'll feel more energetic and
-                          breathe easier!
+                          Mức Carbon Monoxide trong máu trở lại bình thường. Bạn sẽ cảm thấy khỏe hơn và thở dễ dàng hơn!
                         </p>
                       </div>
                     </div>
@@ -382,10 +381,9 @@ const CreateQuitPlanStep2 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                         <span className="text-purple-600 text-lg">💪</span>
                       </div>
                       <div>
-                        <h5 className="font-semibold text-foreground mb-1">After 3 Months</h5>
+                        <h5 className="font-semibold text-foreground mb-1">Sau 3 tháng</h5>
                         <p className="text-sm text-muted-foreground leading-relaxed">
-                          Your lung function significantly improves. You can breathe deeper and exercise more
-                          easily!
+                          Chức năng phổi của bạn cải thiện đáng kể. Bạn có thể thở sâu hơn và tập thể dục dễ dàng hơn!
                         </p>
                       </div>
                     </div>
@@ -402,9 +400,9 @@ const CreateQuitPlanStep2 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                         <span className="text-orange-600 text-lg">❤️</span>
                       </div>
                       <div>
-                        <h5 className="font-semibold text-foreground mb-1">After 6 Months</h5>
+                        <h5 className="font-semibold text-foreground mb-1">Sau 6 tháng</h5>
                         <p className="text-sm text-muted-foreground leading-relaxed">
-                          Your risk of heart attack is halved. Your skin and teeth look healthier and more vibrant!
+                          Nguy cơ đau tim đã giảm một nửa. Da và răng của bạn trông khỏe mạnh và rạng rỡ hơn!
                         </p>
                       </div>
                     </div>
@@ -421,10 +419,9 @@ const CreateQuitPlanStep2 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                         <span className="text-green-600 text-lg">🎉</span>
                       </div>
                       <div>
-                        <h5 className="font-semibold text-foreground mb-1">After 1 Year</h5>
+                        <h5 className="font-semibold text-foreground mb-1">Sau 1 năm</h5>
                         <p className="text-sm text-muted-foreground leading-relaxed">
-                          Your risk of coronary heart disease is cut in half. You've given yourself the gift of a
-                          healthier future!
+                          Nguy cơ về bệnh tim mạch đã giảm một nửa. Bạn đã tặng cho mình một món quà - một tương lai khỏe mạnh!
                         </p>
                       </div>
                     </div>
@@ -440,8 +437,7 @@ const CreateQuitPlanStep2 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                 className="mt-8 text-center"
               >
                 <p className="text-sm text-muted-foreground italic">
-                  "Every milestone represents incredible healing happening in your body. Celebrate these victories
-                  and stay motivated!"
+                  "Mỗi cột mốc đều đại diện cho một quá trình chữa lành đáng kinh ngạc. Hãy tự hào về bạn và luôn giữ lửa động lực!"
                 </p>
               </motion.div>
             </CardContent>

@@ -30,7 +30,6 @@ import ContentAdminPage from "@/pages/admin/content/ContentAdminPage"
 // Test components (remove in production)
 import { RouteTestDashboard } from "@/components/auth/RouteTestDashboard"
 import BookingPage from "@/pages/booking/BookingPage"
-import PlanPagePref from "@/pages/plan/PlanPagePref"
 import { MeetingPage } from "@/pages/meeting/MeetingPage"
 import QuitStatsPage from "@/pages/user/QuitStatsPage"
 import PublicUserProfilePage from "@/pages/user/PublicUserProfilePage"
@@ -38,7 +37,6 @@ import HealthBenefitsPage from "@/pages/health-benefits/HealthBenefitsPage"
 import { NotificationsPage } from "@/pages/notifications/NotificationsPage"
 import { LeaderboardPage } from "@/pages/leaderboard/LeaderboardPage"
 import CreateQuitPlanLayout from "@/layouts/CreateQuitPlanLayout"
-import PlanPage from "@/pages/plan/PlanPage"
 import { QuitPlanDashboard } from "@/pages/plan/quitPlan/QuitPlanDashboard"
 
 export function AppRoutes() {
@@ -119,6 +117,21 @@ export function AppRoutes() {
             requireAuth={true}
           >
             <QuitPlanDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Member Routes - NORMAL_MEMBER & PREMIUM_MEMBER */}
+      <Route
+        path="/plan/create"
+        element={
+          <ProtectedRoute
+            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+            requireAuth={true}
+          >
+            <QuitPlanGuard>
+              <CreateQuitPlanLayout />
+            </QuitPlanGuard>
           </ProtectedRoute>
         }
       />

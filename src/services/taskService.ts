@@ -1,124 +1,15 @@
 import axiosConfig from "../config/axiosConfig"
 import type {
     ApiResponse,
-    TaskResponseDTO,
     QuizResponseDTO,
     TipResponseDTO,
-    SubmitQuizAttemptRequestDTO,
-    QuizAttemptResponseDTO,
     QuizCreationRequestDTO,
     TipCreationRequestDTO,
+    FrontendOptionRequest,
 } from "@/types/task"
 
 export class TaskService {
     private static readonly BASE_PATH = "/task"
-
-    /**
-     * Generate a random craving task - REQUIRES AUTH (MEMBER/COACH)
-     */
-    static async generateRandomTask(): Promise<TaskResponseDTO> {
-        try {
-            console.log("Generating random task from:", `${axiosConfig.defaults.baseURL}${this.BASE_PATH}/generate-random`)
-
-            const response = await axiosConfig.post<ApiResponse<TaskResponseDTO>>(`${this.BASE_PATH}/generate-random`)
-
-            console.log("Raw task response:", response.data)
-
-            // Check if response is successful (status 200-299 or success flag)
-            if (!response.data.success && response.data.status && response.data.status >= 400) {
-                throw new Error(response.data.message || "Failed to generate random task")
-            }
-
-            const task = response.data.data
-            if (!task) {
-                throw new Error("No task data in response")
-            }
-
-            console.log("Generated task:", task)
-            return task
-        } catch (error: any) {
-            console.error("Error generating random task:", error)
-
-            if (error.response) {
-                console.error("Response error:", error.response.status, error.response.data)
-
-                if (error.response.status === 403) {
-                    throw new Error("Bạn không có quyền tạo task. Chỉ thành viên và huấn luyện viên mới có thể tạo task.")
-                }
-
-                if (error.response.status === 404) {
-                    throw new Error("Endpoint không tồn tại. Vui lòng kiểm tra backend.")
-                }
-
-                if (error.response.data?.message) {
-                    throw new Error(`Backend error: ${error.response.data.message}`)
-                }
-            }
-
-            if (error.code === "ERR_NETWORK") {
-                throw new Error("Không thể kết nối tới backend. Vui lòng kiểm tra backend có đang chạy không.")
-            }
-
-            throw error
-        }
-    }
-
-    /**
-     * Submit quiz attempt - REQUIRES AUTH (MEMBER/COACH)
-     */
-    static async submitQuizAttempt(request: SubmitQuizAttemptRequestDTO): Promise<QuizAttemptResponseDTO> {
-        try {
-            console.log("Submitting quiz attempt:", request)
-            console.log("Submit URL:", `${axiosConfig.defaults.baseURL}${this.BASE_PATH}/submit-quiz`)
-
-            const response = await axiosConfig.post<ApiResponse<QuizAttemptResponseDTO>>(
-                `${this.BASE_PATH}/submit-quiz`,
-                request,
-            )
-
-            console.log("Raw quiz attempt response:", response.data)
-
-            if (!response.data.success && response.data.status && response.data.status >= 400) {
-                throw new Error(response.data.message || "Failed to submit quiz attempt")
-            }
-
-            const result = response.data.data
-            if (!result) {
-                throw new Error("No result data in response")
-            }
-
-            console.log("Quiz attempt result:", result)
-            return result
-        } catch (error: any) {
-            console.error("Error submitting quiz attempt:", error)
-
-            if (error.response) {
-                console.error("Response error:", error.response.status, error.response.data)
-
-                if (error.response.status === 403) {
-                    throw new Error("Bạn không có quyền nộp bài quiz. Chỉ thành viên và huấn luyện viên mới có thể nộp bài.")
-                }
-
-                if (error.response.status === 404) {
-                    throw new Error("Task hoặc Quiz không tồn tại.")
-                }
-
-                if (error.response.status === 400) {
-                    throw new Error(error.response.data?.message || "Dữ liệu gửi lên không hợp lệ. Vui lòng kiểm tra lại.")
-                }
-
-                if (error.response.data?.message) {
-                    throw new Error(`Backend error: ${error.response.data.message}`)
-                }
-            }
-
-            if (error.code === "ERR_NETWORK") {
-                throw new Error("Không thể kết nối tới backend. Vui lòng kiểm tra backend có đang chạy không.")
-            }
-
-            throw error
-        }
-    }
 
     /**
      * Get all quizzes for admin - REQUIRES CONTENT_ADMIN
@@ -200,9 +91,9 @@ export class TaskService {
      */
     static async getAllTips(): Promise<TipResponseDTO[]> {
         try {
-            console.log("Fetching all tips for admin from:", `${axiosConfig.defaults.baseURL}${this.BASE_PATH}/admin/tips`)
+            console.log("Fetching all tips for admin from:", `${axiosConfig.defaults.baseURL}${this.BASE_PATH}/tips`)
 
-            const response = await axiosConfig.get<ApiResponse<TipResponseDTO[]>>(`${this.BASE_PATH}/admin/tips`)
+            const response = await axiosConfig.get<ApiResponse<TipResponseDTO[]>>(`${this.BASE_PATH}/tips`)
 
             console.log("Raw tips response:", response.data)
 
@@ -276,8 +167,18 @@ export class TaskService {
     static async createQuiz(quizData: QuizCreationRequestDTO): Promise<QuizResponseDTO> {
         try {
             console.log("Creating quiz:", quizData)
+            console.log("Request options:", JSON.stringify(quizData.options, null, 2))
 
-            const response = await axiosConfig.post<ApiResponse<QuizResponseDTO>>(`${this.BASE_PATH}/admin/quizzes`, quizData)
+            // Transform frontend 'correct' to backend 'isCorrect'
+            const backendData = {
+                ...quizData,
+                options: quizData.options.map(opt => ({
+                    content: opt.content,
+                    isCorrect: opt.correct
+                }))
+            }
+
+            const response = await axiosConfig.post<ApiResponse<QuizResponseDTO>>(`${this.BASE_PATH}/admin/quizzes`, backendData)
 
             if (!response.data.success && response.data.status && response.data.status >= 400) {
                 throw new Error(response.data.message || "Failed to create quiz")
@@ -289,13 +190,20 @@ export class TaskService {
         } catch (error: any) {
             console.error("Error creating quiz:", error)
 
+            // Log detailed error response for debugging
+            if (error.response) {
+                console.error("Error response data:", error.response.data)
+                console.error("Error response status:", error.response.status)
+            }
+
             if (error.response) {
                 if (error.response.status === 403) {
                     throw new Error("Bạn không có quyền tạo quiz. Chỉ Content Admin mới có thể tạo quiz.")
                 }
 
                 if (error.response.status === 400) {
-                    throw new Error(error.response.data?.message || "Dữ liệu quiz không hợp lệ. Vui lòng kiểm tra lại.")
+                    const errorMsg = error.response.data?.message || "Dữ liệu quiz không hợp lệ. Vui lòng kiểm tra lại."
+                    throw new Error(`Backend validation error: ${errorMsg}`)
                 }
 
                 if (error.response.data?.message) {
@@ -313,10 +221,20 @@ export class TaskService {
     static async updateQuiz(quizId: string, quizData: QuizCreationRequestDTO): Promise<QuizResponseDTO> {
         try {
             console.log(`Updating quiz ${quizId}:`, quizData)
+            console.log("Request options:", JSON.stringify(quizData.options, null, 2))
+
+            // Transform frontend 'correct' to backend 'isCorrect'
+            const backendData = {
+                ...quizData,
+                options: quizData.options.map(opt => ({
+                    content: opt.content,
+                    isCorrect: opt.correct
+                }))
+            }
 
             const response = await axiosConfig.put<ApiResponse<QuizResponseDTO>>(
                 `${this.BASE_PATH}/admin/quizzes/${quizId}`,
-                quizData,
+                backendData,
             )
 
             if (!response.data.success && response.data.status && response.data.status >= 400) {
@@ -329,6 +247,12 @@ export class TaskService {
         } catch (error: any) {
             console.error(`Error updating quiz ${quizId}:`, error)
 
+            // Log detailed error response for debugging
+            if (error.response) {
+                console.error("Error response data:", error.response.data)
+                console.error("Error response status:", error.response.status)
+            }
+
             if (error.response) {
                 if (error.response.status === 403) {
                     throw new Error("Bạn không có quyền cập nhật quiz. Chỉ Content Admin mới có thể cập nhật quiz.")
@@ -336,6 +260,11 @@ export class TaskService {
 
                 if (error.response.status === 404) {
                     throw new Error("Quiz không tồn tại.")
+                }
+
+                if (error.response.status === 400) {
+                    const errorMsg = error.response.data?.message || "Dữ liệu quiz không hợp lệ. Vui lòng kiểm tra lại."
+                    throw new Error(`Backend validation error: ${errorMsg}`)
                 }
 
                 if (error.response.data?.message) {
@@ -534,8 +463,6 @@ export class TaskService {
 
 // Export instance for backward compatibility
 export const taskService = {
-    generateRandomTask: () => TaskService.generateRandomTask(),
-    submitQuizAttempt: (request: SubmitQuizAttemptRequestDTO) => TaskService.submitQuizAttempt(request),
     getAllQuizzes: () => TaskService.getAllQuizzes(),
     getQuizById: (quizId: string) => TaskService.getQuizById(quizId),
     getAllTips: () => TaskService.getAllTips(),

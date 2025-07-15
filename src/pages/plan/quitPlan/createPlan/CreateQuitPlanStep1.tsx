@@ -117,27 +117,27 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
 
     const validateField = (name: keyof FormData, value: string): string | undefined => {
         if (!value.trim()) {
-            return 'This field is required'
+            return 'Không được để trống nội dung này'
         }
 
         const numValue = parseFloat(value)
 
         if (isNaN(numValue) || numValue < 0) {
-            return 'Please enter a valid positive number'
+            return 'Vui lòng nhập một số dương hợp lệ'
         }
 
         switch (name) {
             case 'initialSmokingAmount':
-                if (numValue > 100) return 'Please enter a realistic number (max 100)'
-                if (numValue === 0) return 'Please enter a number greater than 0'
+                if (numValue > 100) return 'Vui lòng nhập một số hợp lý (tối đa 100)'
+                if (numValue === 0) return 'Vui lòng nhập một số lớn hơn 0'
                 break
             case 'cigarettesPerPack':
-                if (numValue > 50) return 'Please enter a realistic pack size (max 50)'
-                if (numValue === 0) return 'Please enter a number greater than 0'
+                if (numValue > 50) return 'Vui lòng nhập số lượng trong một gói thuốc hợp lý (tối đa 50)'
+                if (numValue === 0) return 'Vui lòng nhập một số lớn hơn 0'
                 break
             case 'costPerPack':
-                if (numValue > 999999) return 'Please enter a realistic cost (max 999999VNĐ)'
-                if (numValue === 0) return 'Please enter a cost greater than 0VNĐ'
+                if (numValue > 999999) return 'Vui lòng nhập một mức giá hợp lý (tối đa 999999VNĐ)'
+                if (numValue === 0) return 'Vui lòng nhập một mức giá lớn hơn 0VNĐ'
                 break
         }
 
@@ -220,9 +220,9 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
                                     transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
                                     className="text-4xl lg:text-5xl font-bold text-foreground leading-tight pt-10"
                                 >
-                                    Take the first step to a
+                                    Bước đầu tiên đến với
                                     <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 bg-clip-text text-transparent">
-                                        {" "}Smoke-Free Life
+                                        {" "}cuộc sống không khói thuốc
                                     </span>
                                 </motion.h1>
 
@@ -232,8 +232,9 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
                                     transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
                                     className="text-xl text-slate-800 dark:text-slate-300 leading-relaxed"
                                 >
-                                    Improve your health starting today. We'll help you quit smoking with our personalized approach,
-                                    calculate your savings and track your progress on your journey.
+                                    Hãy cải thiện sức khỏe của bạn bắt đầu từ hôm nay. 
+                                    Chúng tôi sẽ giúp bạn bỏ thuốc bằng phương pháp cá nhân hóa, 
+                                    tính toán số tiền tiết kiệm và theo dõi tiến trình của mình.
                                 </motion.p>
 
                                 <motion.div
@@ -243,9 +244,9 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
                                     className="flex flex-wrap gap-4"
                                 >
                                     {[
-                                        { icon: '💪', text: 'Personal tracking' },
-                                        { icon: '💰', text: 'Save Money' },
-                                        { icon: '🫁', text: 'Breathe Better' }
+                                        { icon: '💪', text: 'Theo dõi quá trình' },
+                                        { icon: '💰', text: 'Tiết kiệm tiền' },
+                                        { icon: '🫁', text: 'Cải thiện hô hấp' }
                                     ].map((item, index) => (
                                         <div key={index} className="flex items-center gap-2 bg-muted px-4 py-2 rounded-full">
                                             <span className="text-lg">{item.icon}</span>
@@ -269,9 +270,9 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
                         items-center">
                                 <div className="space-y-6">
                                     <div className="space-y-2 text-center">
-                                        <h2 className="text-2xl font-bold text-foreground">Tell us about your smoking habits</h2>
+                                        <h2 className="text-2xl font-bold text-foreground">Hãy Cho Chúng Tôi Biết Thói Quen Của Bạn</h2>
                                         <p className="text-muted-foreground">
-                                            The more honest you are, the better we can help you quit
+                                            Bạn càng trung thực, chúng tôi càng có thể giúp bạn hiệu quả hơn
                                         </p>
                                     </div>
 
@@ -281,7 +282,7 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
                                             label={
                                                 <>
                                                     <Cigarette className="text-muted-foreground" />
-                                                    Cigarettes per day
+                                                    Số điếu mỗi ngày
                                                 </>
                                             }
                                             value={userData.initialSmokingAmount}
@@ -289,7 +290,7 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
                                             error={errors.initialSmokingAmount}
                                             placeholder="20"
                                             type="number"
-                                            description="Average number of cigarettes you smoke daily"
+                                            description="Số lượng thuốc trung bình bạn hút mỗi ngày"
                                         />
 
                                         <InputField
@@ -297,7 +298,7 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
                                             label={
                                                 <>
                                                     <Package className="text-muted-foreground" />
-                                                    Cigarettes per pack
+                                                    Số điếu mỗi gói
                                                 </>
                                             }
                                             value={userData.cigarettesPerPack}
@@ -305,7 +306,7 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
                                             error={errors.cigarettesPerPack}
                                             placeholder="20"
                                             type="number"
-                                            description='How many cigarettes are in one pack'
+                                            description='Số điếu trong một gói thuốc'
                                         />
 
                                         <InputField
@@ -313,7 +314,7 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
                                             label={
                                                 <>
                                                     <DollarSign className="text-muted-foreground" />
-                                                    Cost per pack
+                                                    Giá mỗi gói thuốc
                                                 </>
                                             }
                                             value={userData.costPerPack}
@@ -321,7 +322,7 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
                                             error={errors.costPerPack}
                                             placeholder="50000"
                                             type="number"
-                                            description="Average price you pay for one pack"
+                                            description="Giá tiền trung bình bạn trả cho mỗi gói thuốc"
                                         />
                                         <div className="pt-4 mb-5">
                                             <Button
@@ -340,7 +341,7 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
                                                 ) : (
                                                     <>
                                                         <span className="mr-8 transition-opacity duration-500 group-hover:opacity-0 text-white">
-                                                            Continue to Quit Plan
+                                                            Tiếp tục lập kế hoạch bỏ thuốc
                                                         </span>
                                                         <i className="absolute right-1 top-1 bottom-1 rounded-sm z-10 grid w-1/4 place-items-center transition-all duration-500 bg-emerald-100/30 group-hover:w-[calc(100%-0.5rem)] group-active:scale-95">
                                                             <ChevronRight size={16} strokeWidth={2} className="text-emerald-100" aria-hidden="true" />
@@ -356,13 +357,14 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
                                                 animate={{ opacity: 1 }}
                                                 className="text-sm text-muted-foreground text-center mb-5"
                                             >
-                                                Please fill in all fields correctly to continue
+                                                Vui lòng điền tất cả các trường để tiếp tục
                                             </motion.p>
                                         )}
 
                                         <div className="text-center pt-2">
                                             <p className="text-xs text-muted-foreground">
-                                                Your information is private and secure. We'll use this data only to create your personalized quit plan, calculate your potential savings and health improvements.
+                                                Thông tin của bạn sẽ được bảo mật và chỉ được sử dụng để tạo kế hoạch bỏ thuốc cá nhân, 
+                                                tính toán khoản tiết kiệm và hỗ trợ bạn cai nghiện hút thuốc.
                                             </p>
                                         </div>
                                     </form>
@@ -376,12 +378,12 @@ const CreatQuitPlanStep1 = ({ onNext }: { onNext: () => void }) => {
 }
 
 const quotes = [
-    "The journey of a thousand miles begins with a single step.",
-    "Quitting smoking is the best investment in yourself.",
-    "Every cigarette you skip is a deposit into your dream.",
-    "One day at a time, one victory at a time.",
-    "Your future self will thank you for today’s decision.",
-    "Cravings are temporary. Freedom is forever.",
+    "Hành trình ngàn dặm chỉ bắt đầu khi bạn quyết định bước bước đầu tiên",
+    "Bỏ thuốc là khoản đầu tư tốt nhất cho chính bản thân",
+    "Mỗi điếu thuốc bạn bỏ qua là một bước tiến để chạm tới ước mơ",
+    "Từng ngày một, từng chiến thắng một",
+    "Chính bạn trong tương lai sẽ biết ơn quyết định của hôm nay",
+    "Cơn thèm thuốc chỉ là tạm thời. Sức khỏe là mãi mãi.",
 ];
 
 const fadeVariants = {
@@ -413,7 +415,7 @@ const SmokingIllustration = () => {
             {/* Header */}
             <div className="flex items-center justify-center gap-2 text-lg font-semibold mb-2">
                 <Sparkles className="w-5 h-5 animate-pulse text-yellow-500 dark:text-yellow-300" />
-                <span className="text-emerald-700 dark:text-emerald-200">Stay Inspired</span>
+                <span className="text-emerald-700 dark:text-emerald-200">Hãy giữ động lực vì...</span>
             </div>
 
             {/* Quote */}

@@ -2,17 +2,19 @@ import type { QuizResponseDTO, OptionResponseDTO } from "@/types/task"
 
 export const validateQuizData = (quiz: QuizResponseDTO): { isValid: boolean; errors: string[] } => {
     const errors: string[] = []
+    const MIN_REQUIRED_OPTIONS = 2;
 
     if (!quiz.title || quiz.title.trim().length === 0) {
         errors.push("Tiêu đề câu hỏi không được để trống")
     }
 
-    if (!quiz.options || quiz.options.length === 0) {
-        errors.push("Câu hỏi phải có ít nhất một lựa chọn")
+    if (!quiz.options || quiz.options.length < 2) {
+        errors.push("Câu hỏi phải có ít nhất hai lựa chọn")
     }
 
-    if (quiz.options && quiz.options.length !== 4) {
-        errors.push("Câu hỏi phải có đúng 4 lựa chọn")
+   // số câu đáp án cần kiểm tra tối thiểu 2
+    if (quiz.options && quiz.options.length < MIN_REQUIRED_OPTIONS) {
+        errors.push(`Câu hỏi phải có ít nhất ${MIN_REQUIRED_OPTIONS} lựa chọn`);
     }
 
     if (quiz.options) {
