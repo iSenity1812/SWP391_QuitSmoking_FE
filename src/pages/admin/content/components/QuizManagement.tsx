@@ -16,7 +16,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Edit, Trash2, Brain, Search, Filter, XCircle } from "lucide-react"
+import { Edit, Trash2, Brain, Search, XCircle } from "lucide-react"
 import { TaskService } from "@/services/taskService"
 import type { QuizResponseDTO } from "@/types/task"
 import { CreateQuizDialog } from "./dialogs/CreateQuizDialog"
@@ -130,11 +130,6 @@ export function QuizManagement() {
                         </div>
 
                         <CreateQuizDialog onQuizCreated={loadQuizzes} />
-
-                        <Button variant="outline">
-                            <Filter className="w-4 h-4 mr-2" />
-                            Lọc
-                        </Button>
                     </div>
                 </CardContent>
             </Card>
@@ -179,7 +174,6 @@ export function QuizManagement() {
                                         <CardTitle className="text-lg">{quiz.title}</CardTitle>
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                        <Badge variant="secondary">{quiz.scorePossible} điểm</Badge>
                                         <Badge variant="outline">{quiz.options.length} lựa chọn</Badge>
                                     </div>
                                 </div>

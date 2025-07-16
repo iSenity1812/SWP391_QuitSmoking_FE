@@ -2,13 +2,13 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Brain, Sparkles, Lightbulb } from "lucide-react"
+import { X, Sparkles } from "lucide-react"
 import { DailyInputModal } from "./DailyInputModal"
 import { cravingTrackingService, type CravingTrackingCreateRequest } from "@/services/cravingTrackingService";
 import { toast } from "react-toastify"
-import { useTask } from "@/hooks/use-task"
 import { QuizTaskComponent } from "@/pages/task/components/QuizTaskComponent"
 import { TipTaskComponent } from "@/pages/task/components/TipTaskComponent"
+import { useTask } from "@/hooks/use-task"
 import { Button } from "@/components/ui/button"
 
 interface CravingSupportModalProps {
@@ -21,19 +21,19 @@ interface CravingSupportModalProps {
 type FlowStep = "confirmation" | "task-content" | "motivation" | "follow-up" | "celebration" | "record-smoking"
 
 const motivationalQuotes = [
-    "Every craving you resist makes you stronger.",
-    "You are in control — not your cravings.",
-    "This urge will pass. Breathe through it.",
-    "Think about how far you've come. Don't give up now.",
-    "Your future self will thank you for this moment.",
-    "Freedom from smoking is worth every breath you take today.",
-    "Just one more minute — you're doing amazing.",
+    "Mỗi lượt vượt qua cơn thèm thuốc khiến bạn mạnh mẽ hơn",
+    "Bạn chính là người kiểm soát chính mình — không phải cơn thèm thuốc của bạn",
+    "Cơn thèm này rồi sẽ qua. Hãy cố gắng vì một cơ thể khỏe mạnh",
+    "Hãy nghĩ về những gì bạn đã trải qua. Đừng bỏ cuộc bây giờ!",
+    "Tương lai của bạn sẽ cảm ơn bạn vì khoảnh khắc này",
+    "Cố gắng thêm một chút nữa thôi — bạn đang làm rất tốt",
 ];
 
 export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType }: CravingSupportModalProps) {
     const [currentStep, setCurrentStep] = useState<FlowStep>("confirmation")
     const [hasOvercomeCraving, setHasOvercomeCraving] = useState(false)
     const [currentMotivation, setCurrentMotivation] = useState("")
+    const [currentQuizResult, setCurrentQuizResult] = useState<boolean | undefined>(undefined)
 
     // Task logic
     const {
@@ -52,6 +52,7 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType
     const resetModal = () => {
         setCurrentStep("confirmation")
         setCurrentMotivation("")
+        setCurrentQuizResult(undefined)
     }
 
     const handleClose = () => {
@@ -67,6 +68,7 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType
     const handleWantHelp = () => {
         // Generate new task when user wants help
         generateNewTask()
+        setCurrentQuizResult(undefined) // Reset quiz result for new task
         setCurrentStep("task-content")
     }
 
@@ -127,7 +129,7 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="text-center space-y-6"
+            className="text-center space-y-6 min-h-[300px] flex flex-col justify-center"
         >
             <div className="">
                 <div className="text-6xl">🤔</div>
@@ -165,7 +167,7 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="text-center space-y-6"
+                    className="text-center space-y-6 min-h-[300px] flex flex-col justify-center"
                 >
                     <div className="text-6xl">⏳</div>
                     <h3 className="text-xl font-bold text-slate-800">Đang tải thử thách...</h3>
@@ -180,7 +182,7 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="text-center space-y-6"
+                    className="text-center space-y-6 min-h-[300px] flex flex-col justify-center"
                 >
                     <div className="text-6xl">❌</div>
                     <h3 className="text-xl font-bold text-red-600">Có lỗi xảy ra</h3>
@@ -198,7 +200,7 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="text-center space-y-6"
+                    className="text-center space-y-6 min-h-[300px] flex flex-col justify-center"
                 >
                     <div className="text-6xl">🎯</div>
                     <h3 className="text-xl font-bold text-slate-800">Sẵn sàng cho thử thách?</h3>
@@ -215,59 +217,48 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="space-y-4"
+                className="space-y-4 min-h-[350px]"
             >
-                {currentTask.type === 'QUIZ' && currentTask.quizzes && (
-                    <div className="space-y-4">
-                        <div className="text-center space-y-2">
-                            <h3 className="text-xl font-bold text-slate-800 flex items-center justify-center gap-2">
-                                <Brain className="w-6 h-6 text-purple-500" />
-                                Thử thách Quiz
-                            </h3>
-                            <p className="text-slate-600">Câu {currentQuizIndex + 1} / {currentTask.quizzes.length}</p>
-                        </div>
-
-                        <QuizTaskComponent
-                            quiz={currentTask.quizzes[currentQuizIndex]}
-                            onAnswerSelected={(quizId, selectedOptionId) => {
-                                if (selectedOptionId !== null) {
-                                    handleQuizAnswer(quizId, selectedOptionId)
-
-                                    // Move to next quiz or complete task
-                                    if (currentQuizIndex < currentTask.quizzes!.length - 1) {
-                                        setTimeout(() => goToNextQuiz(), 1000)
-                                    } else {
-                                        setTimeout(() => {
-                                            markQuizTaskCompleted()
-                                            handleTaskCompleted()
-                                        }, 1000)
-                                    }
-                                }
-                            }}
-                            isLastQuiz={currentQuizIndex === currentTask.quizzes.length - 1}
-                            quizAttemptResult={undefined}
-                        />
-                    </div>
+                {currentTask.type === 'QUIZ' && currentTask.quizzes && currentTask.quizzes.length > 0 && currentQuizIndex < currentTask.quizzes.length && (
+                    <QuizTaskComponent
+                        quiz={currentTask.quizzes[currentQuizIndex]}
+                        onAnswerSelected={(quizId, optionId) => {
+                            if (optionId !== null) {
+                                handleQuizAnswer(quizId, optionId)
+                                // Determine if answer is correct by checking the selected option
+                                const selectedOption = currentTask.quizzes![currentQuizIndex]?.options?.find(opt => opt.optionId === optionId)
+                                setCurrentQuizResult(selectedOption?.correct || false)
+                            } else {
+                                // Time out case - no answer selected
+                                setCurrentQuizResult(false)
+                            }
+                        }}
+                        onNext={() => {
+                            // Reset quiz result for next question
+                            setCurrentQuizResult(undefined)
+                            // Move to next quiz or complete task
+                            if (currentQuizIndex < currentTask.quizzes!.length - 1) {
+                                goToNextQuiz()
+                            } else {
+                                markQuizTaskCompleted()
+                                handleTaskCompleted()
+                            }
+                        }}
+                        isLastQuiz={currentQuizIndex === currentTask.quizzes.length - 1}
+                        quizAttemptResult={currentQuizResult}
+                        currentQuizIndex={currentQuizIndex}
+                        totalQuizzes={currentTask.quizzes.length}
+                    />
                 )}
 
                 {currentTask.type === 'TIP' && currentTask.tips && (
-                    <div className="space-y-4">
-                        <div className="text-center space-y-2">
-                            <h3 className="text-xl font-bold text-slate-800 flex items-center justify-center gap-2">
-                                <Lightbulb className="w-6 h-6 text-yellow-500" />
-                                Lời khuyên hữu ích
-                            </h3>
-                            <p className="text-slate-600">Hãy đọc và áp dụng những lời khuyên này</p>
-                        </div>
-
-                        <TipTaskComponent
-                            tips={currentTask.tips}
-                            onComplete={() => {
-                                markTipTaskCompleted()
-                                handleTaskCompleted()
-                            }}
-                        />
-                    </div>
+                    <TipTaskComponent
+                        tips={currentTask.tips}
+                        onComplete={() => {
+                            markTipTaskCompleted()
+                            handleTaskCompleted()
+                        }}
+                    />
                 )}
             </motion.div>
         )
@@ -278,7 +269,7 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="text-center space-y-6"
+            className="text-center space-y-6 min-h-[300px] flex flex-col justify-center"
         >
             <div className="space-y-4">
                 <div className="text-6xl">💪</div>
@@ -307,7 +298,7 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="text-center space-y-6"
+            className="text-center space-y-6 min-h-[300px] flex flex-col justify-center"
         >
             <div className="space-y-1">
                 <div className="text-6xl">🤔</div>
@@ -352,7 +343,7 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="text-center space-y-6"
+            className="text-center space-y-6 min-h-[350px] flex flex-col justify-center"
         >
             <motion.div
                 initial={{ scale: 0 }}
@@ -441,26 +432,28 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType
                     onClick={handleClose}
                 >
                     <motion.div
-                        className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative overflow-hidden"
+                        className="bg-white rounded-2xl p-6 w-full max-w-lg min-w-[320px] sm:min-w-[480px] max-h-[90vh] shadow-2xl relative flex flex-col"
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.9, opacity: 0 }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-end mb-6">
+                        <div className="flex items-center justify-end mb-6 flex-shrink-0">
                             <Button variant="ghost" size="icon" onClick={handleClose} className="text-gray-500 hover:text-gray-700">
                                 <X className="w-5 h-5" />
                             </Button>
                         </div>
 
-                        <AnimatePresence mode="wait">
-                            {currentStep === "confirmation" && renderConfirmationStep()}
-                            {currentStep === "task-content" && renderTaskContent()}
-                            {currentStep === "motivation" && renderMotivation()}
-                            {currentStep === "follow-up" && renderFollowUp()}
-                            {currentStep === "celebration" && renderCelebration()}
-                            {currentStep === "record-smoking" && renderRecordSmoking()}
-                        </AnimatePresence>
+                        <div className="flex-1 overflow-y-auto">
+                            <AnimatePresence mode="wait">
+                                {currentStep === "confirmation" && renderConfirmationStep()}
+                                {currentStep === "task-content" && renderTaskContent()}
+                                {currentStep === "motivation" && renderMotivation()}
+                                {currentStep === "follow-up" && renderFollowUp()}
+                                {currentStep === "celebration" && renderCelebration()}
+                                {currentStep === "record-smoking" && renderRecordSmoking()}
+                            </AnimatePresence>
+                        </div>
                     </motion.div>
                 </motion.div>
             )}

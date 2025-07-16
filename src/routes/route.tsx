@@ -13,7 +13,6 @@ import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
 import { OnboardingPage } from "@/pages/onboarding/onBoardingPage"
 import ProgramPage from "@/pages/learning/ProgramPage"
-import TaskPage from "@/pages/task/TaskPage"
 // import { PlanSelectionDirectPage } from "@/pages/plan-selection/PlanDirectPage"
 
 // Protected pages
@@ -157,20 +156,6 @@ export function AppRoutes() {
             <LeaderboardPage />
           </ProtectedRoute>
         }
-      />
-
-      {/* Member Routes - NORMAL_MEMBER & PREMIUM_MEMBER */}
-      <Route
-        path="/task"
-        element={
-          <ProtectedRoute
-            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER', 'COACH']}
-            requireAuth={false}
-          >
-            <TaskPage />
-          </ProtectedRoute>
-        }
-
       />
 
       <Route

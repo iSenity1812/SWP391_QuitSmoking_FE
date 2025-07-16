@@ -214,7 +214,9 @@ export function QuitPlanDashboard() {
                 >
                   <ProgressTab
                     quitPlan={quitPlan}
-                    dailyData={historicalDailySummaries}
+                    refetchQuitPlan={refetch}
+                    dailySummary={todayDailySummary}
+                    refetchDailySummary={refetchTodaySummary}
                   />
                 </motion.div>
               </TabsContent>

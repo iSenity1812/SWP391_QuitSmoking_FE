@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { Target, Plus, Cigarette, Flame, CalendarDays, CalendarIcon, ChevronUp, ChevronDown, Notebook } from "lucide-react"
+import { Target, Plus, Cigarette, Flame, CalendarDays, CalendarIcon, ChevronUp, ChevronDown, Notebook, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -20,6 +20,7 @@ import { CravingSupportModal } from "./components/CravingSupportModal"
 import type { DailySummaryResponse } from "@/services/dailySummaryService"
 import type { DailyChartDataResponse } from "@/services/dataVisualizationService"
 import { useCravingTrackingsByDailySummary, type CravingTrackingResponse } from "@/services/cravingTrackingService"
+import { translateEnumsToVietnamese } from "@/utils/enumTranslations"
 
 
 interface OverviewTabProps {
@@ -50,8 +51,153 @@ export function OverviewTab({
     const [isInputModalOpen, setIsInputModalOpen] = useState(false)
     const [isCravingSupportOpen, setIsCravingSupportOpen] = useState(false)
     const [showRecords, setShowRecords] = useState(false)
+    const [editingRecord, setEditingRecord] = useState<CravingTrackingResponse | null>(null)
 
     const [chartDailyData, setChartDailyData] = useState<DailyChartData[]>([])
+    const [currentStreak, setCurrentStreak] = useState(0)
+    const [bestStreak, setBestStreak] = useState(0)    // Hàm tính toán streak dựa trên dữ liệu daily summaries
+    const calculateStreak = useCallback((dailySummaries: DailyChartDataResponse[]) => {
+        // console.log('=== STREAK CALCULATION DEBUG ===')
+        // console.log('quitPlan:', quitPlan)
+        // console.log('dailySummaries:', dailySummaries)
+
+        if (!quitPlan) {
+            setCurrentStreak(0)
+            setBestStreak(0)
+            return
+        }
+
+        // Tạo map để dễ tìm kiếm record theo ngày
+        const recordMap = new Map<string, DailyChartDataResponse>()
+        dailySummaries.forEach(summary => {
+            recordMap.set(summary.date, summary)
+        })
+        // console.log('recordMap:', recordMap)
+
+        // Tính tổng số ngày trong kế hoạch
+        const totalDaysInPlan = QuitPlanCalculator.getTotalDays(quitPlan.startDate, quitPlan.goalDate)
+        const today = new Date()
+        today.setHours(23, 59, 59, 999) // Set to end of today
+
+        // console.log('planStartDate:', planStartDate)
+        // console.log('today:', today)
+        // console.log('totalDaysInPlan:', totalDaysInPlan)
+
+        // Tạo danh sách tất cả các ngày từ khi bắt đầu plan đến hôm nay (hoặc kết thúc plan nếu plan đã kết thúc)
+        const planEndDate = new Date(quitPlan.goalDate)
+        const endDate = today < planEndDate ? today : planEndDate
+
+        // console.log('planEndDate:', planEndDate)
+        // console.log('endDate:', endDate)
+
+        interface DayDebugInfo {
+            hasRecord: boolean
+            actualSmoked?: number
+            recommendedLimit?: number
+            isGoalAchieved?: boolean
+        }
+
+        const allDays: { date: string; isStreakDay: boolean; debug?: DayDebugInfo }[] = []
+
+        // FIX: Tránh timezone issue bằng cách sử dụng string parsing
+        const startDateStr = quitPlan.startDate.split('T')[0] // Get YYYY-MM-DD from startDate
+        const endDateStr = endDate.toISOString().split('T')[0] // Get YYYY-MM-DD from endDate
+
+        // console.log('Loop starting from date string:', startDateStr)
+        // console.log('Loop ending at date string:', endDateStr)
+
+        // Tạo Date object từ string YYYY-MM-DD để tránh timezone issues
+        const currentDate = new Date(startDateStr + 'T12:00:00') // Set to noon to avoid timezone issues
+        const endDateForLoop = new Date(endDateStr + 'T12:00:00')
+
+        while (currentDate <= endDateForLoop) {
+            const dateStr = currentDate.toISOString().split('T')[0] // YYYY-MM-DD format
+            // console.log('Processing date:', dateStr)
+
+            const record = recordMap.get(dateStr)
+
+            let isStreakDay = false
+            let debugInfo: DayDebugInfo = { hasRecord: !!record }
+
+            if (record && record.totalSmokedCount !== null) {
+                // CHỈ tính streak khi có record THỰC SỰ (totalSmokedCount !== null)
+                const daysSincePlanStart = QuitPlanCalculator.getDaysBetweenDates(quitPlan.startDate, dateStr)
+                const recommendedLimit = QuitPlanCalculator.calculateDailyLimit(
+                    quitPlan.reductionType,
+                    quitPlan.initialSmokingAmount,
+                    daysSincePlanStart,
+                    totalDaysInPlan
+                )
+
+                const actualSmoked = record.totalSmokedCount
+                isStreakDay = actualSmoked <= recommendedLimit
+
+                debugInfo = {
+                    ...debugInfo,
+                    actualSmoked,
+                    recommendedLimit,
+                    isGoalAchieved: isStreakDay
+                }
+
+                // console.log(`Date ${dateStr}: actualSmoked=${actualSmoked}, recommendedLimit=${recommendedLimit}, isStreakDay=${isStreakDay}`)
+            } else {
+                // console.log(`Date ${dateStr}: No valid record (totalSmokedCount is null or missing)`)
+            }
+            // Nếu không có record HOẶC totalSmokedCount là null thì isStreakDay = false (phá vỡ streak)
+
+            allDays.push({
+                date: dateStr,
+                isStreakDay,
+                debug: debugInfo
+            })
+
+            // Tăng ngày lên 1
+            currentDate.setDate(currentDate.getDate() + 1)
+        }
+
+        // console.log('allDays with debug:', allDays)
+
+        // Log chi tiết từng ngày
+        // allDays.forEach((day, index) => {
+        //     console.log(`Day ${index}: ${day.date} - isStreakDay: ${day.isStreakDay}`, day.debug)
+        // })
+
+        if (allDays.length === 0) {
+            setCurrentStreak(0)
+            setBestStreak(0)
+            return
+        }
+
+        // Tính current streak (từ ngày gần nhất về trước)
+        let currentStreakCount = 0
+        for (let i = allDays.length - 1; i >= 0; i--) {
+            const day = allDays[i]
+            if (day.isStreakDay) {
+                currentStreakCount++
+            } else {
+                break // Gặp ngày không có record hoặc không đạt mục tiêu, dừng streak
+            }
+        }
+
+        // Tính best streak (streak dài nhất)
+        let maxStreakCount = 0
+        let tempStreakCount = 0
+
+        for (let i = 0; i < allDays.length; i++) {
+            const day = allDays[i]
+            if (day.isStreakDay) {
+                tempStreakCount++
+                maxStreakCount = Math.max(maxStreakCount, tempStreakCount)
+            } else {
+                tempStreakCount = 0 // Reset streak khi gặp ngày không có record hoặc không đạt mục tiêu
+            }
+        }
+
+        // console.log('FINAL RESULTS - currentStreakCount:', currentStreakCount, 'maxStreakCount:', maxStreakCount)
+
+        setCurrentStreak(currentStreakCount)
+        setBestStreak(maxStreakCount)
+    }, [quitPlan])
 
     // Fetch craving tracking data for today's daily summary
     const {
@@ -119,10 +265,16 @@ export function OverviewTab({
                 };
             });
             setChartDailyData(newChartDailyData);
+
+            // Tính toán streak khi có dữ liệu
+            calculateStreak(historicalDailySummaries);
         } else {
             setChartDailyData([]); // Đặt lại dữ liệu biểu đồ nếu không có quitPlan hoặc dữ liệu lịch sử
+            // Reset streak khi không có dữ liệu
+            setCurrentStreak(0);
+            setBestStreak(0);
         }
-    }, [quitPlan, historicalDailySummaries])
+    }, [quitPlan, historicalDailySummaries, calculateStreak])
 
     // Tính toán cường độ khói cho hiệu ứng SmokeOverlay
     const smokeIntensity =
@@ -168,6 +320,18 @@ export function OverviewTab({
         refetchCravingTrackings(); // Also refetch craving trackings
     }
 
+    // Hàm mở dialog chỉnh sửa
+    const openEditDialog = (record: CravingTrackingResponse) => {
+        setEditingRecord(record);
+        setIsInputModalOpen(true);
+    }
+
+    // Hàm đóng modal và reset editing state
+    const closeInputModal = () => {
+        setIsInputModalOpen(false);
+        setEditingRecord(null);
+    }
+
     // Hiển thị null hoặc trạng thái tải/lỗi nếu quitPlan chưa có
     if (!quitPlan) {
         return null;
@@ -187,8 +351,8 @@ export function OverviewTab({
                             </h1>
                             <Badge className="text-white text-sm px-3 py-1 mt-2 bg-emerald-500">
                                 {quitPlan.reductionType === "IMMEDIATE"
-                                    ? "Immediate Plan"
-                                    : `${quitPlan.reductionType} Plan`}
+                                    ? "Kế Hoạch Ngay Lập Tức"
+                                    : "Kế Hoạch Giảm Dần"}
                             </Badge>
                         </div>
                         <p className="text-xl text-slate-600 dark:text-slate-300">
@@ -210,7 +374,7 @@ export function OverviewTab({
                         rounded-2xl p-6 border border-emerald-300">
                             <CountdownTimer
                                 targetDate={quitPlan.reductionType === "IMMEDIATE" ? quitPlan.startDate : quitPlan.goalDate}
-                                label={quitPlan.reductionType === "IMMEDIATE" ? "Time Since Quitting" : "Time Remaining"}
+                                label={quitPlan.reductionType === "IMMEDIATE" ? "Thời Gian Đã THực Hiện" : "Thời Gian Còn Lại"}
                                 isCountUp={quitPlan.reductionType === "IMMEDIATE"}
                                 planStartDate={quitPlan.startDate}
                             />
@@ -223,7 +387,7 @@ export function OverviewTab({
                             <div className="text-center mb-6">
                                 <h3 className="text-2xl font-bold text-amber-900 mb-2">STREAK</h3>
                                 <p className="text-amber-700 text-sm">
-                                    Chuỗi ngày liên tục mà bạn đã không hút thuốc
+                                    Chuỗi ngày liên tục mà bạn đã đạt được mục tiêu
                                 </p>
                             </div>
 
@@ -236,7 +400,7 @@ export function OverviewTab({
                                         animate={{ scale: 1 }}
                                         transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
                                     >
-                                        <span className="text-4xl font-bold text-orange-600">7</span>
+                                        <span className="text-4xl font-bold text-orange-600">{currentStreak}</span>
                                         <div className="text-1xl font-bold text-amber-800">Ngày</div>
                                     </motion.div>
                                     <div className="text-2xl">🔥</div>
@@ -255,7 +419,7 @@ export function OverviewTab({
                                             animate={{ scale: 1 }}
                                             transition={{ type: "spring", stiffness: 200, delay: 0.3 }}
                                         >
-                                            <span className="text-4xl font-bold text-orange-600">12</span>
+                                            <span className="text-4xl font-bold text-orange-600">{bestStreak}</span>
                                             <div className="text-1xl font-bold text-amber-800">Ngày</div>
                                         </motion.div>
                                         <div className="text-2xl">🏆</div>
@@ -367,14 +531,19 @@ export function OverviewTab({
                                                                 <div className="font-medium text-gray-800 dark:text-gray-200">
                                                                     {new Date(record.trackTime).toLocaleDateString('vi-VN')} - {new Date(record.trackTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                                                                 </div>
-                                                                <span className={cn(
-                                                                    "text-xs font-semibold px-2 py-1 rounded-full",
-                                                                    record.smokedCount !== null && record.smokedCount > 0
-                                                                        ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                                                                        : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                                                )}>
-                                                                    {record.smokedCount !== null && record.smokedCount > 0 ? "Đã hút" : "Không hút"}
-                                                                </span>
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className={cn(
+                                                                        "text-xs font-semibold px-2 py-1 rounded-full",
+                                                                        record.smokedCount !== null && record.smokedCount > 0
+                                                                            ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                                                                            : "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+                                                                    )}>
+                                                                        {record.smokedCount !== null && record.smokedCount > 0 ? "Đã hút" : "Không hút"}
+                                                                    </span>
+                                                                    <Button variant="outline" size="sm" onClick={() => openEditDialog(record)}>
+                                                                        <Edit className="w-4 h-4 mr-1" /> Sửa
+                                                                    </Button>
+                                                                </div>
                                                             </div>
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700 dark:text-gray-300">
                                                                 <div>
@@ -384,10 +553,10 @@ export function OverviewTab({
                                                                     <span className="font-semibold">Số lần thèm:</span> {record.cravingsCount ?? "N/A"}
                                                                 </div>
                                                                 <div>
-                                                                    <span className="font-semibold">Tình huống:</span> {record.situations.join(', ') || "Không có"}
+                                                                    <span className="font-semibold">Tình huống:</span> {translateEnumsToVietnamese(record.situations)}
                                                                 </div>
                                                                 <div>
-                                                                    <span className="font-semibold">Với ai:</span> {record.withWhoms.join(', ') || "Không có"}
+                                                                    <span className="font-semibold">Với ai:</span> {translateEnumsToVietnamese(record.withWhoms)}
                                                                 </div>
                                                             </div>
                                                         </motion.div>
@@ -418,7 +587,12 @@ export function OverviewTab({
                                 totalDays={totalDays}
                                 reductionType={quitPlan.reductionType}
                                 currentDay={today}
-                                userRecords={chartDailyData}
+                                userRecords={chartDailyData.map((day) => ({
+                                    day: day.day,
+                                    recommended: day.recommended,
+                                    actual: day.actual,
+                                    date: day.date,
+                                }))}
                                 startDate={new Date(quitPlan.startDate)}
                             />
                         </AnimatedSection>
@@ -529,9 +703,10 @@ export function OverviewTab({
             {/* Daily Input Modal */}
             <DailyInputModal
                 isOpen={isInputModalOpen}
-                onClose={() => setIsInputModalOpen(false)}
+                onClose={closeInputModal}
                 onRecordSuccess={handleDailyInput}
                 planType={quitPlan.reductionType}
+                editingRecord={editingRecord}
             />
 
             {/* Craving Support Modal */}
@@ -543,4 +718,6 @@ export function OverviewTab({
             />
         </div>
     )
+
+
 }

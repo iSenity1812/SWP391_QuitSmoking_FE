@@ -4,8 +4,7 @@ import type {
     QuizResponseDTO,
     TipResponseDTO,
     QuizCreationRequestDTO,
-    TipCreationRequestDTO,
-    FrontendOptionRequest,
+    TipCreationRequestDTO
 } from "@/types/task"
 
 export class TaskService {
