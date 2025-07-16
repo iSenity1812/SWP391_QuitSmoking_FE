@@ -13,6 +13,7 @@ import { messaging } from "./firebase.ts"
 import { getToken, onMessage } from "firebase/messaging"
 import { toast } from "react-toastify"
 import axiosConfig from "./config/axiosConfig"
+import GoogleOAuthProvider from "./components/auth/GoogleOAuthProvider"
 
 function shouldHideNavbar(pathname: string) {
   const hiddenPaths = [
@@ -154,38 +155,40 @@ export default function App() {
     )
   }
   return (
-    <div className="min-h-screen flex flex-col">
-      {shouldShowNavbar && <Navbar />}
-      <main className="flex-1">
-        {/* Hidden button for development to force complete onboarding */}
-        {!isOnboardingCompleted && (
-          <button
-            onClick={forceCompleteOnboarding}
-            className="fixed bottom-4 right-4 bg-red-500 text-white px-3 py-1 rounded-md text-xs z-50"
-          >
-            Skip Onboarding (Dev)
-          </button>
-        )}
+    <GoogleOAuthProvider>
+      <div className="min-h-screen flex flex-col">
+        {shouldShowNavbar && <Navbar />}
+        <main className="flex-1">
+          {/* Hidden button for development to force complete onboarding */}
+          {!isOnboardingCompleted && (
+            <button
+              onClick={forceCompleteOnboarding}
+              className="fixed bottom-4 right-4 bg-red-500 text-white px-3 py-1 rounded-md text-xs z-50"
+            >
+              Skip Onboarding (Dev)
+            </button>
+          )}
 
-        <AnimatePresence mode="wait" initial={false}>
-          <AppRoutes />
-        </AnimatePresence>
-      </main>
+          <AnimatePresence mode="wait" initial={false}>
+            <AppRoutes />
+          </AnimatePresence>
+        </main>
 
-      {/* Toast Container */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        className="mt-16"
-      />
-    </div>
+        {/* Toast Container */}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+          className="mt-16"
+        />
+      </div>
+    </GoogleOAuthProvider>
   )
 }

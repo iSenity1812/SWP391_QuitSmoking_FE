@@ -15,5 +15,9 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:8080',
     },
+    headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      'Cross-Origin-Embedder-Policy': 'unsafe-none',
+    },
   },
 })

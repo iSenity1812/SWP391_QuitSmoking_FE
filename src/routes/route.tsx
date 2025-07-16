@@ -8,6 +8,8 @@ import BlogPage from "@/pages/blog/BlogPage"
 import AboutPage from "@/pages/about/AboutPage"
 import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage"
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage"
 import { OnboardingPage } from "@/pages/onboarding/onBoardingPage"
 // import { PlanSelectionDirectPage } from "@/pages/plan-selection/PlanDirectPage"
 
@@ -87,6 +89,8 @@ export function AppRoutes() {
       {/* Auth routes - prevent authenticated users from accessing */}
       <Route path="/login" element={<AuthRedirect><LoginPage /></AuthRedirect>} />
       <Route path="/register" element={<AuthRedirect><RegisterPage /></AuthRedirect>} />
+      <Route path="/forgot-password" element={<AuthRedirect><ForgotPasswordPage /></AuthRedirect>} />
+      <Route path="/reset-password" element={<AuthRedirect><ResetPasswordPage /></AuthRedirect>} />
       <Route path="/onboarding" element={<OnboardingPage />} />
       {/* <Route path="/plan-selection" element={<PlanSelectionDirectPage />} /> */}
 

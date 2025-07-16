@@ -1,4 +1,4 @@
-import type { AccountResponse, ApiResponse, LoginRequest, RegisterRequest } from "@/types/auth";
+import type { AccountResponse, ApiResponse, LoginRequest, RegisterRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleAuthRequest } from "@/types/auth";
 import axiosConfig from "@/config/axiosConfig";
 
 const AUTH_ENDPOINT_PREFIX = "/api/auth";
@@ -44,5 +44,40 @@ export const authService = {
 
   getToken: (): string | null => {
     return localStorage.getItem(AUTH_TOKEN);
+  },
+
+  forgotPassword: async (data: ForgotPasswordRequest): Promise<ApiResponse<string>> => {
+    const response = await axiosConfig.post<ApiResponse<string>>(
+      `${AUTH_ENDPOINT_PREFIX}/forgot-password`, data);
+    return response.data;
+  },
+
+  resetPassword: async (data: ResetPasswordRequest): Promise<ApiResponse<string>> => {
+    const response = await axiosConfig.post<ApiResponse<string>>(
+      `${AUTH_ENDPOINT_PREFIX}/reset-password`, data);
+    return response.data;
+  },
+
+  validateResetToken: async (token: string): Promise<ApiResponse<boolean>> => {
+    const response = await axiosConfig.get<ApiResponse<boolean>>(
+      `${AUTH_ENDPOINT_PREFIX}/validate-reset-token?token=${token}`);
+    return response.data;
+  },
+
+  googleAuth: async (googleId: string, userInfo: any): Promise<any> => {
+    const response = await axiosConfig.post<any>(
+      `${AUTH_ENDPOINT_PREFIX}/google/login`, { 
+        googleId,
+        email: userInfo.email,
+        name: userInfo.name,
+        picture: userInfo.picture
+      });
+
+    if (response.data && response.data.success) {
+      // Save token and user info to localStorage
+      localStorage.setItem(AUTH_TOKEN, response.data.token);
+      localStorage.setItem(USER_INFO, JSON.stringify(response.data.userInfo));
+    }
+    return response.data;
   },
 }

@@ -10,6 +10,7 @@ import { EmailInput } from "@/pages/auth/components/login";
 import { PasswordInput } from "@/pages/auth/components/login";
 import { SubmitButton } from "@/pages/auth/components/login";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
 
 import type { ApiResponse, LoginRequest } from "@/types/auth"; // Import LoginRequest và các type liên quan nếu cần
 import { toast } from "react-toastify";
@@ -145,10 +146,37 @@ export const LoginForm: React.FC = () => {
               validatePassword={validatePassword}
             />
 
+            <div className="text-right">
+              <Link to="/forgot-password" className="text-sm text-emerald-500 hover:underline">
+                Quên mật khẩu?
+              </Link>
+            </div>
+
             <SubmitButton
               isSubmitting={isSubmitting}
               isPasswordValid={isPasswordValid}
               isEmailValid={isEmailValid} // Đổi tên prop
+            />
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white dark:bg-slate-900 px-2 text-muted-foreground">
+                  Hoặc
+                </span>
+              </div>
+            </div>
+
+            <GoogleLoginButton 
+              className="mt-4"
+              onSuccess={() => {
+                toast.success('Đăng nhập Google thành công!');
+              }}
+              onError={(error) => {
+                toast.error(error);
+              }}
             />
           </form>
         </CardContent>
