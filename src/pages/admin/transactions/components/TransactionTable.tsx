@@ -504,11 +504,10 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
 
             {/* Actions */}
             <div className="flex items-center space-x-2">
-              {/* Filter button */}
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {/* TODO: Open filter panel */ }}
+                onClick={() => { }}
               >
                 <Filter className="w-4 h-4 mr-2" />
                 Bộ lọc
@@ -517,7 +516,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                     {activeFiltersCount}
                   </Badge>
                 )}
-              </Button>
+              </Button> */}
 
               {/* Export button */}
               <DropdownMenu>

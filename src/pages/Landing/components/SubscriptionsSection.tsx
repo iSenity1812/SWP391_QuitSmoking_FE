@@ -1,4 +1,5 @@
 import { AnimatedSection } from "@/components/ui/AnimatedSection"
+import { Link } from "react-router-dom"
 export const SubscriptionsSection = () => {
     return (
         <section
@@ -162,14 +163,16 @@ export const SubscriptionsSection = () => {
                                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Không cần thẻ tín dụng.</p>
                                     </div>
 
-                                    <button
-                                        className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 shadow-lg ${plan.popular
-                                            ? "text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-emerald-200/50 dark:shadow-emerald-500/25"
-                                            : "text-slate-700 dark:text-slate-300 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-slate-700 dark:to-slate-600 border-2 border-emerald-200 dark:border-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500"
-                                            }`}
-                                    >
-                                        {plan.cta}
-                                    </button>
+                                    <Link to="/login">
+                                        <button
+                                            className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:-translate-y-1 shadow-lg ${plan.popular
+                                                ? "text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-emerald-200/50 dark:shadow-emerald-500/25"
+                                                : "text-slate-700 dark:text-slate-300 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-slate-700 dark:to-slate-600 border-2 border-emerald-200 dark:border-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500"
+                                                }`}
+                                        >
+                                            {plan.cta}
+                                        </button>
+                                    </Link>
                                 </div>
                             </AnimatedSection>
                         ))}

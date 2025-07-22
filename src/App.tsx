@@ -11,6 +11,8 @@ import { ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { StagewiseToolbar } from "@stagewise/toolbar-react"
 import { ReactPlugin } from "@stagewise-plugins/react"
+import { AchievementToast } from "./components/AchievementToast"
+// import { TestAchievement } from "./components/TestAchievement"
 
 function shouldHideNavbar(pathname: string) {
   const hiddenPaths = [
@@ -35,6 +37,8 @@ export default function App() {
   const location = useLocation()
   // Auto-refresh token check
   useTokenRefresh()
+
+  console.log('[App] Rendering App component');
 
   const shouldShowNavbar = !shouldHideNavbar(location.pathname)
 
@@ -116,6 +120,12 @@ export default function App() {
         theme="light"
         className="mt-16"
       />
+
+      {/* Achievement Toast Notifications */}
+      <AchievementToast />
+
+      {/* Test Achievement Button - Development only */}
+      {/* <TestAchievement /> */}
 
       {/* Stagewise Toolbar - Development only */}
       <StagewiseToolbar

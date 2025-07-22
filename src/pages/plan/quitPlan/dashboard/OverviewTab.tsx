@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Target, Plus, Cigarette, Flame, CalendarDays, CalendarIcon, ChevronUp, ChevronDown, Notebook } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -150,21 +151,33 @@ export function OverviewTab({
         return "critical"
     }
 
+    // Tạo debounced refetch để tránh quá nhiều calls liên tiếp
+    const debouncedRefetch = useCallback(() => {
+        const timeoutId = setTimeout(() => {
+            Promise.all([
+                refetchDailySummary(),
+                refetchQuitPlan(),
+                refetchCravingTrackings()
+            ]).catch(error => {
+                console.error("Error refreshing data:", error);
+            });
+        }, 300); // Delay 300ms
+        
+        return () => clearTimeout(timeoutId);
+    }, [refetchDailySummary, refetchQuitPlan, refetchCravingTrackings]);
+
     // Xử lý khi gửi dữ liệu nhập hàng ngày
     const handleDailyInput = () => { // Đã bỏ tham số 'data'
         console.log("Daily input submitted, refreshing data.");
-        // Sau khi gửi dữ liệu, làm mới dailySummary và quitPlan để cập nhật UI
-        refetchDailySummary();
-        refetchQuitPlan();
-        refetchCravingTrackings();
+        // Sử dụng debounced refetch để tránh refresh quá nhiều
+        debouncedRefetch();
     }
 
     // Xử lý khi ghi nhận cơn thèm thuốc
     const handleCravingSupport = (data: { cigarettesSmoked: number; cravingCount: number }) => {
         console.log("Craving support data:", data)
-        // Sau khi ghi nhận, làm mới dailySummary và quitPlan để cập nhật UI
-        refetchDailySummary();
-        refetchQuitPlan();
+        // Sử dụng debounced refetch để tránh refresh quá nhiều
+        debouncedRefetch();
     }
 
     // Hiển thị null hoặc trạng thái tải/lỗi nếu quitPlan chưa có

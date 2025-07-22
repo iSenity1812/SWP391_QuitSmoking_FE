@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Search, UserPlus, UserMinus, Eye, Loader2 } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 import { followService } from "@/services/followService"
 import type { UserSearchResult, FollowRelation } from "@/services/followService"
 import { toast } from "react-toastify"
@@ -16,6 +17,7 @@ interface FollowModalProps {
 }
 
 export default function FollowModal({ isOpen, onClose, type, userId, title }: FollowModalProps) {
+  const navigate = useNavigate()
   const [users, setUsers] = useState<UserSearchResult[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [loading, setLoading] = useState(false)
@@ -58,14 +60,11 @@ export default function FollowModal({ isOpen, onClose, type, userId, title }: Fo
 
         setUsers(convertedUsers)
 
-        // Check follow status for all users
+        // Initialize follow states to false since we don't have this info from the relation data
+        // Users will need to check individual profiles to see follow status
         const states: Record<string, boolean> = {}
         for (const user of convertedUsers) {
-          try {
-            states[user.userId] = await followService.isFollowing(user.userId)
-          } catch {
-            states[user.userId] = false
-          }
+          states[user.userId] = false // Default to not following
         }
         setFollowingStates(states)
       } catch (error) {
@@ -101,8 +100,9 @@ export default function FollowModal({ isOpen, onClose, type, userId, title }: Fo
   }
 
   const handleUserClick = (targetUserId: string) => {
-    // Navigate to user profile
-    window.location.href = `/profile/${targetUserId}`
+    // Navigate to user profile using React Router
+    navigate(`/profile/${targetUserId}`)
+    onClose() // Close modal after navigation
   }
 
   const filteredUsers = users.filter(user =>
@@ -168,8 +168,8 @@ export default function FollowModal({ isOpen, onClose, type, userId, title }: Fo
               onClick={() => handleToggleFollow(user.userId, isFollowing)}
               disabled={isLoading}
               className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${isFollowing
-                  ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
-                  : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
+                ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
                 } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {isLoading ? (

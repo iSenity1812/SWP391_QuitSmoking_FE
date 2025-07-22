@@ -89,6 +89,7 @@ const getTypeLabel = (type: string) => {
     case "DAYS_QUIT": return "Chuỗi ngày";
     case "MONEY_SAVED": return "Tiết kiệm tiền";
     case "CIGARETTES_NOT_SMOKED": return "Điếu thuốc tránh được";
+    case "CRAVING_RESISTED": return "Chống chọi cơn thèm";
     case "RESILIENCE": return "Kiên trì";
     case "HEALTH": return "Sức khỏe";
     case "SOCIAL": return "Xã hội";

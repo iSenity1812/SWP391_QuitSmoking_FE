@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useImperativeHandle, forwardRef } from "react"
 import { Search, UserPlus, Users, Eye, UserMinus, Loader2 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 import { followService } from "@/services/followService"
 import type { UserSearchResult, FollowRelation } from "@/services/followService"
 import FollowModal from "./FollowModal"
@@ -12,7 +13,12 @@ interface SidebarRightProps {
   currentUserId: string
 }
 
-export default function SidebarRight({ currentUserId }: SidebarRightProps) {
+export interface SidebarRightRef {
+  refreshFollowData: () => Promise<void>
+}
+
+const SidebarRight = forwardRef<SidebarRightRef, SidebarRightProps>(({ currentUserId }, ref) => {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<"followers" | "following">("followers")
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([])
@@ -62,6 +68,23 @@ export default function SidebarRight({ currentUserId }: SidebarRightProps) {
     loadData()
   }, [])
 
+  // Expose refresh function via ref
+  useImperativeHandle(ref, () => ({
+    refreshFollowData: async () => {
+      try {
+        const [followersData, followingData] = await Promise.all([
+          followService.getFollowers(0, 10),
+          followService.getFollowing(0, 10)
+        ])
+
+        setFollowers(followersData.content)
+        setFollowing(followingData.content)
+      } catch (error) {
+        console.error("Error refreshing followers/following:", error)
+      }
+    }
+  }), [])
+
   // Search users when query changes
   useEffect(() => {
     const searchUsers = async () => {
@@ -75,15 +98,12 @@ export default function SidebarRight({ currentUserId }: SidebarRightProps) {
         const results = await followService.searchUsers(searchQuery)
         setSearchResults(results)
 
-        // Check follow status for search results
+        // Initialize follow states to false since we don't have this info from search results
+        // Users will need to check individual profiles to see follow status
         const states: Record<string, boolean> = {}
         for (const user of results) {
           if (user.userId !== currentUserId) {
-            try {
-              states[user.userId] = await followService.isFollowing(user.userId)
-            } catch {
-              states[user.userId] = false
-            }
+            states[user.userId] = false // Default to not following
           }
         }
         setFollowingStates(prev => ({ ...prev, ...states }))
@@ -137,7 +157,7 @@ export default function SidebarRight({ currentUserId }: SidebarRightProps) {
   }
 
   const handleUserClick = (userId: string) => {
-    window.location.href = `/profile/${userId}`
+    navigate(`/profile/${userId}`)
   }
 
   const handleViewMore = (type: "followers" | "following") => {
@@ -357,4 +377,7 @@ export default function SidebarRight({ currentUserId }: SidebarRightProps) {
       />
     </div>
   )
-}
+})
+
+SidebarRight.displayName = "SidebarRight"
+export default SidebarRight

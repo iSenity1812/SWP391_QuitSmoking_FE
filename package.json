@@ -26,6 +26,7 @@
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@reduxjs/toolkit": "^2.8.2",
+    "@stomp/stompjs": "^7.1.1",
     "@tailwindcss/vite": "^4.1.7",
     "@tanstack/react-query": "^5.81.2",
     "@tanstack/react-query-devtools": "^5.81.2",
@@ -47,6 +48,7 @@
     "react-router-dom": "^7.6.1",
     "react-toastify": "^11.0.5",
     "recharts": "^3.0.2",
+    "sockjs-client": "^1.6.1",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.7",
     "tailwindcss-animate": "^1.0.7"
@@ -59,6 +61,7 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@types/react-toastify": "^4.0.2",
+    "@types/sockjs-client": "^1.5.4",
     "@vitejs/plugin-react": "^4.4.1",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",

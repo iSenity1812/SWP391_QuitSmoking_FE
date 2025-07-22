@@ -164,18 +164,8 @@ class FollowService {
     }
   }
 
-  // Check if user is following another user
-  async isFollowing(targetUserId: string): Promise<boolean> {
-    try {
-      const response = await axiosInstance.get<ApiResponse<boolean>>(
-        `/follows/check/${targetUserId}`
-      )
-      return response.data.data || false
-    } catch (error) {
-      console.error("Error checking follow status:", error)
-      return false
-    }
-  }
+  // Note: Follow status should be checked via profile API endpoints
+  // that return follow status in their response data
 }
 
 export const followService = new FollowService()

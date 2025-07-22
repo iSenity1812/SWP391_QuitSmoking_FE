@@ -9,6 +9,7 @@ export interface ProgressResponse {
   daysQuit: number;
   moneySaved: number;
   cigarettesNotSmoked: number;
+  cravingResisted: number;
 }
 
 export const achievementService = {
@@ -30,6 +31,13 @@ export const achievementService = {
   },
 
   async getMemberAchievements(memberId: string): Promise<MemberAchievement[]> {
+    const res = await axiosConfig.get(`${API_BASE_URL}/member/${memberId}/all`);
+    if (Array.isArray(res.data)) return res.data;
+    if (res.data && Array.isArray(res.data.data)) return res.data.data;
+    return [];
+  },
+
+  async getMemberAchievementsWithStatus(memberId: string): Promise<Achievement[]> {
     const res = await axiosConfig.get(`${API_BASE_URL}/member/${memberId}/all`);
     if (Array.isArray(res.data)) return res.data;
     if (res.data && Array.isArray(res.data.data)) return res.data.data;

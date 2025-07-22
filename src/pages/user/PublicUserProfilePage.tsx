@@ -1,24 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { achievementService } from "@/services/achievementService";
-import { userService } from "../../services/userService";
+import { userService, type PublicProfileResponse } from "../../services/userService";
 import type { AchievementWithStatus } from "@/types/achievement";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2 } from 'lucide-react';
 import { useAuth } from "@/hooks/useAuth";
 import axiosConfig from "@/config/axiosConfig";
 
-interface UserProfile {
-  userId: string;
-  username: string;
-  email: string;
-  profilePicture?: string;
-  createdAt?: string;
-}
-
 export default function PublicUserProfilePage() {
   const { userId } = useParams<{ userId: string }>();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<PublicProfileResponse | null>(null);
   const [achievements, setAchievements] = useState<AchievementWithStatus[]>([]);
   const [progress, setProgress] = useState<{ daysQuit: number; moneySaved: number; cigarettesNotSmoked: number }>({ daysQuit: 0, moneySaved: 0, cigarettesNotSmoked: 0 });
   const [loading, setLoading] = useState(true);
@@ -38,14 +30,14 @@ export default function PublicUserProfilePage() {
           return;
         }
         const currentUserId = localStorage.getItem("userId");
-        const [profileRes, followingRes, achievementsRes, progressRes] = await Promise.all([
-          userService.getPublicProfile(userId),
-          currentUserId ? userService.isFollowing(userId, currentUserId) : Promise.resolve(false),
+        const [profileRes, achievementsRes, progressRes] = await Promise.all([
+          userService.getPublicProfileById(userId),
           achievementService.getAllAchievementsForUser(userId),
           achievementService.getMemberProgress(userId)
         ]);
         setProfile(profileRes);
-        setIsFollowing(followingRes);
+        // Use following status from profile API response
+        setIsFollowing(currentUserId ? profileRes.following : false);
         setAchievements(achievementsRes);
         setProgress({
           daysQuit: progressRes.daysQuit ?? 0,
@@ -101,8 +93,12 @@ export default function PublicUserProfilePage() {
             )}
           </div>
           <CardTitle className="text-2xl font-bold">{profile.username}</CardTitle>
-          <div className="text-slate-500 dark:text-slate-300">{profile.email}</div>
-          {profile.createdAt && <div className="text-xs text-slate-400 mt-1">Tham gia: {new Date(profile.createdAt).toLocaleDateString()}</div>}
+          <div className="text-slate-500 dark:text-slate-300">
+            {profile.role === "PREMIUM_MEMBER" ? "Premium Member" : "Standard Member"}
+          </div>
+          <div className="text-xs text-slate-400 mt-1">
+            Thành viên từ: {profile.memberSince}
+          </div>
           {/* Nút Theo dõi/Bỏ theo dõi */}
           {!isCurrentUser && currentUser && (
             isFollowing ? (

@@ -19,6 +19,7 @@ import TaskPage from "@/pages/task/TaskPage"
 // Protected pages
 // import PlanPage from "@/pages/plan/PlanPage"
 import UserProfilePage from "@/pages/user/userProfilePage"
+import PublicProfileViewPage from "@/pages/user/PublicProfileViewPage"
 import SubscriptionPage from "@/pages/plan/subscription/SubscriptionPage"
 import PaymentReturnPage from "@/pages/plan/subscription/PaymentReturnPage"
 
@@ -39,6 +40,7 @@ import { LeaderboardPage } from "@/pages/leaderboard/LeaderboardPage"
 import CreateQuitPlanLayout from "@/layouts/CreateQuitPlanLayout"
 import PlanPage from "@/pages/plan/PlanPage"
 import { QuitPlanDashboard } from "@/pages/plan/quitPlan/QuitPlanDashboard"
+import AchievementsPage from "@/pages/achievements/AchievementsPage"
 
 export function AppRoutes() {
   return (
@@ -94,6 +96,18 @@ export function AppRoutes() {
       />
 
       <Route
+        path="achievements"
+        element={
+          <ProtectedRoute
+            allowedRoles={['PREMIUM_MEMBER']}
+            requireAuth={true}
+          >
+            <AchievementsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/booking"
         element={
           <ProtectedRoute
@@ -117,6 +131,16 @@ export function AppRoutes() {
         element={
           <ProtectedRoute requireAuth={true}>
             <UserProfilePage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Public Profile View - with sidebar layout */}
+      <Route
+        path="/profile/:userId"
+        element={
+          <ProtectedRoute requireAuth={true}>
+            <PublicProfileViewPage />
           </ProtectedRoute>
         }
       />
@@ -252,7 +276,7 @@ export function AppRoutes() {
         }
       />
 
-      <Route path="/user/:userId" element={<PublicUserProfilePage />} />
+      <Route path="/profile/:userId" element={<PublicUserProfilePage />} />
 
       {/* Coach Routes - COACH only */}
       <Route

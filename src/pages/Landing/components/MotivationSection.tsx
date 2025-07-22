@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { Link } from "react-router-dom"
 
 export function MotivationSection() {
   return (
@@ -13,12 +14,16 @@ export function MotivationSection() {
             bạn chỉ cách một cú nhấp chuột.
           </p>
           <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600 font-bold">
-              Bắt Đầu Miễn Phí
-            </Button>
-            <Button size="lg" className="text-slate-900 dark:text-white font-bold" variant="outline">
-              Tìm Hiểu Thêm
-            </Button>
+            <Link to="/login">
+              <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600 font-bold">
+                Bắt Đầu Miễn Phí
+              </Button>
+            </Link>
+            <Link to="/about">
+              <Button size="lg" className="text-slate-900 dark:text-white font-bold" variant="outline">
+                Tìm Hiểu Thêm
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

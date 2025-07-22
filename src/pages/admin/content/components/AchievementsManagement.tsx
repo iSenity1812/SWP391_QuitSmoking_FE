@@ -289,14 +289,14 @@ export function AchievementsManagement() {
                                             <span className="text-slate-500 dark:text-slate-400">Yêu cầu:</span>
                                             <span className="text-slate-700 dark:text-slate-300">{achievement.requirements}</span>
                                         </div>
-                                        <div className="flex justify-between text-sm">
+                                        {/* <div className="flex justify-between text-sm">
                                             <span className="text-slate-500 dark:text-slate-400">Đã mở khóa:</span>
                                             <span className="text-slate-700 dark:text-slate-300">{achievement.unlockedBy} người</span>
-                                        </div>
+                                        </div> */}
                                     </div>
                                     <div className="flex items-center justify-between mb-4">
                                         <Badge variant={achievement.isActive ? "default" : "secondary"}>
-                                            {achievement.isActive ? "Đang hoạt động" : "Tạm dừng"}
+                                            {achievement.isActive ? "Đang hoạt động" : ""}
                                         </Badge>
                                         <span className="text-xs text-slate-500 dark:text-slate-400">
                                             {new Date(achievement.createdAt).toLocaleDateString("vi-VN")}
@@ -311,14 +311,6 @@ export function AchievementsManagement() {
                                         >
                                             <Edit className="w-4 h-4 mr-1" />
                                             Sửa
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => toggleAchievementStatus(achievement.achievementId)}
-                                            className="flex-1"
-                                        >
-                                            {achievement.isActive ? "Tạm dừng" : "Kích hoạt"}
                                         </Button>
                                         <Button
                                             size="sm"

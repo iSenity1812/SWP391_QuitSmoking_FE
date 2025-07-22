@@ -104,6 +104,10 @@ export function DailyInputModal({
       };
 
       await cravingTrackingService.checkInCraving(requestData);
+      
+      // Thêm một delay nhỏ để backend có thời gian process
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       onRecordSuccess(); // Gọi callback khi thành công
       onClose(); // Đóng modal
     } catch (error) {

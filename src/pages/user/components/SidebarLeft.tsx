@@ -2,7 +2,7 @@
 
 import { Wind, BarChart3, Trophy, Settings, Calendar, LogOut } from "lucide-react"
 import { motion } from "framer-motion"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
@@ -23,15 +23,23 @@ const tabs = [
 
 export default function SidebarLeft({ activeTab, onTabChange }: SidebarLeftProps) {
   const { logout } = useAuth();
+  const navigate = useNavigate();
+
   const handleTabClick = (tabId: string) => {
-    if (tabId === "booking") {
-      window.location.href = "/booking"
+    // Always redirect to appropriate pages instead of using tabs
+    if (tabId === "overview") {
+      navigate("/profile")
+    } else if (tabId === "achievements") {
+      navigate("/achievements")
+    } else if (tabId === "settings") {
+      navigate("/profile/me") // Or settings page if exists
+    } else if (tabId === "booking") {
+      navigate("/booking")
     } else if (tabId === "leaderboard") {
-      window.location.href = "/leaderboard"
+      navigate("/leaderboard")
     } else if (tabId === "progress") {
-      window.location.href = "/plan"
-    }
-    else {
+      navigate("/plan")
+    } else {
       onTabChange(tabId)
     }
   }

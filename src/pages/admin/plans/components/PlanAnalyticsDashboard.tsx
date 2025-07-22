@@ -283,7 +283,7 @@ export const PlanAnalyticsDashboard: React.FC = () => {
                       {formatCurrency(summaryStats.bestPerformingPlan.totalRevenue || 0)}
                     </p>
                   </div>
-                  <div className="p-4 bg-green-50 rounded-lg text-center">
+                  {/* <div className="p-4 bg-green-50 rounded-lg text-center">
                     <div className="text-2xl mb-2">💎</div>
                     <h4 className="font-medium text-green-900">AOV cao nhất</h4>
                     <p className="text-sm text-green-700 mt-1 font-semibold">
@@ -293,7 +293,7 @@ export const PlanAnalyticsDashboard: React.FC = () => {
                         ).planName : 'N/A'
                       }
                     </p>
-                  </div>
+                  </div> */}
                   <div className="p-4 bg-purple-50 rounded-lg">
                     <h4 className="font-medium text-purple-900">� Gói đóng góp chính</h4>
                     <p className="text-sm text-purple-700 mt-1">

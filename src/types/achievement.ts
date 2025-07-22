@@ -1,18 +1,20 @@
 // made by gia bao
 
 export interface Achievement {
-  achievementId: number;
+  id: number;
   name: string;
   icon?: string;
   iconUrl?: string;
   description?: string;
-  achievementType?: 'DAYS_QUIT' | 'MONEY_SAVED' | 'CIGARETTES_NOT_SMOKED' | 'RESILIENCE' | 'HEALTH' | 'SOCIAL' | 'SPECIAL' | 'DAILY';
+  achievementType?: 'DAYS_QUIT' | 'MONEY_SAVED' | 'CIGARETTES_NOT_SMOKED' | 'CRAVING_RESISTED' | 'RESILIENCE' | 'HEALTH' | 'SOCIAL' | 'SPECIAL' | 'DAILY';
   milestoneValue?: number;
   achievementOrder?: number;
   requirements?: string;
   unlockedBy?: number;
   isActive?: boolean;
-  createdAt: string;
+  completed?: boolean;
+  completedAt?: string;
+  createdAt?: string;
   updatedAt?: string;
 }
 

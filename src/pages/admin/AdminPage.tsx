@@ -41,7 +41,7 @@ export default function AdminPage() {
         { id: "dashboard", label: "Tổng Quan", icon: BarChart3 },
         { id: "users", label: "Người Dùng", icon: Users },
         { id: "coaches", label: "Coach", icon: UserCheck },
-        { id: "reports", label: "Báo Cáo Người Dùng", icon: FileText },
+        // { id: "reports", label: "Báo Cáo Người Dùng", icon: FileText },
         // { id: "receipts", label: "Hóa Đơn & Thanh Toán", icon: Receipt },
 
     ]

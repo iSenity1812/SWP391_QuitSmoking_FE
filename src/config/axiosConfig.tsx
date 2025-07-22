@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL + '/api'; // Đảm bảo rằng base URL có '/api' ở cuối
+
 const axiosConfig = axios.create({
-  baseURL: 'http://localhost:8080/api', // Thay doi sau
+  baseURL: API_BASE_URL,
   timeout: 10000, // 10 seconds timeout
   headers: {
     'Content-Type': 'application/json',
