@@ -431,6 +431,7 @@ export function OverviewTab({
                     </div>
                 </motion.div>
 
+                {/* craving recording */}
                 <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -492,7 +493,6 @@ export function OverviewTab({
                             </div>
                         </CardContent>
 
-
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -516,8 +516,6 @@ export function OverviewTab({
                                             <div className="space-y-4 max-h-[400px] overflow-y-auto">
                                                 {isCravingTrackingsLoading ? (
                                                     <div className="text-center text-gray-500">Đang tải nhật ký...</div>
-                                                ) : cravingTrackingsError ? (
-                                                    <div className="text-center text-red-500">Lỗi: {cravingTrackingsError}</div>
                                                 ) : cravingTrackings && cravingTrackings.length > 0 ? (
                                                     cravingTrackings.map((record: CravingTrackingResponse, index: number) => (
                                                         <motion.div
@@ -562,7 +560,7 @@ export function OverviewTab({
                                                         </motion.div>
                                                     ))
                                                 ) : (
-                                                    <div className="text-center text-gray-500">Chưa có bản ghi nào cho ngày hôm nay</div>
+                                                    <div className="text-center text-gray-500">Chưa có bản ghi chi tiết nào cho ngày hôm nay</div>
                                                 )}
                                             </div>
                                         </CardContent>

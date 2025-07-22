@@ -271,9 +271,6 @@ export function AppRoutes() {
 
       <Route path="/user/:userId" element={<PublicUserProfilePage />} />
 
-      {/* Catch all - 404 or redirect to home */}
-      <Route path="*" element={<LandingPage />} />
-
       {/* Development/Testing Route - Remove in production */}
       <Route
         path="/route-test"
@@ -283,6 +280,9 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Catch all - 404 or redirect to home */}
+      <Route path="*" element={<LandingPage />} />
     </Routes>
   )
 }

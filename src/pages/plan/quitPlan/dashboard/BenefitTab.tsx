@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { DollarSign, Heart, Award, TrendingUp, Clock, Users } from "lucide-react"
+import { DollarSign, Heart, Award, TrendingUp, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -117,24 +117,6 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
       maxProgress: 30,
     },
   ]
-
-  const cravingStats = {
-    totalCravings: 45,
-    commonSituations: [
-      { situation: "After meals", count: 12 },
-      { situation: "When stressed", count: 10 },
-      { situation: "With coffee", count: 8 },
-      { situation: "Social situations", count: 7 },
-      { situation: "Driving", count: 5 },
-    ],
-    commonCompanions: [
-      { companion: "Alone", count: 18 },
-      { companion: "Friends", count: 12 },
-      { companion: "Colleagues", count: 8 },
-      { companion: "Family", count: 5 },
-      { companion: "Partner", count: 2 },
-    ],
-  }
 
   const motivationalQuotes = [
     "Thời gian tốt nhất để trồng cây là 20 năm trước, thời gian tốt thứ hai là bây giờ",
@@ -322,89 +304,6 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
           </CardContent>
         </Card>
       </motion.div>
-
-      {/* Craving Statistics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-orange-500" />
-                Craving Triggers
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="text-center mb-4">
-                  <div className="text-2xl font-bold text-orange-600">{cravingStats.totalCravings}</div>
-                  <div className="text-sm text-gray-600">Total cravings recorded</div>
-                </div>
-
-                <h4 className="font-medium text-gray-800 mb-2">Most Common Situations:</h4>
-                {cravingStats.commonSituations.map((item) => (
-                  <div key={item.situation} className="flex justify-between items-center">
-                    <span className="text-sm">{item.situation}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-orange-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${(item.count / cravingStats.totalCravings) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium w-8 text-right">{item.count}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.7 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-500" />
-                Social Context
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-800 mb-2">Cravings by Company:</h4>
-                {cravingStats.commonCompanions.map((item) => (
-                  <div key={item.companion} className="flex justify-between items-center">
-                    <span className="text-sm">{item.companion}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${(item.count / cravingStats.totalCravings) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium w-8 text-right">{item.count}</span>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    💡 <strong>Insight:</strong> You experience most cravings when alone. Consider reaching out to
-                    friends or engaging in social activities during high-risk times.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
     </div>
   )
 }

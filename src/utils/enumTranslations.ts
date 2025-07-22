@@ -86,15 +86,25 @@ export function formatEnumLabel(value: string): string {
 
 // Function to get Vietnamese translation
 export function getVietnameseTranslation(value: Situation | WithWhom | Mood): string {
-    if (value in situationTranslations) {
-        return situationTranslations[value as Situation];
-    }
-    if (value in withWhomTranslations) {
-        return withWhomTranslations[value as WithWhom];
-    }
+    // Handle Mood type specifically
     if (value in moodTranslations) {
         return moodTranslations[value as Mood];
     }
+
+    // Handle Situation type
+    if (value in situationTranslations) {
+        return situationTranslations[value as Situation];
+    }
+
+    // Handle WithWhom type
+    if (value in withWhomTranslations) {
+        return withWhomTranslations[value as WithWhom];
+    }
+
+    // Debug log for unmatched values
+    console.warn(`Translation not found for: ${value}`);
+
+    // Fallback to formatted label
     return formatEnumLabel(value);
 }
 
@@ -105,13 +115,4 @@ export function translateEnumsToVietnamese(values: (Situation | WithWhom | Mood)
     }
 
     return values.map(value => getVietnameseTranslation(value)).join(", ");
-}
-
-// Function to get Vietnamese translation for mood string (from dataVisualizationService)
-export function getMoodTranslation(moodString: string): string {
-    const mood = moodString as Mood;
-    if (mood in moodTranslations) {
-        return moodTranslations[mood];
-    }
-    return moodString; // Return original string if not found
 }

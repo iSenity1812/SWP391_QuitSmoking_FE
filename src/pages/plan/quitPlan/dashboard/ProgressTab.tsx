@@ -1,178 +1,385 @@
 "use client"
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Calendar, RotateCcw, Edit3, Save, AlertTriangle, Cigarette, Flame, ChevronDown, ChevronUp, Plus, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Bar, BarChart, Line, LineChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts"
-import type { QuitPlanResponseDTO, QuitPlanUpdateRequestDTO } from "@/services/quitPlanService"
-import { quitPlanService } from "@/services/quitPlanService"
-import { QuitPlanCalculator } from "@/utils/QuitPlanCalculator"
-import type { DailySummaryResponse } from "@/services/dailySummaryService"
-import { useDailyDataForDayRange } from "@/services/dataVisualizationService"
-import { format, subDays } from "date-fns"
-import { DiaryInputModal } from "./components/DiaryInputModal"
-import { toast } from "react-toastify"
+import { useState, useCallback, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { getVietnameseTranslation, getMoodTranslation } from "@/utils/enumTranslations"
-import { AnimatedSection } from "@/components/ui/AnimatedSection"
+import { format, subDays } from "date-fns"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { quitPlanService } from "@/services/quitPlanService"
+import type { QuitPlanResponseDTO } from "@/services/quitPlanService"
+import type { DailySummaryResponse } from "@/services/dailySummaryService"
+import { dailySummaryService } from "@/services/dailySummaryService"
+import { useDailyDataForDayRange, type DailyChartDataResponse, DataVisualizationService } from "@/services/dataVisualizationService"
+import { DiaryInputModal } from "./components/DiaryInputModal"
+import { getVietnameseTranslation } from "@/utils/enumTranslations"
+import type { Situation, WithWhom } from "@/services/cravingTrackingService"
+import type { Mood } from "@/services/dailySummaryService"
+import {
+  PlanDetailsCard,
+  DailyDiaryCard,
+  SummaryCards,
+  StatisticsCharts,
+  StatisticsCards,
+  RestartConfirmationModal
+} from "./components"
+
+// Temporary functions - should be imported from utils
+const toast = {
+  success: (message: string) => console.log('Success:', message),
+  error: (message: string) => console.error('Error:', message)
+}
+
+// Interface for enhanced records combining chart data with notes
+interface EnhancedDailyRecord {
+  dailySummaryId?: number;
+  date: string;
+  totalSmokedCount: number | null;
+  totalCravingCount: number | null;
+  mood: string;
+  note: string;
+  moneySaved: number;
+  goalMet: boolean;
+}
 
 interface ProgressTabProps {
   quitPlan: QuitPlanResponseDTO;
-  refetchQuitPlan: () => Promise<void>; // Hàm để refetch quitPlan khi có thay đổi
-  dailySummary: DailySummaryResponse | null; // Daily summary của ngày hôm nay
-  refetchDailySummary: () => Promise<void>; // Hàm để refetch daily summary
+  refetchQuitPlan: () => Promise<void>;
+  dailySummary: DailySummaryResponse | null;
+  refetchDailySummary: () => Promise<void>;
 }
 
 export function ProgressTab({ quitPlan, refetchQuitPlan, dailySummary: todayDailySummary, refetchDailySummary }: ProgressTabProps) {
   const navigate = useNavigate()
-  const [isEditing, setIsEditing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
   const [showRestartConfirm, setShowRestartConfirm] = useState(false)
   const [isRestarting, setIsRestarting] = useState(false)
   const [restartSuccess, setRestartSuccess] = useState(false)
-  const [showRecords, setShowRecords] = useState(false) // State for toggling records view
-  const [isDiaryModalOpen, setIsDiaryModalOpen] = useState(false) // State for diary modal // State for editing record
-  const [editData, setEditData] = useState({
-    cigarettesPerPack: quitPlan.cigarettesPerPack,
-    pricePerPack: quitPlan.pricePerPack,
-  })
+  const [isDiaryModalOpen, setIsDiaryModalOpen] = useState(false)
+  const [editingRecord, setEditingRecord] = useState<DailySummaryResponse | null>(null)
 
-  // Get today's date formatted (for future use)
-  // const todayFormatted = format(new Date(), "yyyy-MM-dd")
+  // Hybrid approach: Get chart data from dataVisualizationService, then fetch notes from dailySummaryService
+  const startDate = subDays(new Date(), 29) // Get last 30 days
+  const endDate = new Date()
 
-  // Calculate today's statistics
-  const todaySmoked = todayDailySummary?.totalSmokedCount ?? 0
-  const todayCravings = todayDailySummary?.totalCravingCount ?? 0
-  const hasDataForToday = todayDailySummary !== null && todayDailySummary.totalSmokedCount !== null
-
-  // Calculate date range for last 30 days
-  const endDate = format(new Date(), 'yyyy-MM-dd')
-  const startDate = format(subDays(new Date(), 30), 'yyyy-MM-dd')
-
-  // Fetch recent daily data for records view using dataVisualizationService
   const {
-    data: recentDailyData,
-    isLoading: isRecentDataLoading,
-    error: recentDataError,
-    refetch: refetchRecentData,
-  } = useDailyDataForDayRange(startDate, endDate)
+    data: chartData,
+    isLoading: isChartDataLoading,
+    error: chartDataError,
+    refetch: refetchChartData,
+  } = useDailyDataForDayRange(format(startDate, 'yyyy-MM-dd'), format(endDate, 'yyyy-MM-dd'))
 
-  // Filter only records that have actual data (not null/empty)
-  const actualRecords = recentDailyData?.filter(record =>
-    record.totalSmokedCount !== null ||
-    record.totalCravingCount !== null ||
-    record.mood !== null
-  ) || []
+  // State for storing enhanced records with notes
+  const [enhancedRecords, setEnhancedRecords] = useState<EnhancedDailyRecord[]>([])
+  const [isEnhancingRecords, setIsEnhancingRecords] = useState(false)
+  const [enhanceError, setEnhanceError] = useState<string | null>(null)
 
-  // Handlers for daily input (currently handled by button click)
-  // const handleDailyInput = () => {
-  //   console.log("Daily input submitted, refreshing data.")
-  //   refetchDailySummary()
-  //   refetchQuitPlan()
-  //   refetchCravingTrackings()
-  // }
+  const totalSmoked = enhancedRecords.reduce((sum, record) => sum + (record.totalSmokedCount || 0), 0)
+  const totalCravings = enhancedRecords.reduce((sum, record) => sum + (record.totalCravingCount || 0), 0)
+  // Check if there's a daily summary record for today specifically
+  const hasDataForToday = todayDailySummary !== null
 
-  const closeDiaryModal = () => {
-    setIsDiaryModalOpen(false)
-  }
+  // State for craving statistics
+  const [cravingStats, setCravingStats] = useState({
+    totalCravings: 0,
+    commonSituations: [] as { situation: string; count: number }[],
+    commonCompanions: [] as { companion: string; count: number }[]
+  })
+  const [isCravingStatsLoading, setIsCravingStatsLoading] = useState(false)
 
-  const daysSinceStart = QuitPlanCalculator.getDaysSinceStart(quitPlan.startDate)
-  const totalDays = QuitPlanCalculator.getTotalDays(quitPlan.startDate, quitPlan.goalDate)
+  // State for mood statistics
+  const [moodStats, setMoodStats] = useState({
+    totalMoodRecords: 0,
+    commonMoods: [] as { mood: string; count: number }[]
+  })
+  const [isMoodStatsLoading, setIsMoodStatsLoading] = useState(false)
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "IN_PROGRESS":
-        return "bg-blue-100 text-blue-800"
-      case "COMPLETED":
-        return "bg-green-100 text-green-800"
-      case "FAILED":
-        return "bg-red-100 text-red-800"
-      case "NOT_STARTED":
-        return "bg-gray-100 text-gray-800"
-      case "RESTARTED":
-        return "bg-yellow-100 text-yellow-800"
-      case "ABANDONED":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
+  // Function to enhance chart data with notes from dailySummaryService
+  const enhanceRecordsWithNotes = useCallback(async () => {
+    if (!chartData || chartData.length === 0) return
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "IN_PROGRESS":
-        return "Đang tiến hành"
-      case "COMPLETED":
-        return "Hoàn thành"
-      case "FAILED":
-        return "Thất bại"
-      case "NOT_STARTED":
-        return "Chưa bắt đầu"
-      case "RESTARTED":
-        return "Đã khởi động lại"
-      case "ABANDONED":
-        return "Đã từ bỏ"
-      default:
-        return status
-    }
-  }
+    setIsEnhancingRecords(true)
+    setEnhanceError(null)
 
-  const getReductionTypeLabel = (type: string) => {
-    switch (type) {
-      case "IMMEDIATE":
-        return "Dừung Hoàn Toàn"
-      case "LINEAR":
-        return "Giảm Dần - Giảm Đều"
-      case "EXPONENTIAL":
-        return "Giảm Dần - Khởi Đầu Mạnh"
-      case "LOGARITHMIC":
-        return "Giảm Dần - Khởi Đầu Nhẹ"
-      default:
-        return type
-    }
-  }
-
-  // Add validation helper functions
-  const isValidCigarettesPerPack = (value: number) => value >= 0 && value <= 50
-  const isValidPricePerPack = (value: number) => value >= 1 && value <= 999999
-
-  const handleSaveEdit = async () => {
-    // Validation for cigarettes per pack (0-50)
-    if (!isValidCigarettesPerPack(editData.cigarettesPerPack)) {
-      toast.error("Số điếu trong gói phải từ 0 đến 50")
-      return
-    }
-
-    // Validation for price per pack (1-999999)
-    if (!isValidPricePerPack(editData.pricePerPack)) {
-      toast.error("Giá tiền mỗi gói phải từ 1 đến 999,999 VND")
-      return
-    }
-
-    setIsSaving(true)
     try {
-      const updateData: QuitPlanUpdateRequestDTO = {
-        cigarettesPerPack: editData.cigarettesPerPack,
-        pricePerPack: editData.pricePerPack,
+      // Filter chart data that has actual recorded values (not null/0)
+      const recordsWithData = chartData.filter((item: DailyChartDataResponse) =>
+        item.totalSmokedCount !== null ||
+        item.totalCravingCount !== null ||
+        item.mood !== null
+      )
+
+      console.log('📊 [ProgressTab] Chart data with actual values:', recordsWithData.length)
+
+      // Fetch notes for each record from dailySummaryService
+      const enhancedData = await Promise.allSettled(
+        recordsWithData.map(async (item: DailyChartDataResponse) => {
+          try {
+            const dailySummary = await dailySummaryService.getDailySummaryByDate(item.date)
+            return {
+              dailySummaryId: dailySummary?.dailySummaryId,
+              date: item.date,
+              totalSmokedCount: item.totalSmokedCount,
+              totalCravingCount: item.totalCravingCount,
+              mood: item.mood,
+              note: dailySummary?.note || '',
+              moneySaved: item.moneySaved,
+              goalMet: (item.totalSmokedCount ?? 0) <= Math.max(0, Math.floor((item.totalSmokedCount ?? 0) * 0.8)) // Simple goal calculation
+            } as EnhancedDailyRecord
+          } catch (error) {
+            console.warn(`Failed to fetch note for ${item.date}:`, error)
+            return {
+              date: item.date,
+              totalSmokedCount: item.totalSmokedCount,
+              totalCravingCount: item.totalCravingCount,
+              mood: item.mood,
+              note: '',
+              moneySaved: item.moneySaved,
+              goalMet: false
+            } as EnhancedDailyRecord
+          }
+        })
+      )
+
+      const successfulRecords = enhancedData
+        .filter((result): result is PromiseFulfilledResult<EnhancedDailyRecord> =>
+          result.status === 'fulfilled'
+        )
+        .map(result => result.value)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+      setEnhancedRecords(successfulRecords)
+      console.log('✅ [ProgressTab] Enhanced records:', successfulRecords.length)
+    } catch (error) {
+      console.error('❌ [ProgressTab] Error enhancing records:', error)
+      setEnhanceError('Không thể tải chi tiết ghi chú')
+    } finally {
+      setIsEnhancingRecords(false)
+    }
+  }, [chartData])
+
+  // Function to fetch and calculate craving statistics from hourly data
+  const fetchCravingStatistics = useCallback(async () => {
+    if (!chartData || chartData.length === 0) return
+
+    setIsCravingStatsLoading(true)
+
+    try {
+      const dataVisualizationService = DataVisualizationService.getInstance()
+
+      // Get hourly data for ALL days that have any records (smoking or craving)
+      const daysWithData = chartData.filter(day =>
+        (day.totalCravingCount && day.totalCravingCount > 0) ||
+        (day.totalSmokedCount && day.totalSmokedCount > 0)
+      )
+
+      const allSituations: string[] = []
+      const allCompanions: string[] = []
+      let totalInteractions = 0
+
+      // Fetch hourly data for each day with any data
+      for (const day of daysWithData) {
+        try {
+          const hourlyData = await dataVisualizationService.getHourlyDataForDay(day.date)
+
+          for (const hour of hourlyData) {
+            // Count all interactions (both smoking and craving) and collect situations/companions
+            const hasAnyActivity = (hour.cravingCount && hour.cravingCount > 0) ||
+              (hour.smokedCount && hour.smokedCount > 0)
+
+            if (hasAnyActivity) {
+              totalInteractions += (hour.cravingCount || 0) + (hour.smokedCount || 0)
+              allSituations.push(...hour.situations)
+              allCompanions.push(...hour.withWhoms)
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch hourly data for ${day.date}:`, error)
+        }
       }
 
-      await quitPlanService.updateCurrentQuitPlan(updateData)
-      await refetchQuitPlan() // Refetch để cập nhật UI
-      setIsEditing(false)
-      toast.success("Đã cập nhật thông tin kế hoạch thành công!")
-    } catch (error) {
-      console.error("Error updating quit plan:", error)
-      toast.error("Không thể cập nhật kế hoạch. Vui lòng thử lại sau")
-    } finally {
-      setIsSaving(false)
-    }
-  }
+      // Count occurrences of each situation and companion
+      const situationCounts = allSituations.reduce((acc, situation) => {
+        const translated = getVietnameseTranslation(situation as Situation)
+        acc[translated] = (acc[translated] || 0) + 1
+        return acc
+      }, {} as Record<string, number>)
 
+      const companionCounts = allCompanions.reduce((acc, companion) => {
+        const translated = getVietnameseTranslation(companion as WithWhom)
+        acc[translated] = (acc[translated] || 0) + 1
+        return acc
+      }, {} as Record<string, number>)
+
+      // Define default situations and companions to ensure we always have 5
+      const defaultSituations = [
+        'Sau bữa ăn', 'Khi căng thẳng', 'Khi làm việc', 'Khi thư giãn', 'Giờ nghỉ làm việc'
+      ]
+      const defaultCompanions = [
+        'Một mình', 'Với bạn thân', 'Với thành viên gia đình', 'Với đồng nghiệp', 'Với người yêu'
+      ]
+
+      // Get top 5 situations with highest counts, but ensure we show at least 5
+      const topSituations = Object.entries(situationCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5) // Take only top 5
+        .map(([situation, count]) => ({ situation, count }))
+
+      // If we have less than 5, fill with defaults
+      const finalSituations = [...topSituations]
+      const usedSituations = new Set(topSituations.map(s => s.situation))
+
+      // Only add defaults if we have less than 5
+      if (finalSituations.length < 5) {
+        for (const defaultSit of defaultSituations) {
+          if (!usedSituations.has(defaultSit) && finalSituations.length < 5) {
+            finalSituations.push({ situation: defaultSit, count: 0 })
+          }
+        }
+      }
+
+      // Get top 5 companions with highest counts, but ensure we show at least 5
+      const topCompanions = Object.entries(companionCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5) // Take only top 5
+        .map(([companion, count]) => ({ companion, count }))
+
+      // If we have less than 5, fill with defaults
+      const finalCompanions = [...topCompanions]
+      const usedCompanions = new Set(topCompanions.map(c => c.companion))
+
+      // Only add defaults if we have less than 5
+      if (finalCompanions.length < 5) {
+        for (const defaultComp of defaultCompanions) {
+          if (!usedCompanions.has(defaultComp) && finalCompanions.length < 5) {
+            finalCompanions.push({ companion: defaultComp, count: 0 })
+          }
+        }
+      }
+
+      setCravingStats({
+        totalCravings: totalInteractions,
+        commonSituations: finalSituations, // Top 5 situations only
+        commonCompanions: finalCompanions // Top 5 companions only
+      })
+
+      console.log('✅ [ProgressTab] Smoking & Craving statistics calculated:', {
+        totalInteractions,
+        situations: finalSituations.length,
+        companions: finalCompanions.length,
+        daysAnalyzed: daysWithData.length
+      })
+    } catch (error) {
+      console.error('❌ [ProgressTab] Error fetching craving statistics:', error)
+      // Set default empty data if error
+      setCravingStats({
+        totalCravings: 0,
+        commonSituations: [
+          { situation: 'Sau bữa ăn', count: 0 },
+          { situation: 'Khi căng thẳng', count: 0 },
+          { situation: 'Khi làm việc', count: 0 },
+          { situation: 'Khi thư giãn', count: 0 },
+          { situation: 'Giờ nghỉ làm việc', count: 0 }
+        ],
+        commonCompanions: [
+          { companion: 'Một mình', count: 0 },
+          { companion: 'Với bạn thân', count: 0 },
+          { companion: 'Với thành viên gia đình', count: 0 },
+          { companion: 'Với đồng nghiệp', count: 0 },
+          { companion: 'Với người yêu', count: 0 }
+        ]
+      })
+    } finally {
+      setIsCravingStatsLoading(false)
+    }
+  }, [chartData])
+
+  // Function to fetch and calculate mood statistics from enhanced records
+  const fetchMoodStatistics = useCallback(async () => {
+    if (!enhancedRecords || enhancedRecords.length === 0) return
+
+    setIsMoodStatsLoading(true)
+
+    try {
+      // Filter records that have mood data
+      const recordsWithMood = enhancedRecords.filter(record => record.mood && record.mood.trim() !== '')
+
+      const allMoods: string[] = recordsWithMood.map(record => record.mood)
+      const totalMoodRecords = allMoods.length
+
+      // Count occurrences of each mood
+      const moodCounts = allMoods.reduce((acc, mood) => {
+        const translated = getVietnameseTranslation(mood as Mood)
+        acc[translated] = (acc[translated] || 0) + 1
+        return acc
+      }, {} as Record<string, number>)
+
+      // Define default moods to ensure we always have 5
+      const defaultMoods = [
+        'Bình thường', 'Vui', 'Căng thẳng', 'Thư giãn', 'Tự tin'
+      ]
+
+      // Get top 5 moods with highest counts
+      const topMoods = Object.entries(moodCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5) // Take only top 5
+        .map(([mood, count]) => ({ mood, count }))
+
+      // If we have less than 5, fill with defaults
+      const finalMoods = [...topMoods]
+      const usedMoods = new Set(topMoods.map(m => m.mood))
+
+      // Only add defaults if we have less than 5
+      if (finalMoods.length < 5) {
+        for (const defaultMood of defaultMoods) {
+          if (!usedMoods.has(defaultMood) && finalMoods.length < 5) {
+            finalMoods.push({ mood: defaultMood, count: 0 })
+          }
+        }
+      }
+
+      setMoodStats({
+        totalMoodRecords: totalMoodRecords,
+        commonMoods: finalMoods // Top 5 moods only
+      })
+
+      console.log('✅ [ProgressTab] Mood statistics calculated:', {
+        totalMoodRecords,
+        moods: finalMoods.length,
+        recordsAnalyzed: recordsWithMood.length
+      })
+    } catch (error) {
+      console.error('❌ [ProgressTab] Error fetching mood statistics:', error)
+      // Set default empty data if error
+      setMoodStats({
+        totalMoodRecords: 0,
+        commonMoods: [
+          { mood: 'Bình thường', count: 0 },
+          { mood: 'Vui', count: 0 },
+          { mood: 'Căng thẳng', count: 0 },
+          { mood: 'Thư giãn', count: 0 },
+          { mood: 'Tự tin', count: 0 }
+        ]
+      })
+    } finally {
+      setIsMoodStatsLoading(false)
+    }
+  }, [enhancedRecords])
+
+  // Enhance records when chart data changes
+  useEffect(() => {
+    enhanceRecordsWithNotes()
+    fetchCravingStatistics()
+  }, [enhanceRecordsWithNotes, fetchCravingStatistics])
+
+  // Fetch mood statistics when enhanced records change
+  useEffect(() => {
+    fetchMoodStatistics()
+  }, [fetchMoodStatistics])
+
+  // Alias for consistency with existing code
+  const actualRecords = enhancedRecords
+  const isRecentDataLoading = isChartDataLoading || isEnhancingRecords
+  const recentDataError = chartDataError || enhanceError
+
+  // Handlers
   const handleRestartPlan = () => {
     setShowRestartConfirm(true)
   }
@@ -188,11 +395,7 @@ export function ProgressTab({ quitPlan, refetchQuitPlan, dailySummary: todayDail
     setIsRestarting(true)
     try {
       await quitPlanService.giveUpQuitPlan(quitPlan.quitPlanId)
-
-      // Show success state
       setRestartSuccess(true)
-
-      // Wait 3 seconds to show success message, then redirect
       setTimeout(() => {
         navigate("/plan/create")
       }, 3000)
@@ -202,559 +405,93 @@ export function ProgressTab({ quitPlan, refetchQuitPlan, dailySummary: todayDail
       setIsRestarting(false)
       setShowRestartConfirm(false)
     }
-    // Note: Don't reset isRestarting here for success case, let the redirect handle it
   }
 
-  // Chart data for statistics
-  const weeklyData = [
-    { week: "Week 1", smoking: 85, cravings: 45, mood: 3.2 },
-    { week: "Week 2", smoking: 70, cravings: 38, mood: 3.8 },
-    { week: "Week 3", smoking: 55, cravings: 28, mood: 4.1 },
-    { week: "Week 4", smoking: 40, cravings: 22, mood: 4.3 },
-  ]
+  const closeDiaryModal = () => {
+    setIsDiaryModalOpen(false)
+    setEditingRecord(null) // Reset editing record when closing modal
+  }
 
-  const moodData = [
-    { day: 1, mood: 4 },
-    { day: 2, mood: 3 },
-    { day: 3, mood: 2 },
-    { day: 4, mood: 5 },
-    { day: 5, mood: 4 },
-    { day: 6, mood: 3 },
-    { day: 7, mood: 4 },
-  ]
+  const openDiaryModal = () => {
+    setEditingRecord(null) // No editing record for create mode
+    setIsDiaryModalOpen(true)
+  }
+
+  const openEditDialog = (record: DailySummaryResponse) => {
+    setEditingRecord(record) // Set the record to edit
+    setIsDiaryModalOpen(true)
+  }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      {/* Plan Details Header */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <Card className="border border-emerald-400">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                <Calendar className="w-5 h-5" />
-                Chi tiết kế hoạch
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (isEditing) {
-                      // Reset về giá trị ban đầu khi cancel
-                      setEditData({
-                        cigarettesPerPack: quitPlan.cigarettesPerPack,
-                        pricePerPack: quitPlan.pricePerPack,
-                      })
-                    }
-                    setIsEditing(!isEditing)
-                  }}
-                  disabled={isSaving}
-                >
-                  <Edit3 className="w-4 h-4 mr-2" />
-                  {isEditing ? "Hủy" : "Sửa"}
-                </Button>
-                {isEditing && (
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={handleSaveEdit}
-                      size="sm"
-                      variant={"outline"}
-                      disabled={
-                        isSaving ||
-                        !isValidCigarettesPerPack(editData.cigarettesPerPack) ||
-                        !isValidPricePerPack(editData.pricePerPack)
-                      }
-                      className="text-emerald-500 border border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      {isSaving ? "Đang lưu..." : "Lưu chỉnh sửa"}
-                    </Button>
-                  </div>
-                )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleRestartPlan}
-                  className="text-orange-600 border-orange-300 hover:bg-orange-50 bg-transparent"
-                  disabled={isSaving || isRestarting}
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Khởi động lại
-                </Button>
+    <TooltipProvider>
+      <div className="space-y-6">
+        {/* Plan Details Header */}
+        <div className="max-w-7xl mx-auto space-y-6">
+          <PlanDetailsCard
+            quitPlan={quitPlan as any}
+            refetchQuitPlan={refetchQuitPlan}
+            onRestartPlan={handleRestartPlan}
+            isRestarting={isRestarting}
+          />
+
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-1 sm:gap-3 lg:gap-4">
+            {/* Left Column - Daily Diary */}
+            <div className="xl:col-span-4 flex flex-col space-y-3 sm:space-y-5 h-full">
+              <div className="flex-1">
+                <DailyDiaryCard
+                  actualRecords={actualRecords}
+                  isRecentDataLoading={isRecentDataLoading}
+                  recentDataError={recentDataError}
+                  hasDataForToday={hasDataForToday}
+                  quitPlan={quitPlan as any}
+                  onOpenDiaryModal={openDiaryModal}
+                  openEditDialog={openEditDialog}
+                />
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <Label className="text-sm text-gray-600">Loại kế hoạch</Label>
-                <div className="font-medium">{getReductionTypeLabel(quitPlan.reductionType)}</div>
-              </div>
-              <div>
-                <Label className="text-sm text-gray-600 mr-3">Trạng thái</Label>
-                <Badge className={getStatusColor(quitPlan.status)}>{getStatusLabel(quitPlan.status)}</Badge>
-              </div>
-              <div>
-                <Label className="text-sm text-gray-600">Ngày bắt đầu</Label>
-                <div className="font-medium">{new Date(quitPlan.startDate).toLocaleDateString('vi-VN')}</div>
-              </div>
-              <div>
-                <Label className="text-sm text-gray-600">Ngày mục tiêu</Label>
-                <div className="font-medium">{new Date(quitPlan.goalDate).toLocaleDateString('vi-VN')}</div>
-              </div>
-              <div>
-                <Label className="text-sm text-gray-600">Lượng hút ban đầu</Label>
-                <div className="font-medium">{quitPlan.initialSmokingAmount} điếu/ngày</div>
-              </div>
-              <div>
-                <Label className="text-sm text-gray-600">Tiến độ</Label>
-                <div className="font-medium">
-                  {daysSinceStart + 1}/{totalDays} ngày ({(((daysSinceStart + 1) / totalDays) * 100).toFixed(1)}%)
-                </div>
-              </div>
-              <div>
-                <Label className="text-sm text-gray-600">Số điếu trong gói</Label>
-                {isEditing ? (
-                  <div className="space-y-1">
-                    <Input
-                      type="number"
-                      min="1"
-                      max="50"
-                      value={editData.cigarettesPerPack}
-                      onChange={(e) => {
-                        const value = Number.parseInt(e.target.value) || 0
-                        // Constrain value between 1 and 50
-                        const constrainedValue = Math.max(1, Math.min(50, value))
-                        setEditData({
-                          ...editData,
-                          cigarettesPerPack: constrainedValue,
-                        })
-                      }}
-                      className={`h-8 ${!isValidCigarettesPerPack(editData.cigarettesPerPack)
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-green-300 focus:border-green-500 focus:ring-green-500"
-                        }`}
-                      disabled={isSaving}
-                      placeholder="1-50"
-                    />
-                    <p className="text-xs text-gray-500">Từ 1 đến 50 điếu</p>
-                  </div>
-                ) : (
-                  <div className="font-medium">{quitPlan.cigarettesPerPack} điếu</div>
-                )}
-              </div>
-              <div>
-                <Label className="text-sm text-gray-600">Giá tiền mỗi gói</Label>
-                {isEditing ? (
-                  <div className="space-y-1">
-                    <Input
-                      type="number"
-                      min="1"
-                      max="999999"
-                      step="1000"
-                      value={editData.pricePerPack}
-                      onChange={(e) => {
-                        const value = Number.parseFloat(e.target.value) || 1
-                        // Constrain value between 1 and 999999
-                        const constrainedValue = Math.max(1, Math.min(999999, value))
-                        setEditData({
-                          ...editData,
-                          pricePerPack: constrainedValue,
-                        })
-                      }}
-                      className={`h-8 ${!isValidPricePerPack(editData.pricePerPack)
-                        ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-green-300 focus:border-green-500 focus:ring-green-500"
-                        }`}
-                      disabled={isSaving}
-                      placeholder="1-999,999"
-                    />
-                    <p className="text-xs text-gray-500">Từ 1 đến 999,999 VND</p>
-                  </div>
-                ) : (
-                  <div className="font-medium">{quitPlan.pricePerPack.toLocaleString('vi-VN')} VND</div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-1 sm:gap-3 lg:gap-4">
-        {/* Left Column */}
-        {/* Daily Summary Card */}
-        <div className="xl:col-span-4 flex flex-col space-y-3 sm:space-y-5 h-full">
-          <AnimatedSection animation="fadeUp" delay={400} className="flex-1">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-            >
-              <Card className="overflow-hidden border border-slate-300">
-                <CardHeader className="mb-10">
-                  <div className="flex items-center justify-between py-8">
-                    <div className="space-y-3">
-                      <CardTitle className="flex items-center gap-2 text-3xl font-bold">
-                        Nhật Ký Cai Thuốc Của Bạn
-                      </CardTitle>
-                      <p className="text-md text-gray-600">
-                        Theo dõi hành trình mỗi ngày bạn đã trải qua!
-                      </p>
-                    </div>
-
-                    {/* Main Action Button */}
-                    <div className="flex justify-center">
-                      <Button
-                        onClick={() => setIsDiaryModalOpen(true)}
-                        size="lg"
-                        className="px-6 py-3 mr-3 text-base font-medium bg-foreground"
-                      >
-                        <Plus className="w-5 h-5" />
-                        {hasDataForToday ? "Chỉnh sửa nhật ký hôm nay" : "Ghi nhận nhật ký hôm nay"}
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* Collapsible Records Section */}
-                    <div className="border-t pt-4">
-                      <Button
-                        onClick={() => setShowRecords(!showRecords)}
-                        variant="ghost"
-                        className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-gray-600" />
-                          <span className="font-medium text-gray-700">Xem các ghi nhận trước</span>
-                          {actualRecords && actualRecords.length > 0 && (
-                            <Badge variant="secondary" className="ml-2">
-                              {actualRecords.length} ghi nhận
-                            </Badge>
-                          )}
-                        </div>
-                        {showRecords ? (
-                          <ChevronUp className="w-4 h-4 text-gray-400" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 text-gray-400" />
-                        )}
-                      </Button>
-
-                      <AnimatePresence>
-                        {showRecords && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="mt-3 space-y-4 max-h-[400px] overflow-y-auto">
-                              {isRecentDataLoading ? (
-                                <div className="text-center py-4 text-gray-500">
-                                  Đang tải dữ liệu...
-                                </div>
-                              ) : recentDataError ? (
-                                <div className="text-center py-4 text-red-500">
-                                  Lỗi khi tải dữ liệu ghi nhận
-                                </div>
-                              ) : actualRecords && actualRecords.length > 0 ? (
-                                <div className="max-h-64 overflow-y-auto space-y-3">
-                                  {actualRecords
-                                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) // Sort newest first
-                                    .slice(0, 3) // Limit to 3 records
-                                    .map((dayData, index) => {
-                                      // Calculate if goal was met using same logic as OverviewTab
-                                      const daysSincePlanStart = QuitPlanCalculator.getDaysBetweenDates(quitPlan.startDate, dayData.date)
-                                      const totalDaysInPlan = QuitPlanCalculator.getTotalDays(quitPlan.startDate, quitPlan.goalDate)
-                                      const recommendedLimit = QuitPlanCalculator.calculateDailyLimit(
-                                        quitPlan.reductionType,
-                                        quitPlan.initialSmokingAmount,
-                                        daysSincePlanStart,
-                                        totalDaysInPlan
-                                      )
-                                      const goalMet = (dayData.totalSmokedCount || 0) <= recommendedLimit
-                                      const isToday = new Date(dayData.date).toDateString() === new Date().toDateString()
-
-                                      return (
-                                        <motion.div
-                                          key={dayData.date}
-                                          className="border rounded-lg p-4 bg-gray-50"
-                                          initial={{ opacity: 0, y: 10 }}
-                                          animate={{ opacity: 1, y: 0 }}
-                                          transition={{ delay: index * 0.1 }}
-                                        >
-                                          <div className="flex items-center justify-between mb-3">
-                                            <div className="flex items-center gap-2">
-                                              <div className="font-medium">{new Date(dayData.date).toLocaleDateString('vi-VN')}</div>
-                                              {isToday && (
-                                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-300">
-                                                  Hôm nay
-                                                </Badge>
-                                              )}
-                                            </div>
-                                            <Badge
-                                              variant={goalMet ? "default" : "destructive"}
-                                              className={`text-xs ${goalMet ? "bg-green-100 text-green-700 border-green-300" : "bg-red-100 text-red-700 border-red-300"}`}
-                                            >
-                                              {goalMet ? "✓ Đạt mục tiêu" : "✗ Vượt mức"}
-                                            </Badge>
-                                          </div>
-                                          <div className="flex items-center gap-30 text-sm">
-                                            <div>
-                                              <span className="text-gray-600">Số điếu đã hút:</span>
-                                              <span className="ml-1 font-medium text-red-600">
-                                                {dayData.totalSmokedCount || 0}
-                                              </span>
-                                            </div>
-                                            <div>
-                                              <span className="text-gray-600">Số lần thèm:</span>
-                                              <span className="ml-1 font-medium text-orange-600">
-                                                {dayData.totalCravingCount || 0}
-                                              </span>
-                                            </div>
-                                            <div>
-                                              <span className="text-gray-600">Tâm trạng:</span>
-                                              <span className="ml-1 font-medium text-blue-600">
-                                                {dayData.mood ? getMoodTranslation(dayData.mood) : "Không xác định"}
-                                              </span>
-                                            </div>
-                                            <div>
-                                              <span className="text-gray-600">Note:</span>
-                                              <span className="ml-1 font-medium text-blue-600">
-                                                {dayData.mood ? getMoodTranslation(dayData.mood) : "Không xác định"}
-                                              </span>
-                                            </div>
-                                          </div>
-                                        </motion.div>
-                                      )
-                                    })}
-                                </div>
-                              ) : (
-                                <div className="text-center py-8 text-gray-500">
-                                  <div className="text-4xl mb-2">📝</div>
-                                  <p>Chưa có nhật ký nào trong 30 ngày gần đây</p>
-                                  <p className="text-sm">Hãy bắt đầu ghi nhận để theo dõi hành trình của bạn!</p>
-                                </div>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </AnimatedSection>
+            {/* Right Column - Summary Cards */}
+            <SummaryCards
+              totalSmoked={totalSmoked}
+              totalCravings={totalCravings}
+              todayDailySummary={todayDailySummary || undefined}
+            />
+          </div>
         </div>
 
-        {/* Right Column */}
-        {/* Mini Cards for Today's Summary */}
-        <div className="space-y-4">
-          <AnimatedSection animation="fadeUp" delay={450}>
-            <div className=" bg-red-50 px-3 py-5 rounded-lg border border-red-200">
-              <div className="flex items-center gap-4">
-                <Cigarette className="w-5 h-5 text-red-600" />
-                <div className="text-md text-red-600 font-medium">Tổng Số Thuốc Đã Hút</div>
-              </div>
-              <div className="text-xl font-bold text-center text-red-700">{todaySmoked}</div>
-            </div>
-          </AnimatedSection>
 
-          <AnimatedSection animation="fadeUp" delay={500}>
-            <div className="bg-orange-50 px-3 py-5 rounded-lg border border-orange-200">
-              <div className="flex items-center gap-4">
-                <Flame className="w-5 h-5 text-orange-600" />
-                <div className="text-md text-orange-600 font-medium">Tổng Lần Thèm Thuốc</div>
-              </div>
-              <div className="text-xl  text-center font-bold text-orange-700">{todayCravings}</div>
-            </div>
-          </AnimatedSection>
+        {/* Statistics Charts */}
+        <StatisticsCharts />
 
-          {/* Mood Card - Only show if mood exists */}
-          <AnimatedSection animation="fadeUp" delay={550}>
-            <div className="bg-blue-50 px-3 py-5 rounded-lg border border-blue-200">
-              <div className="flex items-center gap-4">
-                <span className="text-xl">😊</span>
-                <div className="text-md text-blue-600 font-medium">Tâm Trạng Hôm Nay</div>
-              </div>
-              <div className="text-sm text-center font-medium text-blue-700">
-                {todayDailySummary?.mood
-                  ? getVietnameseTranslation(todayDailySummary.mood)
-                  : "Chưa được ghi nhận"}
-              </div>
-            </div>
-          </AnimatedSection>
-        </div>
+        {/* Statistics Cards */}
+        <StatisticsCards
+          cravingStats={cravingStats}
+          moodStats={moodStats}
+          isCravingStatsLoading={isCravingStatsLoading}
+          isMoodStatsLoading={isMoodStatsLoading}
+        />
+
+        {/* Restart Confirmation Modal */}
+        <RestartConfirmationModal
+          isOpen={showRestartConfirm}
+          onClose={handleCloseRestartModal}
+          onConfirm={handleConfirmRestart}
+          isRestarting={isRestarting}
+          restartSuccess={restartSuccess}
+        />
+
+        {/* Diary Input Modal */}
+        <DiaryInputModal
+          isOpen={isDiaryModalOpen}
+          onClose={closeDiaryModal}
+          quitPlan={quitPlan}
+          editingRecord={editingRecord || undefined}
+          onRecordSuccess={() => {
+            refetchDailySummary()
+            refetchChartData()
+          }}
+        />
       </div>
-
-      {/* Statistics Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Weekly Progress</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weeklyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="week" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="smoking" fill="#ef4444" name="Cigarettes" />
-                    <Bar dataKey="cravings" fill="#f59e0b" name="Cravings" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Mood Tracking</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={moodData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" />
-                    <YAxis domain={[1, 5]} />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="mood"
-                      stroke="#10b981"
-                      strokeWidth={3}
-                      dot={{ fill: "#10b981", strokeWidth: 2, r: 4 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-
-          </Card>
-        </motion.div>
-      </div>
-
-
-      {/* Restart Confirmation Modal */}
-      <AnimatePresence>
-        {showRestartConfirm && (
-          <motion.div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleCloseRestartModal}
-          >
-            <motion.div
-              className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="text-center">
-                {restartSuccess ? (
-                  // Success state
-                  <>
-                    <div className="text-green-500 text-4xl mb-4">✅</div>
-                    <h3 className="text-lg font-bold text-gray-800 mb-2">
-                      Đã từ bỏ kế hoạch thành công!
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-6">
-                      Đang chuyển hướng về trang tạo kế hoạch mới...
-                    </p>
-                    <div className="flex justify-center">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                        className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full"
-                      />
-                    </div>
-                  </>
-                ) : (
-                  // Confirmation state
-                  <>
-                    <div className="text-orange-500 text-4xl mb-4">⚠️</div>
-                    <h3 className="text-lg font-bold text-gray-800 mb-2">
-                      Xác nhận khởi động lại kế hoạch
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-6">
-                      Bạn có chắc chắn muốn thực hiện lại với kế hoạch mới không?
-                      <br />
-                      <span className="text-red-500 font-medium">
-                        Lưu ý: Khi xác nhận sẽ không thể quay lại kế hoạch hiện tại
-                      </span>
-                    </p>
-
-                    <div className="flex gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleCloseRestartModal}
-                        className="flex-1"
-                        disabled={isRestarting || restartSuccess}
-                      >
-                        Hủy
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={handleConfirmRestart}
-                        className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700"
-                        disabled={isRestarting || restartSuccess}
-                      >
-                        {isRestarting ? (
-                          <>
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-                              className="w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"
-                            />
-                            Đang xử lý...
-                          </>
-                        ) : (
-                          <>
-                            <AlertTriangle className="w-4 h-4 mr-2" />
-                            Xác nhận
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Diary Input Modal */}
-      <DiaryInputModal
-        isOpen={isDiaryModalOpen}
-        onClose={closeDiaryModal}
-        editingRecord={todayDailySummary}
-        onRecordSuccess={() => {
-          refetchDailySummary()
-          refetchRecentData()
-          closeDiaryModal()
-        }}
-      />
-    </div>
+    </TooltipProvider>
   )
 }

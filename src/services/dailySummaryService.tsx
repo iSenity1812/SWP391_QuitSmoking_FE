@@ -35,7 +35,7 @@ const handleApiError = (error: unknown): string => {
   } else if (error instanceof Error) {
     return error.message;
   }
-  return 'Đã xảy ra lỗi không xác định.';
+  return 'Đã xảy ra lỗi không xác định';
 };
 
 // --- Enums (tương ứng với BE enums) ---
@@ -48,6 +48,7 @@ export type Mood = 'STRESSED' | 'BORED' | 'ANXIOUS' | 'ANGRY' | 'SAD' | 'HAPPY' 
 // --- DailySummary DTOs (tương ứng với BE DTOs) ---
 
 export interface DailySummaryCreateRequest {
+  trackDate: string; // LocalDate -> string (ISO 8601: YYYY-MM-DD)
   totalSmokedCount: number;
   totalCravingCount: number;
   mood?: Mood;
@@ -55,6 +56,7 @@ export interface DailySummaryCreateRequest {
 }
 
 export interface DailySummaryUpdateRequest {
+  // trackDate: string;
   updateSmokedCount?: number; // Optional based on partial update
   updateCravingCount?: number; // Optional based on partial update
   mood?: Mood; // Optional based on partial update
