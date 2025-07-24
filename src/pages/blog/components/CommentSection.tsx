@@ -76,7 +76,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         <div className="w-full flex flex-col items-start border-t pt-6">
             <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                 <MessageCircle className="w-5 h-5" />
-                Bình luận ({rootComments.length})
+                Bình luận ({comments.length})
             </h3>
 
             {/* Form bình luận */}

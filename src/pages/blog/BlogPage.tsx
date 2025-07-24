@@ -42,6 +42,7 @@ type ViewMode = "list" | "detail" | "myPosts"
 const BlogPage: React.FC = () => {
     // State
     const [searchTerm, setSearchTerm] = useState("")
+    const [filterType, setFilterType] = useState<"all" | "coach">("all")
     const [selectedPost, setSelectedPost] = useState<BackendBlogPost | null>(null)
     const [selectedPostComments, setSelectedPostComments] = useState<CommentResponseDTO[]>([])
     const [viewMode, setViewMode] = useState<ViewMode>("list")
@@ -92,6 +93,7 @@ const BlogPage: React.FC = () => {
         page: 0,
         size: 20,
         keyword: searchTerm || undefined,
+        filterType: filterType,
     })
 
     // My posts hook - only fetch when user is logged in and viewing my posts
@@ -115,14 +117,8 @@ const BlogPage: React.FC = () => {
 
     // Effect to update selected post when blogs data changes after comment addition
 
-    // Filter posts based on search term (additional client-side filtering if needed)
-    const filteredPosts = blogPosts.filter((post) => {
-        if (!searchTerm) return true
-        return (
-            post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            post.content.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-    })
+    // Filter posts based on search term and filter type (handled in hook)
+    const filteredPosts = blogPosts
 
     // Helper function to get root comments for a blog
     const getRootComments = (blogId: number): CommentResponseDTO[] => {
@@ -458,7 +454,12 @@ const BlogPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-            <BlogHeader searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+            <BlogHeader
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                filterType={filterType}
+                setFilterType={setFilterType}
+            />
 
             <main className="container mx-auto px-6 pb-20">
                 <UserAuthSection

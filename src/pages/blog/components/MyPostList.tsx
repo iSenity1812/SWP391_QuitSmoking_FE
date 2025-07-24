@@ -159,24 +159,7 @@ const MyPostsList: React.FC<MyPostsListProps> = ({
                                 {/* Content Preview - Strip HTML tags */}
                                 <p className="text-slate-700 dark:text-slate-300 mb-4 line-clamp-3">{getTextPreview(post.content)}</p>
 
-                                {/* Stats */}
-                                <div className="flex items-center gap-6 text-sm text-slate-500 dark:text-slate-400 mb-4">
-                                    <span className="flex items-center gap-1">
-                                        <Eye className="w-4 h-4" />
-                                        {post.viewCount || 0} lượt xem
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth={2}
-                                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                                            />
-                                        </svg>
-                                        {post.commentCount || 0} bình luận
-                                    </span>
-                                </div>
+
 
                                 {/* Actions */}
                                 <div className="flex items-center gap-2">
