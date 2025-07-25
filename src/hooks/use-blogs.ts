@@ -35,13 +35,29 @@ export const useBlogPosts = (params?: BlogListParams) => {
       const publishedBlogs = blogs.filter((blog) => blog.status === "PUBLISHED")
 
       // Apply search filter if provided
-      const filteredBlogs = params?.keyword
+      let filteredBlogs = params?.keyword
         ? publishedBlogs.filter(
           (blog) =>
             blog.title.toLowerCase().includes(params.keyword!.toLowerCase()) ||
             blog.content.toLowerCase().includes(params.keyword!.toLowerCase()),
         )
         : publishedBlogs
+
+      // Apply role filter if provided
+      if (params?.filterType === "coach") {
+        // Filter for blogs from users with COACH role
+        // You might need to adjust this based on how you identify coach authors
+        filteredBlogs = filteredBlogs.filter((blog) => {
+          // This assumes you have author role information in the blog data
+          // You might need to modify this based on your actual data structure
+          return (
+            blog.authorId &&
+            (blog.authorName?.toLowerCase().includes("coach") ||
+              // Add other ways to identify coach authors based on your data
+              blog.authorId.includes("coach")) // Adjust this condition
+          )
+        })
+      }
 
       // Create a mock SpringPageResponse structure
       const mockResponse: SpringPageResponse<BlogPost> = {

@@ -157,18 +157,6 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({
                 <CardContent>
 
 
-                    {/* Image Display */}
-                    {post.imageUrl && (
-                        <div className="mb-6 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
-                            <img
-                                src={post.imageUrl || "/placeholder.svg"}
-                                alt={post.title}
-                                className="w-full max-h-96 object-cover"
-                                onError={handleImageError}
-                                onLoad={() => console.log("Detail image loaded successfully:", post.imageUrl)}
-                            />
-                        </div>
-                    )}
 
                     {/* Render HTML content */}
                     {renderHTMLContent(post.content)}

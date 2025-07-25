@@ -40,6 +40,7 @@ type ViewMode = "list" | "detail" | "myPosts"
 export function CoachBlogManagement() {
     // State
     const [searchTerm, setSearchTerm] = useState("")
+    const [filterType, setFilterType] = useState<"all" | "coach">("all")
     const [selectedPost, setSelectedPost] = useState<BackendBlogPost | null>(null)
     const [selectedPostComments, setSelectedPostComments] = useState<CommentResponseDTO[]>([])
     const [viewMode, setViewMode] = useState<ViewMode>("list")
@@ -92,6 +93,7 @@ export function CoachBlogManagement() {
         page: 0,
         size: 20,
         keyword: searchTerm || undefined,
+        filterType: filterType,
     })
 
     // My posts hook - only fetch when user is logged in and viewing my posts
@@ -420,15 +422,27 @@ export function CoachBlogManagement() {
             {/* Custom Search Section - Only Search Bar */}
             <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm">
                 <div className="max-w-2xl mx-auto">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                        <Input
-                            type="text"
-                            placeholder="Tìm kiếm bài viết..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-3 rounded-xl border-2 border-emerald-200 dark:border-slate-600 focus:border-emerald-400 dark:focus:border-emerald-500 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm"
-                        />
+                    <div className="flex flex-col sm:flex-row gap-4 items-center">
+                        <div className="relative flex-[3_3_0%] flex items-center">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+                            <Input
+                                type="text"
+                                placeholder="Tìm kiếm bài viết..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-10 pr-4 h-12 rounded-xl border-2 border-emerald-200 dark:border-slate-600 focus:border-emerald-400 dark:focus:border-emerald-500 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm text-base"
+                            />
+                        </div>
+                        <div className="flex-[1_1_0%] w-full sm:w-56 flex items-center">
+                            <select
+                                value={filterType}
+                                onChange={e => setFilterType(e.target.value as 'all' | 'coach')}
+                                className="w-full h-12 px-4 rounded-xl border-2 border-emerald-200 dark:border-slate-600 bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 font-medium focus:border-emerald-400 dark:focus:border-emerald-500 text-base"
+                            >
+                                <option value="all">Tất cả bài viết</option>
+                                <option value="coach">Bài viết từ Coach</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>

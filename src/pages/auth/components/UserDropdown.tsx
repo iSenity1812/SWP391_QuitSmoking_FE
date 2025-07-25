@@ -1,3 +1,4 @@
+"use client"
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
@@ -25,25 +26,50 @@ export const UserDropdown: React.FC = () => {
 
   if (!user) return null
 
+  // Get profile picture URL
+  const getProfilePictureUrl = () => {
+    if (user.profilePicture) {
+      // If it's a full URL, use it directly
+      if (user.profilePicture.startsWith("http")) {
+        return user.profilePicture
+      }
+      // If it's a relative path, prepend base URL
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"
+      return `${baseUrl}${user.profilePicture}`
+    }
+    // Default fallback image
+    return "/placeholder.svg?height=40&width=40"
+  }
+
   // Get role badge text
   const getRoleBadgeText = () => {
     switch (user.role) {
-      case 'SUPER_ADMIN': return 'Admin';
-      case 'CONTENT_ADMIN': return 'Content Admin';
-      case 'COACH': return 'Coach';
-      case 'PREMIUM_MEMBER': return 'Premium';
-      case 'NORMAL_MEMBER': return 'Member';
-      default: return '';
+      case "SUPER_ADMIN":
+        return "Admin"
+      case "CONTENT_ADMIN":
+        return "Content Admin"
+      case "COACH":
+        return "Coach"
+      case "PREMIUM_MEMBER":
+        return "Premium"
+      case "NORMAL_MEMBER":
+        return "Member"
+      default:
+        return ""
     }
   }
 
   // Get dashboard link based on role
   const getDashboardLink = () => {
     switch (user.role) {
-      case 'SUPER_ADMIN': return '/admin';
-      case 'CONTENT_ADMIN': return '/contentadmin';
-      case 'COACH': return '/coach';
-      default: return '/profile';
+      case "SUPER_ADMIN":
+        return "/admin"
+      case "CONTENT_ADMIN":
+        return "/contentadmin"
+      case "COACH":
+        return "/coach"
+      default:
+        return "/profile"
     }
   }
 
@@ -54,37 +80,39 @@ export const UserDropdown: React.FC = () => {
     // Profile/Dashboard - Always show
     if (canAccessAdmin || canAccessCoach || canAccessContentAdmin) {
       items.push({
-        label: 'Dashboard',
+        label: "Dashboard",
         href: getDashboardLink(),
         icon: Shield,
-        variant: 'default' as const
+        variant: "default" as const,
       })
     } else {
       items.push({
-        label: 'Profile',
-        href: '/profile',
+        label: "Profile",
+        href: "/profile",
         icon: User,
-        variant: 'default' as const
+        variant: "default" as const,
       })
     }
 
     // Settings - Always show
     items.push({
-      label: 'Settings',
-      href: '#', // Placeholder for future
+      label: "Settings",
+      href: "#", // Placeholder for future
       icon: Settings,
-      variant: 'default' as const
+      variant: "default" as const,
     })
 
     // My Plan - Only for members
     if (canAccessPlan) {
       items.push({
-        label: 'My Plan',
-        href: '/plan',
+        label: "My Plan",
+        href: "/plan",
         icon: Gem,
-        variant: 'default' as const
+        variant: "default" as const,
       })
-    } return items
+    }
+
+    return items
   }
 
   const menuItems = getMenuItems()
@@ -97,9 +125,14 @@ export const UserDropdown: React.FC = () => {
       >
         <div className="relative">
           <img
-            src={'/cham1.jpg'}
+            src={getProfilePictureUrl() || "/placeholder.svg"}
             alt={user.username}
-            className="w-10 h-10 rounded-full border-2 border-emerald-200 dark:border-emerald-500 shadow-lg group-hover:border-emerald-300 dark:group-hover:border-emerald-400 transition-colors duration-300"
+            className="w-10 h-10 rounded-full border-2 border-emerald-200 dark:border-emerald-500 shadow-lg group-hover:border-emerald-300 dark:group-hover:border-emerald-400 transition-colors duration-300 object-cover"
+            onError={(e) => {
+              // Fallback to placeholder if image fails to load
+              const target = e.target as HTMLImageElement
+              target.src = "/placeholder.svg?height=40&width=40"
+            }}
           />
           {/* Role Badge */}
           {/* {getRoleBadgeText() && (
@@ -122,9 +155,14 @@ export const UserDropdown: React.FC = () => {
           <div className="p-4 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-b border-emerald-200 dark:border-slate-600">
             <div className="flex items-center gap-3">
               <img
-                src={'/cham1.jpg'}
+                src={getProfilePictureUrl() || "/placeholder.svg"}
                 alt={user.username}
-                className="w-12 h-12 rounded-full border-2 border-emerald-300 dark:border-emerald-500 shadow-lg"
+                className="w-12 h-12 rounded-full border-2 border-emerald-300 dark:border-emerald-500 shadow-lg object-cover"
+                onError={(e) => {
+                  // Fallback to placeholder if image fails to load
+                  const target = e.target as HTMLImageElement
+                  target.src = "/placeholder.svg?height=48&width=48"
+                }}
               />
               <div className="flex-1 min-w-0">
                 <p className="font-black text-slate-800 dark:text-white truncate">{user.username}</p>
