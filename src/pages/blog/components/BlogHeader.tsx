@@ -45,7 +45,7 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({ searchTerm, setSearchTerm, filt
                     {/* Search Section */}
                     <div className="max-w-2xl mx-auto mb-12">
                         <div className="flex flex-col sm:flex-row gap-4 items-center">
-                            <div className="relative flex-1 flex items-center">
+                            <div className="relative flex-[3_3_0%] flex items-center">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
                                 <Input
                                     type="text"
@@ -55,7 +55,7 @@ const BlogHeader: React.FC<BlogHeaderProps> = ({ searchTerm, setSearchTerm, filt
                                     className="pl-10 pr-4 h-12 rounded-xl border-2 border-emerald-200 dark:border-slate-600 focus:border-emerald-400 dark:focus:border-emerald-500 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm text-base"
                                 />
                             </div>
-                            <div className="flex-none w-full sm:w-56 flex items-center">
+                            <div className="flex-[1_1_0%] w-full sm:w-56 flex items-center">
                                 <select
                                     value={filterType}
                                     onChange={e => setFilterType(e.target.value as 'all' | 'coach')}
