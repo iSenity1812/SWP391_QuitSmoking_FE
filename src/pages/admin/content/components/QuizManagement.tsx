@@ -21,6 +21,7 @@ import { TaskService } from "@/services/taskService"
 import type { QuizResponseDTO } from "@/types/task"
 import { CreateQuizDialog } from "./dialogs/CreateQuizDialog"
 import { EditQuizDialog } from "./dialogs/EditQuizDialog"
+import { ImportQuizDialog } from "./dialogs/ImportQuizDialog"
 import { toast } from "react-toastify"
 
 
@@ -43,8 +44,9 @@ export function QuizManagement() {
             const data = await TaskService.getAllQuizzes()
             setQuizzes(data)
             setError(null)
-        } catch (err: any) {
-            setError(err.message)
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Có lỗi xảy ra'
+            setError(errorMessage)
         } finally {
             setLoading(false)
         }
@@ -63,8 +65,9 @@ export function QuizManagement() {
                 draggable: true,
                 progress: undefined,
             })
-        } catch (err: any) {
-            toast.error(`Xóa quiz thất bại: ${err.message}`, {
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Có lỗi xảy ra khi xóa quiz'
+            toast.error(`Xóa quiz thất bại: ${errorMessage}`, {
                 position: "top-right",
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -130,6 +133,8 @@ export function QuizManagement() {
                         </div>
 
                         <CreateQuizDialog onQuizCreated={loadQuizzes} />
+
+                        <ImportQuizDialog onQuizzesImported={loadQuizzes} />
 
                         <Button variant="outline">
                             <Filter className="w-4 h-4 mr-2" />
