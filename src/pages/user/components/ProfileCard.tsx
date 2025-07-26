@@ -32,7 +32,7 @@ import axiosConfig from "@/config/axiosConfig"
 import { useAuth } from "@/hooks/useAuth"
 
 // Base URL configuration - adjust this to match your backend
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export default function ProfileCard() {
   const [profileData, setProfileData] = useState<UserProfileMeResponse | null>(null)
