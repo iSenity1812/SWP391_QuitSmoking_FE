@@ -1,18 +1,57 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect } from "react"
-import { User, Settings, LogOut, Trophy, ChevronDown, Shield, Gem } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
+import { ChevronDown, User, Settings, LogOut, Trophy, Gem } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
-import { useUserRoutes } from "@/hooks/useRoleAuth"
 import { Link } from "react-router-dom"
+import { userService, type UserProfileMeResponse } from "@/services/userService"
 
-export const UserDropdown: React.FC = () => {
+const UserDropdown: React.FC = () => {
+  const { user, logout } = useAuth()
+  const [profileData, setProfileData] = useState<UserProfileMeResponse | null>(null)
+  const [imageKey, setImageKey] = useState(Date.now())
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const { user, logout } = useAuth()
-  const { canAccessPlan, canAccessCoach, canAccessAdmin, canAccessContentAdmin } = useUserRoutes()
 
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (user) {
+        try {
+          const data = await userService.getProfileMe()
+          setProfileData(data)
+          console.log("UserDropdown: Fetched profile data:", data)
+        } catch (error) {
+          console.error("Error fetching profile data in UserDropdown:", error)
+        }
+      }
+    }
+
+    fetchProfileData()
+  }, [user])
+
+  // Listen for profile picture updates
+  useEffect(() => {
+    const handleProfilePictureUpdate = (event: CustomEvent) => {
+      console.log("UserDropdown: Profile picture updated:", event.detail.profilePicture)
+      // Update profile data if available
+      if (profileData) {
+        setProfileData((prev) => ({
+          ...prev!,
+          profilePicture: event.detail.profilePicture,
+        }))
+      }
+      // Update cache busting key
+      setImageKey(Date.now())
+    }
+
+    window.addEventListener("profilePictureUpdated", handleProfilePictureUpdate as EventListener)
+    return () => {
+      window.removeEventListener("profilePictureUpdated", handleProfilePictureUpdate as EventListener)
+    }
+  }, [profileData])
+
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -21,29 +60,44 @@ export const UserDropdown: React.FC = () => {
     }
 
     document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
   }, [])
 
-  if (!user) return null
-
-  // Get profile picture URL
+  // Get profile picture URL with force update dependency
   const getProfilePictureUrl = () => {
-    if (user.profilePicture) {
-      // If it's a full URL, use it directly
-      if (user.profilePicture.startsWith("http")) {
-        return user.profilePicture
-      }
-      // If it's a relative path, prepend base URL
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"
-      return `${baseUrl}${user.profilePicture}`
+    // Use profileData first (from UserProfileMeResponse), then fallback to user
+    const imageToUse = profileData?.profilePicture || user?.profilePicture
+
+    console.log("UserDropdown: getProfilePictureUrl - profileData:", profileData?.profilePicture)
+    console.log("UserDropdown: getProfilePictureUrl - user:", user?.profilePicture)
+    console.log("UserDropdown: getProfilePictureUrl - imageToUse:", imageToUse)
+
+    if (!imageToUse) return null
+
+    // If it's already a full URL (starts with http/https), return as is with cache busting
+    if (imageToUse.startsWith("http://") || imageToUse.startsWith("https://")) {
+      return `${imageToUse}?t=${imageKey}`
     }
-    // Default fallback image
-    return "/placeholder.svg?height=40&width=40"
+
+    // If it's a base64 image, return as is
+    if (imageToUse.startsWith("data:")) {
+      return imageToUse
+    }
+
+    // If it's a relative path, prepend the base URL and add cache busting
+    const baseUrl = import.meta.env.VITE_API_BASE_URL
+    if (imageToUse.startsWith("/")) {
+      return `${baseUrl}${imageToUse}?t=${imageKey}`
+    }
+
+    // If it doesn't start with /, add both base URL and / with cache busting
+    return `${baseUrl}/${imageToUse}?t=${imageKey}`
   }
 
-  // Get role badge text
   const getRoleBadgeText = () => {
-    switch (user.role) {
+    switch (user?.role) {
       case "SUPER_ADMIN":
         return "Admin"
       case "CONTENT_ADMIN":
@@ -61,7 +115,7 @@ export const UserDropdown: React.FC = () => {
 
   // Get dashboard link based on role
   const getDashboardLink = () => {
-    switch (user.role) {
+    switch (user?.role) {
       case "SUPER_ADMIN":
         return "/admin"
       case "CONTENT_ADMIN":
@@ -73,49 +127,19 @@ export const UserDropdown: React.FC = () => {
     }
   }
 
-  // Define menu items based on user role
-  const getMenuItems = () => {
-    const items = []
 
-    // Profile/Dashboard - Always show
-    if (canAccessAdmin || canAccessCoach || canAccessContentAdmin) {
-      items.push({
-        label: "Dashboard",
-        href: getDashboardLink(),
-        icon: Shield,
-        variant: "default" as const,
-      })
-    } else {
-      items.push({
-        label: "Profile",
-        href: "/profile",
-        icon: User,
-        variant: "default" as const,
-      })
-    }
+  const menuItems = [
+    { icon: User, label: "Profile", href: "/profile" },
+    { icon: Settings, label: "Settings", href: "/settings" },
+    { icon: Gem, label: "Achievements", href: "/achievements" }
+  ]
 
-    // Settings - Always show
-    items.push({
-      label: "Settings",
-      href: "#", // Placeholder for future
-      icon: Settings,
-      variant: "default" as const,
-    })
-
-    // My Plan - Only for members
-    if (canAccessPlan) {
-      items.push({
-        label: "My Plan",
-        href: "/plan",
-        icon: Gem,
-        variant: "default" as const,
-      })
-    }
-
-    return items
+  if (!user) {
+    return null
   }
 
-  const menuItems = getMenuItems()
+  const profileImageUrl = getProfilePictureUrl()
+  console.log("UserDropdown: Final profileImageUrl:", profileImageUrl)
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -124,22 +148,37 @@ export const UserDropdown: React.FC = () => {
         className="flex items-center gap-3 p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-105 group relative"
       >
         <div className="relative">
-          <img
-            src={getProfilePictureUrl() || "/placeholder.svg"}
-            alt={user.username}
-            className="w-10 h-10 rounded-full border-2 border-emerald-200 dark:border-emerald-500 shadow-lg group-hover:border-emerald-300 dark:group-hover:border-emerald-400 transition-colors duration-300 object-cover"
-            onError={(e) => {
-              // Fallback to placeholder if image fails to load
-              const target = e.target as HTMLImageElement
-              target.src = "/placeholder.svg?height=40&width=40"
-            }}
-          />
-          {/* Role Badge */}
-          {/* {getRoleBadgeText() && (
-            <span className="absolute -top-1 -right-1 bg-emerald-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
-              {getRoleBadgeText()}
+          {/* Profile Picture */}
+          {profileImageUrl ? (
+            <img
+              key={imageKey} // Use same key for both navbar and dropdown
+              src={profileImageUrl || "/placeholder.svg"}
+              alt={user.username}
+              className="w-10 h-10 rounded-full border-2 border-emerald-200 dark:border-emerald-500 shadow-lg group-hover:border-emerald-300 dark:group-hover:border-emerald-400 transition-colors duration-300 object-cover"
+              onError={(e) => {
+                console.log("UserDropdown: Navbar image failed to load:", profileImageUrl)
+                // Hide image and show fallback
+                const target = e.target as HTMLImageElement
+                target.style.display = "none"
+                const fallback = target.nextElementSibling as HTMLElement
+                if (fallback) {
+                  fallback.style.display = "flex"
+                }
+              }}
+              onLoad={() => {
+                console.log("UserDropdown: Navbar image loaded successfully:", profileImageUrl)
+              }}
+            />
+          ) : null}
+          {/* Fallback Avatar */}
+          <div
+            className={`w-10 h-10 rounded-full border-2 border-emerald-200 dark:border-emerald-500 shadow-lg group-hover:border-emerald-300 dark:group-hover:border-emerald-400 transition-colors duration-300 bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center ${profileImageUrl ? "hidden" : "flex"}`}
+            style={{ display: profileImageUrl ? "none" : "flex" }}
+          >
+            <span className="text-emerald-600 dark:text-emerald-300 text-sm font-bold">
+              {user.username.charAt(0).toUpperCase()}
             </span>
-          )} */}
+          </div>
         </div>
         <div className="hidden md:block text-left">
           <p className="font-bold text-slate-800 dark:text-white text-sm">{user.username}</p>
@@ -148,22 +187,42 @@ export const UserDropdown: React.FC = () => {
           className={`w-4 h-4 text-slate-600 dark:text-slate-300 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-
       {isOpen && (
         <div className="absolute right-0 mt-2 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border-2 border-emerald-100 dark:border-slate-700 overflow-hidden z-50 animate-in slide-in-from-top-2 duration-200 min-w-[240px]">
           {/* Header with user info */}
           <div className="p-4 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-b border-emerald-200 dark:border-slate-600">
             <div className="flex items-center gap-3">
-              <img
-                src={getProfilePictureUrl() || "/placeholder.svg"}
-                alt={user.username}
-                className="w-12 h-12 rounded-full border-2 border-emerald-300 dark:border-emerald-500 shadow-lg object-cover"
-                onError={(e) => {
-                  // Fallback to placeholder if image fails to load
-                  const target = e.target as HTMLImageElement
-                  target.src = "/placeholder.svg?height=48&width=48"
-                }}
-              />
+              {/* Profile Picture */}
+              {profileImageUrl ? (
+                <img
+                  key={imageKey} // Use same key for both navbar and dropdown
+                  src={profileImageUrl || "/placeholder.svg"}
+                  alt={user.username}
+                  className="w-12 h-12 rounded-full border-2 border-emerald-300 dark:border-emerald-500 shadow-lg object-cover"
+                  onError={(e) => {
+                    console.log("UserDropdown: Dropdown image failed to load:", profileImageUrl)
+                    // Hide image and show fallback
+                    const target = e.target as HTMLImageElement
+                    target.style.display = "none"
+                    const fallback = target.nextElementSibling as HTMLElement
+                    if (fallback) {
+                      fallback.style.display = "flex"
+                    }
+                  }}
+                  onLoad={() => {
+                    console.log("UserDropdown: Dropdown image loaded successfully:", profileImageUrl)
+                  }}
+                />
+              ) : null}
+              {/* Fallback Avatar */}
+              <div
+                className={`w-12 h-12 rounded-full border-2 border-emerald-300 dark:border-emerald-500 shadow-lg bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center ${profileImageUrl ? "hidden" : "flex"}`}
+                style={{ display: profileImageUrl ? "none" : "flex" }}
+              >
+                <span className="text-emerald-600 dark:text-emerald-300 text-lg font-bold">
+                  {user.username.charAt(0).toUpperCase()}
+                </span>
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="font-black text-slate-800 dark:text-white truncate">{user.username}</p>
                 <p className="text-sm text-slate-600 dark:text-slate-300 truncate max-w-full">{user.email}</p>
@@ -176,7 +235,6 @@ export const UserDropdown: React.FC = () => {
               </div>
             </div>
           </div>
-
           {/* Menu Items */}
           <div className="p-2">
             {menuItems.map((item, index) => (
@@ -190,9 +248,7 @@ export const UserDropdown: React.FC = () => {
                 <span className="font-semibold text-slate-700 dark:text-slate-300">{item.label}</span>
               </Link>
             ))}
-
             <hr className="my-2 border-gray-200 dark:border-slate-600" />
-
             {/* Logout Button */}
             <button
               onClick={() => {
@@ -210,3 +266,5 @@ export const UserDropdown: React.FC = () => {
     </div>
   )
 }
+
+export default UserDropdown

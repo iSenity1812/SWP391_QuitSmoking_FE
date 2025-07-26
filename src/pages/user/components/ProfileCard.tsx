@@ -29,6 +29,7 @@ import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, A
 import { userService, type UserProfileMeResponse, type Achievement } from "@/services/userService"
 import { Progress } from "@/components/ui/progress"
 import axiosConfig from "@/config/axiosConfig"
+import { useAuth } from "@/hooks/useAuth"
 
 // Base URL configuration - adjust this to match your backend
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"
@@ -37,7 +38,9 @@ export default function ProfileCard() {
   const [profileData, setProfileData] = useState<UserProfileMeResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [forceUpdate, setForceUpdate] = useState(0) // Add this line
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { updateProfilePicture, refreshUserInfo, user } = useAuth() // Add user to destructuring
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -54,6 +57,27 @@ export default function ProfileCard() {
 
     fetchProfileData()
   }, [])
+
+  // Add this useEffect after the existing useEffect
+  useEffect(() => {
+    const handleProfilePictureUpdate = (event: CustomEvent) => {
+      console.log("Profile picture updated event received in ProfileCard:", event.detail)
+      // Update the profile data immediately
+      if (profileData) {
+        setProfileData((prev) => ({
+          ...prev!,
+          profilePicture: event.detail.profilePicture,
+        }))
+      }
+      // Force re-render
+      setForceUpdate((prev) => prev + 1)
+    }
+
+    window.addEventListener("profilePictureUpdated", handleProfilePictureUpdate as EventListener)
+    return () => {
+      window.removeEventListener("profilePictureUpdated", handleProfilePictureUpdate as EventListener)
+    }
+  }, [profileData])
 
   // Helper function to construct full image URL
   const getImageUrl = (imagePath: string | null | undefined): string | null => {
@@ -78,7 +102,7 @@ export default function ProfileCard() {
     return `${API_BASE_URL}/${imagePath}`
   }
 
-  // Handle profile picture upload
+  // Update the handleProfilePictureUpload function to ensure immediate update:
   const handleProfilePictureUpload = async (file: File) => {
     try {
       setIsUploadingImage(true)
@@ -99,15 +123,23 @@ export default function ProfileCard() {
       console.log("Upload response:", response.data)
 
       if (response.data.success) {
-        // Update the profile data with new image
+        // Update the profile data with new image IMMEDIATELY
         const updatedProfile = response.data.data
+        const newProfilePicture = updatedProfile.profilePicture
+
         setProfileData((prev) => ({
           ...prev!,
-          profilePicture: updatedProfile.profilePicture,
+          profilePicture: newProfilePicture,
         }))
 
+        // Update the AuthContext immediately to sync across all components
+        updateProfilePicture(newProfilePicture)
+
+        // Force re-render
+        setForceUpdate((prev) => prev + 1)
+
         console.log("Profile picture updated successfully!")
-        // You can add a toast notification here
+        console.log("New profile picture URL:", getImageUrl(newProfilePicture))
         alert("Cập nhật ảnh đại diện thành công!")
       }
     } catch (error: any) {
@@ -276,7 +308,8 @@ export default function ProfileCard() {
     )
   }
 
-  const profileImageUrl = getImageUrl(profileData.profilePicture)
+  // Use the latest profile picture from either profileData or user context
+  const profileImageUrl = getImageUrl(profileData?.profilePicture || user?.profilePicture)
 
   return (
     <motion.div

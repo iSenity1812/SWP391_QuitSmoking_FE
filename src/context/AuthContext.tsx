@@ -1,227 +1,266 @@
-import { authService } from "@/services/authService";
-import type { AccountResponse, ApiResponse, LoginRequest, RegisterRequest } from "@/types/auth";
-import { createContext, useCallback, useEffect, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+"use client"
+
+import type React from "react"
+
+import { authService } from "@/services/authService"
+import type { AccountResponse, ApiResponse, LoginRequest, RegisterRequest } from "@/types/auth"
+import { createContext, useCallback, useEffect, useState, type ReactNode } from "react"
+import { useNavigate } from "react-router-dom"
 
 interface AuthContextType {
-  isAuthenticated: boolean;
-  user: AccountResponse | null; // Thông tin người dùng khi đã đăng nhập
-  token: string | null; // JWT token
-  login: (credentials: LoginRequest) => Promise<ApiResponse<AccountResponse>>;
-  register: (data: RegisterRequest) => Promise<ApiResponse<AccountResponse>>;
-  logout: () => void;
-  refreshUserInfo: () => Promise<void>; // Add method to refresh user info
-  isLoading: boolean; // Trạng thái đang tải
+  isAuthenticated: boolean
+  user: AccountResponse | null // Thông tin người dùng khi đã đăng nhập
+  token: string | null // JWT token
+  login: (credentials: LoginRequest) => Promise<ApiResponse<AccountResponse>>
+  register: (data: RegisterRequest) => Promise<ApiResponse<AccountResponse>>
+  logout: () => void
+  refreshUserInfo: () => Promise<void> // Add method to refresh user info
+  updateProfilePicture: (newProfilePicture: string) => void // Add this line
+  isLoading: boolean // Trạng thái đang tải
 }
 
 // jwt & user info
-const AUTH_TOKEN = "jwt_token";
-const USER_INFO = "user_info";
+const AUTH_TOKEN = "jwt_token"
+const USER_INFO = "user_info"
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [user, setUser] = useState<AccountResponse | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // Start with true for initial auth check
-  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
+  const [user, setUser] = useState<AccountResponse | null>(null)
+  const [token, setToken] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState<boolean>(true) // Start with true for initial auth check
+  const navigate = useNavigate()
   // Helper function to validate token
   const isTokenValid = (token: string): boolean => {
     try {
       // Basic JWT structure check
-      const parts = token.split('.');
-      if (parts.length !== 3) return false;
+      const parts = token.split(".")
+      if (parts.length !== 3) return false
 
       // Decode payload to check expiry
-      const payload = JSON.parse(atob(parts[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
+      const payload = JSON.parse(atob(parts[1]))
+      const currentTime = Math.floor(Date.now() / 1000)
 
       // Check if token is expired (with 30 second buffer)
-      return payload.exp && payload.exp > (currentTime + 30);
+      return payload.exp && payload.exp > currentTime + 30
     } catch {
-      return false;
+      return false
     }
-  };
+  }
 
   const clearAuthData = useCallback(() => {
-    setToken(null);
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem(AUTH_TOKEN);
-    localStorage.removeItem(USER_INFO);
-  }, []);
+    setToken(null)
+    setUser(null)
+    setIsAuthenticated(false)
+    localStorage.removeItem(AUTH_TOKEN)
+    localStorage.removeItem(USER_INFO)
+  }, [])
 
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const storedToken = localStorage.getItem(AUTH_TOKEN);
-        const storedUser = localStorage.getItem(USER_INFO);
+        const storedToken = localStorage.getItem(AUTH_TOKEN)
+        const storedUser = localStorage.getItem(USER_INFO)
 
         if (storedToken && storedUser) {
           // Validate token before using it
           if (isTokenValid(storedToken)) {
-            const parsedUser = JSON.parse(storedUser) as AccountResponse;
-            setToken(storedToken);
-            setUser(parsedUser);
-            setIsAuthenticated(true);
+            const parsedUser = JSON.parse(storedUser) as AccountResponse
+            setToken(storedToken)
+            setUser(parsedUser)
+            setIsAuthenticated(true)
           } else {
             // Token is invalid or expired, clear data
-            console.warn("Stored token is invalid or expired");
-            clearAuthData();
+            console.warn("Stored token is invalid or expired")
+            clearAuthData()
           }
         }
       } catch (err) {
-        console.error("Error initializing auth from localStorage:", err);
-        clearAuthData();
+        console.error("Error initializing auth from localStorage:", err)
+        clearAuthData()
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    initializeAuth();
-  }, [clearAuthData]);
+    initializeAuth()
+  }, [clearAuthData])
 
   // Update user from localStorage without API call
   const updateUserFromLocalStorage = useCallback((): void => {
     try {
-      const userInfo = localStorage.getItem('user_info');
+      const userInfo = localStorage.getItem("user_info")
       if (userInfo) {
-        const parsedUser = JSON.parse(userInfo);
-        setUser(parsedUser);
-        console.log('User info updated from localStorage:', parsedUser);
+        const parsedUser = JSON.parse(userInfo)
+        setUser(parsedUser)
+        console.log("User info updated from localStorage:", parsedUser)
       }
     } catch (error) {
-      console.error('Failed to update user from localStorage:', error);
+      console.error("Failed to update user from localStorage:", error)
     }
-  }, []);
+  }, [])
 
   const refreshUserInfo = useCallback(async (): Promise<void> => {
     try {
-      const updatedUser = await authService.refreshUserInfo();
+      const updatedUser = await authService.refreshUserInfo()
       if (updatedUser) {
-        setUser(updatedUser);
-        console.log('User info refreshed in AuthContext:', updatedUser);
+        setUser(updatedUser)
+        console.log("User info refreshed in AuthContext:", updatedUser)
       }
     } catch (error) {
-      console.error('Failed to refresh user info in AuthContext:', error);
+      console.error("Failed to refresh user info in AuthContext:", error)
       // Fallback to localStorage if API fails
-      updateUserFromLocalStorage();
+      updateUserFromLocalStorage()
     }
-  }, [updateUserFromLocalStorage]);
+  }, [updateUserFromLocalStorage])
 
   // Add effect to listen for userInfoUpdated events
   useEffect(() => {
     const handleUserInfoUpdate = () => {
-      console.log('User info update event received, updating from localStorage...');
+      console.log("User info update event received, updating from localStorage...")
       // First try to update from localStorage (immediate update)
-      updateUserFromLocalStorage();
+      updateUserFromLocalStorage()
 
       // Then try to refresh from API (for full sync, but don't fail if it errors)
       setTimeout(() => {
-        refreshUserInfo().catch(error => {
-          console.log('API refresh failed, but localStorage update succeeded:', error.message);
-        });
-      }, 500);
-    };
+        refreshUserInfo().catch((error) => {
+          console.log("API refresh failed, but localStorage update succeeded:", error.message)
+        })
+      }, 500)
+    }
 
-    window.addEventListener('userInfoUpdated', handleUserInfoUpdate);
+    window.addEventListener("userInfoUpdated", handleUserInfoUpdate)
     return () => {
-      window.removeEventListener('userInfoUpdated', handleUserInfoUpdate);
-    };
-  }, [refreshUserInfo, updateUserFromLocalStorage]);
-
-  const login = useCallback(async (credentials: LoginRequest): Promise<ApiResponse<AccountResponse>> => {
-    setIsLoading(true);
-    try {
-      const response = await authService.login(credentials);
-      if (response.status === 200 && response.data) {
-        const { token, ...userData } = response.data;
-
-        // Save to localStorage immediately
-        localStorage.setItem(AUTH_TOKEN, token);
-        localStorage.setItem(USER_INFO, JSON.stringify(userData));
-
-        // Update state
-        setToken(token);
-        setUser(userData as AccountResponse);
-        setIsAuthenticated(true);
-
-        if (userData.role === "SUPER_ADMIN") {
-          navigate("/admin/dashboard");
-        } else if (userData.role === "NORMAL_MEMBER" || userData.role === "PREMIUM_MEMBER") {
-          navigate("/");
-        }
-      }
-      return response;
-    } catch (err) {
-      console.error("Login failed:", err);
-      clearAuthData();
-      return {
-        status: 500,
-        message: "Login failed",
-        data: null,
-        error: "An error occurred during login",
-        errorCode: null,
-        timestamp: new Date().toISOString(),
-      };
-    } finally {
-      setIsLoading(false);
+      window.removeEventListener("userInfoUpdated", handleUserInfoUpdate)
     }
-  }, [navigate, clearAuthData]);
+  }, [refreshUserInfo, updateUserFromLocalStorage])
+
+  const login = useCallback(
+    async (credentials: LoginRequest): Promise<ApiResponse<AccountResponse>> => {
+      setIsLoading(true)
+      try {
+        const response = await authService.login(credentials)
+        if (response.status === 200 && response.data) {
+          const { token, ...userData } = response.data
+
+          // Save to localStorage immediately
+          localStorage.setItem(AUTH_TOKEN, token)
+          localStorage.setItem(USER_INFO, JSON.stringify(userData))
+
+          // Update state
+          setToken(token)
+          setUser(userData as AccountResponse)
+          setIsAuthenticated(true)
+
+          if (userData.role === "SUPER_ADMIN") {
+            navigate("/admin/dashboard")
+          } else if (userData.role === "NORMAL_MEMBER" || userData.role === "PREMIUM_MEMBER") {
+            navigate("/")
+          }
+        }
+        return response
+      } catch (err) {
+        console.error("Login failed:", err)
+        clearAuthData()
+        return {
+          status: 500,
+          message: "Login failed",
+          data: null,
+          error: "An error occurred during login",
+          errorCode: null,
+          timestamp: new Date().toISOString(),
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [navigate, clearAuthData],
+  )
   // sign up xong thi cap token luon de sang trang home
-  const register = useCallback(async (data: RegisterRequest): Promise<ApiResponse<AccountResponse>> => {
-    setIsLoading(true);
-    try {
-      const response = await authService.register(data);
-      if (response.status === 200 && response.data) {
-        const { token, ...userData } = response.data;
+  const register = useCallback(
+    async (data: RegisterRequest): Promise<ApiResponse<AccountResponse>> => {
+      setIsLoading(true)
+      try {
+        const response = await authService.register(data)
+        if (response.status === 200 && response.data) {
+          const { token, ...userData } = response.data
 
-        // Save to localStorage immediately
-        localStorage.setItem(AUTH_TOKEN, token);
-        localStorage.setItem(USER_INFO, JSON.stringify(userData));
+          // Save to localStorage immediately
+          localStorage.setItem(AUTH_TOKEN, token)
+          localStorage.setItem(USER_INFO, JSON.stringify(userData))
 
-        // Update state
-        setToken(token);
-        setUser(userData as AccountResponse);
-        setIsAuthenticated(true);
+          // Update state
+          setToken(token)
+          setUser(userData as AccountResponse)
+          setIsAuthenticated(true)
 
-        if (userData.role === "SUPER_ADMIN") {
-          navigate("/admin/dashboard");
-        } else if (userData.role === "NORMAL_MEMBER" || userData.role === "PREMIUM_MEMBER") {
-          navigate("/");
+          if (userData.role === "SUPER_ADMIN") {
+            navigate("/admin/dashboard")
+          } else if (userData.role === "NORMAL_MEMBER" || userData.role === "PREMIUM_MEMBER") {
+            navigate("/")
+          }
         }
+        return response
+      } catch (err) {
+        console.error("Registration failed:", err)
+        clearAuthData()
+        return {
+          status: 500,
+          message: "Registration failed",
+          data: null,
+          error: "An error occurred during registration",
+          errorCode: null,
+          timestamp: new Date().toISOString(),
+        }
+      } finally {
+        setIsLoading(false)
       }
-      return response;
-    } catch (err) {
-      console.error("Registration failed:", err);
-      clearAuthData();
-      return {
-        status: 500,
-        message: "Registration failed",
-        data: null,
-        error: "An error occurred during registration",
-        errorCode: null,
-        timestamp: new Date().toISOString(),
-      };
-    } finally {
-      setIsLoading(false);
-    }
-  }, [navigate, clearAuthData]);
+    },
+    [navigate, clearAuthData],
+  )
   const logout = useCallback(() => {
-    setIsLoading(true);
-    authService.logout().then(() => {
-      clearAuthData();
-      navigate("/");
-    }).catch((err) => {
-      console.error("Logout failed:", err);
-      // Even if logout API fails, clear local data
-      clearAuthData();
-      navigate("/");
-    }).finally(() => {
-      setIsLoading(false);
-    });
-  }, [navigate, clearAuthData]);
+    setIsLoading(true)
+    authService
+      .logout()
+      .then(() => {
+        clearAuthData()
+        navigate("/")
+      })
+      .catch((err) => {
+        console.error("Logout failed:", err)
+        // Even if logout API fails, clear local data
+        clearAuthData()
+        navigate("/")
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
+  }, [navigate, clearAuthData])
+
+  // Add this function before the authContextValue declaration
+  const updateProfilePicture = useCallback(
+    (newProfilePicture: string) => {
+      if (user) {
+        const updatedUser = { ...user, profilePicture: newProfilePicture }
+        setUser(updatedUser)
+        // Also update localStorage
+        localStorage.setItem(USER_INFO, JSON.stringify(updatedUser))
+        console.log("Profile picture updated in AuthContext:", newProfilePicture)
+
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(
+          new CustomEvent("profilePictureUpdated", {
+            detail: { profilePicture: newProfilePicture, user: updatedUser },
+          }),
+        )
+
+        // Force a state update to trigger re-renders
+        setUser({ ...updatedUser })
+      }
+    },
+    [user],
+  )
 
   const authContextValue: AuthContextType = {
     isAuthenticated,
@@ -231,13 +270,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     register,
     logout,
     refreshUserInfo,
+    updateProfilePicture, // Add this line
     isLoading,
-  };
-  return (
-    <AuthContext.Provider value={authContextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  }
+  return <AuthContext.Provider value={authContextValue}>{children}</AuthContext.Provider>
 }
 
 // useAuth hook moved to useAuth.ts
