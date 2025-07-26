@@ -530,6 +530,55 @@ export class TaskService {
             throw error
         }
     }
+
+    /**
+     * Import quizzes from Excel file - REQUIRES CONTENT_ADMIN  
+     */
+    static async importQuizzes(file: File): Promise<void> {
+        try {
+            console.log("Importing quizzes from Excel file:", file.name)
+
+            const formData = new FormData()
+            formData.append('file', file)
+
+            const response = await axiosConfig.post<ApiResponse<void>>(
+                `${this.BASE_PATH}/admin/quizzes/import`,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            )
+
+            if (!response.data.success && response.data.status && response.data.status >= 400) {
+                throw new Error(response.data.message || "Failed to import quizzes")
+            }
+
+            console.log("Quizzes imported successfully")
+        } catch (error: unknown) {
+            console.error("Error importing quizzes:", error)
+
+            if (error && typeof error === 'object' && 'response' in error) {
+                const response = (error as { response?: { status?: number; data?: { message?: string } } }).response
+                if (response) {
+                    if (response.status === 403) {
+                        throw new Error("Bạn không có quyền import quiz. Chỉ Content Admin mới có thể import quiz.")
+                    }
+
+                    if (response.status === 400) {
+                        throw new Error("File không hợp lệ hoặc định dạng không đúng.")
+                    }
+
+                    if (response.data?.message) {
+                        throw new Error(`Backend error: ${response.data.message}`)
+                    }
+                }
+            }
+
+            throw error instanceof Error ? error : new Error('Có lỗi xảy ra khi import quiz')
+        }
+    }
 }
 
 // Export instance for backward compatibility
@@ -547,4 +596,5 @@ export const taskService = {
     createTipByAdmin: (tipData: TipCreationRequestDTO) => TaskService.createTipByAdmin(tipData),
     updateTip: (tipId: string, tipData: TipCreationRequestDTO) => TaskService.updateTip(tipId, tipData),
     deleteTip: (tipId: string) => TaskService.deleteTip(tipId),
+    importQuizzes: (file: File) => TaskService.importQuizzes(file),
 }
