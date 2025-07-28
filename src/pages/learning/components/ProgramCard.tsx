@@ -29,10 +29,10 @@ export function ProgramCard({ program, onClick }: ProgramCardProps) {
         }
 
         if (imageUrl.startsWith("/")) {
-            return `${import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"}${imageUrl}`
+            return `${import.meta.env.VITE_API_BASE_URL}${imageUrl}`
         }
 
-        return `${import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"}/${imageUrl}`
+        return `${import.meta.env.VITE_API_BASE_URL}/${imageUrl}`
     }
 
     const getTypeColor = (type?: string) => {

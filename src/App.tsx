@@ -9,8 +9,8 @@ import { AppRoutes } from "./routes/route"
 import { useTokenRefresh } from "./hooks/useTokenRefresh"
 import { ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
-import { StagewiseToolbar } from "@stagewise/toolbar-react"
-import { ReactPlugin } from "@stagewise-plugins/react"
+// import { StagewiseToolbar } from "@stagewise/toolbar-react"
+// import { ReactPlugin } from "@stagewise-plugins/react"
 import { AchievementToast } from "./components/AchievementToast"
 // import { TestAchievement } from "./components/TestAchievement"
 
@@ -128,11 +128,11 @@ export default function App() {
       {/* <TestAchievement /> */}
 
       {/* Stagewise Toolbar - Development only */}
-      <StagewiseToolbar
+      {/* <StagewiseToolbar
         config={{
           plugins: [ReactPlugin],
         }}
-      />
+      /> */}
     </div>
   )
 }
