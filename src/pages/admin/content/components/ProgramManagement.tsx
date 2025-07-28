@@ -320,7 +320,9 @@ export function ProgramManagement() {
                                                     className="w-16 h-16 rounded-lg object-cover border border-gray-200 dark:border-gray-600"
                                                     onError={(e) => {
                                                         const target = e.target as HTMLImageElement
-                                                        target.src = "/placeholder.svg?height=64&width=64"
+                                                        if (!target.src.includes("placeholder.svg")) {
+                                                            target.src = "/placeholder.svg?height=64&width=64"
+                                                        }
                                                     }}
                                                 />
                                             ) : (

@@ -1,12 +1,13 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { DollarSign, Heart, Award, TrendingUp, Clock, Users } from "lucide-react"
+import { DollarSign, Heart, Award, TrendingUp, Clock } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import type { Achievement, HealthMilestone, QuitPlanResponseDTO } from "@/services/quitPlanService"
 import { QuitPlanCalculator } from "@/utils/QuitPlanCalculator"
+import { AnimatedSection } from "@/components/ui/AnimatedSection"
 
 interface BenefitsTabProps {
   quitPlan: QuitPlanResponseDTO
@@ -117,30 +118,12 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
     },
   ]
 
-  const cravingStats = {
-    totalCravings: 45,
-    commonSituations: [
-      { situation: "After meals", count: 12 },
-      { situation: "When stressed", count: 10 },
-      { situation: "With coffee", count: 8 },
-      { situation: "Social situations", count: 7 },
-      { situation: "Driving", count: 5 },
-    ],
-    commonCompanions: [
-      { companion: "Alone", count: 18 },
-      { companion: "Friends", count: 12 },
-      { companion: "Colleagues", count: 8 },
-      { companion: "Family", count: 5 },
-      { companion: "Partner", count: 2 },
-    ],
-  }
-
   const motivationalQuotes = [
-    "The best time to plant a tree was 20 years ago. The second best time is now.",
-    "Every cigarette not smoked is a victory worth celebrating.",
-    "Your future self will thank you for the choices you make today.",
-    "Strength doesn't come from what you can do. It comes from overcoming what you thought you couldn't.",
-    "The only impossible journey is the one you never begin.",
+    "Thời gian tốt nhất để trồng cây là 20 năm trước, thời gian tốt thứ hai là bây giờ",
+    "Mỗi điếu thuốc không hút là một chiến thắng đáng ăn mừng",
+    "Tương lai của bạn sẽ cảm ơn bạn vì những lựa chọn bạn thực hiện hôm nay",
+    "Sức mạnh không đến từ những gì bạn có thể làm. Nó đến từ việc vượt qua những gì bạn nghĩ là không thể",
+    "Hành trình không thể thực hiện chỉ là hành trình bạn không bao giờ bắt đầu",
   ]
 
   const todayQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]
@@ -151,135 +134,123 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Card className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white">
           <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-bold mb-2">Quote of the Day</h2>
+            <h2 className="text-xl font-bold mb-2">Bạn Hãy Nhớ Rằng</h2>
             <p className="text-lg italic">"{todayQuote}"</p>
           </CardContent>
         </Card>
       </motion.div>
 
-      {/* Financial Benefits */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-green-700">
-                <DollarSign className="w-5 h-5" />
-                Money Saved
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <motion.div
-                className="text-3xl font-bold text-green-600"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.3 }}
-              >
-                {moneySaved.toLocaleString()} VND
-              </motion.div>
-              <p className="text-sm text-gray-600 mt-2">In {daysSinceStart} days of progress</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-blue-700">
-                <TrendingUp className="w-5 h-5" />
-                Cigarettes Avoided
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <motion.div
-                className="text-3xl font-bold text-blue-600"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
-              >
-                {cigarettesAvoided}
-              </motion.div>
-              <p className="text-sm text-gray-600 mt-2">Cigarettes not smoked</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-purple-700">
-                <Clock className="w-5 h-5" />
-                Time Regained
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <motion.div
-                className="text-3xl font-bold text-purple-600"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, delay: 0.5 }}
-              >
-                {Math.floor((cigarettesAvoided * 5) / 60)}h
-              </motion.div>
-              <p className="text-sm text-gray-600 mt-2">Hours of life regained</p>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Health Improvement Timeline */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.4 }}
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="w-5 h-5 text-red-500" />
-              Health Improvement Timeline
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {healthMilestones.map((milestone, index) => (
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-1 sm:gap-3 lg:gap-4">
+        {/* Right Column */}
+        {/* Plan Info Summary */}
+        <div className="space-y-4">
+          <AnimatedSection animation="fadeUp" delay={450}>
+            <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-green-700">
+                  <DollarSign className="w-5 h-5" />
+                  Money Saved
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <motion.div
-                  key={milestone.timeframe}
-                  className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
-                    milestone.achieved ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
-                  }`}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  className="text-3xl font-bold text-green-600"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, delay: 0.3 }}
                 >
-                  <div className="text-2xl">{milestone.icon}</div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold">{milestone.title}</h3>
-                      <Badge variant="outline" className="text-xs">
-                        {milestone.timeframe}
-                      </Badge>
-                      {milestone.achieved && <Badge className="bg-green-100 text-green-800 text-xs">✅ Achieved</Badge>}
-                    </div>
-                    <p className="text-sm text-gray-600">{milestone.description}</p>
-                  </div>
+                  {moneySaved.toLocaleString()} VND
                 </motion.div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+                <p className="text-sm text-gray-600 mt-2">In {daysSinceStart} days of progress</p>
+              </CardContent>
+            </Card>
+          </AnimatedSection>
+
+          <AnimatedSection animation="fadeUp" delay={600}>
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-blue-700">
+                  <TrendingUp className="w-5 h-5" />
+                  Cigarettes Avoided
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <motion.div
+                  className="text-3xl font-bold text-blue-600"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
+                >
+                  {cigarettesAvoided}
+                </motion.div>
+                <p className="text-sm text-gray-600 mt-2">Cigarettes not smoked</p>
+              </CardContent>
+            </Card>
+          </AnimatedSection>
+
+          <AnimatedSection animation="fadeUp" delay={600}>
+            <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-purple-700">
+                  <Clock className="w-5 h-5" />
+                  Time Regained
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <motion.div
+                  className="text-3xl font-bold text-purple-600"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, delay: 0.5 }}
+                >
+                  {Math.floor((cigarettesAvoided * 5) / 60)}h
+                </motion.div>
+                <p className="text-sm text-gray-600 mt-2">Hours of life regained</p>
+              </CardContent>
+            </Card>
+          </AnimatedSection>
+        </div>
+        {/* Left Column */}
+        {/* Health Improvement Timeline */}
+        <div className="xl:col-span-2 flex flex-col space-y-3 sm:space-y-5 h-full">
+          <AnimatedSection animation="fadeUp" delay={400} className="flex-1">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-red-500" />
+                  Health Improvement Timeline
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {healthMilestones.map((milestone, index) => (
+                    <motion.div
+                      key={milestone.timeframe}
+                      className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${milestone.achieved ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
+                        }`}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <div className="text-2xl">{milestone.icon}</div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold">{milestone.title}</h3>
+                          <Badge variant="outline" className="text-xs">
+                            {milestone.timeframe}
+                          </Badge>
+                          {milestone.achieved && <Badge className="bg-green-100 text-green-800 text-xs">✅ Achieved</Badge>}
+                        </div>
+                        <p className="text-sm text-gray-600">{milestone.description}</p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </AnimatedSection>
+        </div>
+      </div>
 
       {/* Achievements */}
       <motion.div
@@ -299,9 +270,8 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
               {achievements.map((achievement, index) => (
                 <motion.div
                   key={achievement.id}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    achievement.unlockedAt ? "bg-yellow-50 border-yellow-200" : "bg-gray-50 border-gray-200"
-                  }`}
+                  className={`p-4 rounded-lg border-2 transition-all ${achievement.unlockedAt ? "bg-yellow-50 border-yellow-200" : "bg-gray-50 border-gray-200"
+                    }`}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1 }}
@@ -334,89 +304,6 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
           </CardContent>
         </Card>
       </motion.div>
-
-      {/* Craving Statistics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-orange-500" />
-                Craving Triggers
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="text-center mb-4">
-                  <div className="text-2xl font-bold text-orange-600">{cravingStats.totalCravings}</div>
-                  <div className="text-sm text-gray-600">Total cravings recorded</div>
-                </div>
-
-                <h4 className="font-medium text-gray-800 mb-2">Most Common Situations:</h4>
-                {cravingStats.commonSituations.map((item) => (
-                  <div key={item.situation} className="flex justify-between items-center">
-                    <span className="text-sm">{item.situation}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-orange-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${(item.count / cravingStats.totalCravings) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium w-8 text-right">{item.count}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.7 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-500" />
-                Social Context
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-800 mb-2">Cravings by Company:</h4>
-                {cravingStats.commonCompanions.map((item) => (
-                  <div key={item.companion} className="flex justify-between items-center">
-                    <span className="text-sm">{item.companion}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${(item.count / cravingStats.totalCravings) * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium w-8 text-right">{item.count}</span>
-                    </div>
-                  </div>
-                ))}
-
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-sm text-blue-700">
-                    💡 <strong>Insight:</strong> You experience most cravings when alone. Consider reaching out to
-                    friends or engaging in social activities during high-risk times.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
     </div>
   )
 }

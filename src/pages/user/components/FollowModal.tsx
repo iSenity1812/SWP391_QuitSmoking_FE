@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom"
 import { followService } from "@/services/followService"
 import type { UserSearchResult, FollowRelation } from "@/services/followService"
 import { toast } from "react-toastify"
+import { getImageUrl } from "@/utils/imageUtils"
 
 interface FollowModalProps {
   isOpen: boolean
@@ -122,19 +123,29 @@ export default function FollowModal({ isOpen, onClose, type, userId, title }: Fo
         className="flex items-center space-x-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
       >
         <div className="relative">
-          {user.profilePicture ? (
+          {getImageUrl(user.profilePicture) ? (
             <img
-              src={user.profilePicture}
+              src={getImageUrl(user.profilePicture)!}
               alt={user.username}
               className="w-12 h-12 rounded-full object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                target.style.display = "none"
+                const fallback = target.nextElementSibling as HTMLElement
+                if (fallback) {
+                  fallback.style.display = "flex"
+                }
+              }}
             />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
-              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                {user.username.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
+          ) : null}
+          <div
+            className={`w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center ${getImageUrl(user.profilePicture) ? "hidden" : "flex"}`}
+            style={{ display: getImageUrl(user.profilePicture) ? "none" : "flex" }}
+          >
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+              {user.username.charAt(0).toUpperCase()}
+            </span>
+          </div>
           {user.role === "PREMIUM_MEMBER" && (
             <div className="absolute -bottom-1 -right-1 bg-yellow-400 rounded-full p-1">
               <span className="text-yellow-800 text-xs">👑</span>

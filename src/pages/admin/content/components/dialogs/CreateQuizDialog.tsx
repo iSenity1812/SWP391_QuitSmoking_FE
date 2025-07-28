@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Plus, Brain, Trash2 } from "lucide-react"
 import { TaskService } from "@/services/taskService"
 import { toast } from "react-toastify"
+import type { QuizCreationRequestDTO } from "@/types/task"
 
 
 interface CreateQuizDialogProps {
@@ -27,23 +28,22 @@ interface CreateQuizDialogProps {
 
 interface QuizOption {
     content: string
-    isCorrect: boolean
+    correct: boolean
 }
 
 export function CreateQuizDialog({ onQuizCreated }: CreateQuizDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
-    const [scorePossible, setScorePossible] = useState(10)
     const [options, setOptions] = useState<QuizOption[]>([
-        { content: "", isCorrect: false },
-        { content: "", isCorrect: false },
+        { content: "", correct: false },
+        { content: "", correct: false },
     ])
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const addOption = () => {
         if (options.length < 6) {
-            setOptions([...options, { content: "", isCorrect: false }])
+            setOptions([...options, { content: "", correct: false }])
         }
     }
 
@@ -59,10 +59,10 @@ export function CreateQuizDialog({ onQuizCreated }: CreateQuizDialogProps) {
         setOptions(newOptions)
     }
 
-    const setCorrectAnswer = (index: number) => {
+    const toggleCorrectAnswer = (index: number) => {
         const newOptions = options.map((option, i) => ({
             ...option,
-            isCorrect: i === index,
+            correct: i === index ? !option.correct : option.correct,
         }))
         setOptions(newOptions)
     }
@@ -76,27 +76,26 @@ export function CreateQuizDialog({ onQuizCreated }: CreateQuizDialogProps) {
         }
 
         const validOptions = options.filter((opt) => opt.content.trim())
-        if (validOptions.length !== 4) {
-            toast.error("Quiz phải có đúng 4 lựa chọn")
+        if (validOptions.length < 2) {
+            toast.error("Quiz phải có ít nhất 2 lựa chọn")
             return
         }
 
-        const hasCorrectAnswer = validOptions.some((opt) => opt.isCorrect)
+        const hasCorrectAnswer = validOptions.some((opt) => opt.correct)
         if (!hasCorrectAnswer) {
-            toast.error("Vui lòng chọn đáp án đúng!")
+            toast.error("Vui lòng chọn ít nhất một đáp án đúng!")
             return
         }
 
         try {
             setIsSubmitting(true)
 
-            const quizData = {
+            const quizData: QuizCreationRequestDTO = {
                 title: title.trim(),
                 description: description.trim() || undefined,
-                scorePossible,
                 options: validOptions.map((opt) => ({
                     content: opt.content.trim(),
-                    isCorrect: opt.isCorrect,
+                    correct: opt.correct,
                 })),
             }
 
@@ -105,10 +104,9 @@ export function CreateQuizDialog({ onQuizCreated }: CreateQuizDialogProps) {
             // Reset form
             setTitle("")
             setDescription("")
-            setScorePossible(10)
             setOptions([
-                { content: "", isCorrect: false },
-                { content: "", isCorrect: false },
+                { content: "", correct: false },
+                { content: "", correct: false },
             ])
             setIsOpen(false)
 
@@ -116,8 +114,8 @@ export function CreateQuizDialog({ onQuizCreated }: CreateQuizDialogProps) {
             onQuizCreated()
 
             toast.success("Tạo quiz thành công!")
-        } catch (error: any) {
-            toast.error(`Lỗi tạo quiz: ${error.message}`)
+        } catch (error: unknown) {
+            toast.error(`Lỗi tạo quiz: ${error instanceof Error ? error.message : 'Unknown error'}`)
         } finally {
             setIsSubmitting(false)
         }
@@ -162,21 +160,12 @@ export function CreateQuizDialog({ onQuizCreated }: CreateQuizDialogProps) {
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="score">Điểm tối đa</Label>
-                        <Input
-                            id="score"
-                            type="number"
-                            min="1"
-                            max="100"
-                            value={scorePossible}
-                            onChange={(e) => setScorePossible(Number.parseInt(e.target.value) || 10)}
-                        />
-                    </div>
-
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <Label>Các lựa chọn *</Label>
+                            <div>
+                                <Label>Các lựa chọn *</Label>
+                                <p className="text-sm text-muted-foreground">Có thể chọn nhiều đáp án đúng</p>
+                            </div>
                             <Button type="button" variant="outline" size="sm" onClick={addOption} disabled={options.length >= 6}>
                                 <Plus className="w-4 h-4 mr-1" />
                                 Thêm lựa chọn
@@ -196,12 +185,12 @@ export function CreateQuizDialog({ onQuizCreated }: CreateQuizDialogProps) {
                                 />
                                 <Button
                                     type="button"
-                                    variant={option.isCorrect ? "default" : "outline"}
+                                    variant={option.correct ? "default" : "outline"}
                                     size="sm"
-                                    onClick={() => setCorrectAnswer(index)}
-                                    className={option.isCorrect ? "bg-green-600 hover:bg-green-700" : ""}
+                                    onClick={() => toggleCorrectAnswer(index)}
+                                    className={option.correct ? "bg-green-600 hover:bg-green-700" : ""}
                                 >
-                                    {option.isCorrect ? "Đúng" : "Chọn"}
+                                    {option.correct ? "✓ Đúng" : "Chọn làm đúng"}
                                 </Button>
                                 {options.length > 2 && (
                                     <Button

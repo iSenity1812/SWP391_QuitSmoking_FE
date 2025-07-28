@@ -16,9 +16,7 @@ import {
     Phone,
     Star,
     CheckCircle,
-    TrendingUp,
     Shield,
-    Clock,
     Sparkles,
     MessageCircle,
     Calendar,
@@ -95,13 +93,6 @@ const AboutPage: React.FC = () => {
         },
     ]
 
-    const stats = [
-        { number: "10,000+", label: "Người Được Giúp Đỡ", icon: Users },
-        { number: "85%", label: "Tỷ Lệ Thành Công", icon: TrendingUp },
-        { number: "24/7", label: "Hỗ Trợ Có Sẵn", icon: Clock },
-        { number: "5★", label: "Đánh Giá Trung Bình", icon: Star },
-    ]
-
     const achievements = [
         "Được giới thiệu trong Tạp chí Sức khỏe & Thể chất 2024",
         "Giải thưởng Đổi mới Sức khỏe Số",
@@ -136,26 +127,6 @@ const AboutPage: React.FC = () => {
                     </div>
                 </AnimatedSection>
 
-                {/* Stats Section */}
-                <AnimatedSection animation="fadeUp" delay={200}>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-                        {stats.map((stat, index) => (
-                            <motion.div
-                                key={index}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                className="text-center p-6 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border-2 border-emerald-100 dark:border-slate-700 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:-translate-y-1"
-                            >
-                                <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                    <stat.icon className="w-6 h-6 text-white" />
-                                </div>
-                                <div className="text-3xl font-black text-slate-800 dark:text-white mb-2">{stat.number}</div>
-                                <div className="text-sm text-slate-600 dark:text-slate-300 font-medium">{stat.label}</div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </AnimatedSection>
 
                 {/* Mission & Vision */}
                 <AnimatedSection animation="fadeUp" delay={300}>

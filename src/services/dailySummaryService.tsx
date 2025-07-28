@@ -35,7 +35,7 @@ const handleApiError = (error: unknown): string => {
   } else if (error instanceof Error) {
     return error.message;
   }
-  return 'Đã xảy ra lỗi không xác định.';
+  return 'Đã xảy ra lỗi không xác định';
 };
 
 // --- Enums (tương ứng với BE enums) ---
@@ -51,12 +51,12 @@ export interface DailySummaryCreateRequest {
   trackDate: string; // LocalDate -> string (ISO 8601: YYYY-MM-DD)
   totalSmokedCount: number;
   totalCravingCount: number;
-  mood: Mood;
+  mood?: Mood;
   note?: string;
-  moneySavedToday: number; // BigDecimal -> number
 }
 
 export interface DailySummaryUpdateRequest {
+  // trackDate: string;
   updateSmokedCount?: number; // Optional based on partial update
   updateCravingCount?: number; // Optional based on partial update
   mood?: Mood; // Optional based on partial update
@@ -68,7 +68,7 @@ export interface DailySummaryResponse {
   totalSmokedCount: number;
   totalCravingCount: number;
   trackDate: string; // LocalDate -> string (ISO 8601: YYYY-MM-DD)
-  mood: Mood;
+  mood?: Mood;
   note?: string;
   moneySaved: number; // BigDecimal -> number
   isGoalAchievedToday: boolean;
@@ -156,32 +156,6 @@ class DailySummaryService {
     }
   };
 
-  /**
-   * Retrieves daily summaries for the authenticated member within a specified date range.
-   * Lấy nhật ký hằng ngày cho thành viên đã xác thực trong khoảng ngày cụ thể.
-   * GET /api/diary/date-range?startDate=...&endDate=...
-   * @param startDate The start date (YYYY-MM-DD).
-   * @param endDate The end date (YYYY-MM-DD).
-   * @returns A Promise that resolves with a list of DailySummaryResponse.
-   */
-  getDailySummariesByDateRange = async (startDate: string, endDate: string): Promise<DailySummaryResponse[]> => {
-    try {
-      const response = await axiosConfig.get<ApiResponse<DailySummaryResponse[]>>(`${this.API_BASE_URL}/date-range`, {
-        params: { startDate, endDate }
-      });
-      // Backend trả về 200 OK với data là mảng rỗng nếu không tìm thấy bản ghi
-      if (response.status === 200) {
-        return response.data.data || []; // Trả về data hoặc mảng rỗng nếu data là null/undefined
-      } else {
-        throw new Error(response.data.message || `Failed to fetch daily summaries between ${startDate} and ${endDate}`);
-      }
-    } catch (error: unknown) {
-      console.error(`Error fetching daily summaries in date range:`, error);
-      // Backend sẽ không ném 404 cho trường hợp này nữa, nhưng vẫn giữ xử lý lỗi chung
-      throw new Error(handleApiError(error));
-    }
-  };
-
 
   /**
    * Updates an existing daily summary by its ID.
@@ -197,7 +171,7 @@ class DailySummaryService {
       if (response.status === 200 && response.data && response.data.data) {
         return response.data.data;
       } else if (response.status === 204) {
-          return null; // Trả về null nếu BE trả về 204 (đã xóa bản ghi)
+        return null; // Trả về null nếu BE trả về 204 (đã xóa bản ghi)
       } else {
         throw new Error(response.data.message || `Failed to update daily summary with ID: ${id}`);
       }
@@ -205,7 +179,7 @@ class DailySummaryService {
       console.error(`Error updating daily summary with ID ${id}:`, error);
       // Xử lý lỗi 204 No Content từ backend (khi cập nhật giá trị về 0 và bản ghi bị xóa)
       if (axios.isAxiosError(error) && error.response?.status === 204) {
-          return null; // Trả về null để chỉ ra rằng bản ghi đã bị xóa
+        return null; // Trả về null để chỉ ra rằng bản ghi đã bị xóa
       }
       throw new Error(handleApiError(error));
     }
@@ -238,10 +212,10 @@ export const dailySummaryService = DailySummaryService.getInstance();
 
 // --- Hook State Types (tương tự useQuitPlan) ---
 interface UseDailySummaryState {
-    dailySummary: DailySummaryResponse | null;
-    isLoading: boolean;
-    error: string | null;
-    refetch: () => Promise<void>;
+  dailySummary: DailySummaryResponse | null;
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
 }
 
 /**
@@ -251,40 +225,41 @@ interface UseDailySummaryState {
  * @param date The date (YYYY-MM-DD) for which to fetch the daily summary.
  */
 export function useDailySummary(date: string): UseDailySummaryState {
-    const [dailySummary, setDailySummary] = useState<DailySummaryResponse | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const [dailySummary, setDailySummary] = useState<DailySummaryResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    const fetchDailySummary = useCallback(async () => {
-        if (!date) { // Chỉ fetch nếu có ngày
-            setIsLoading(false);
-            return;
-        }
-        try {
-            setIsLoading(true);
-            setError(null);
-            // Gọi service để lấy bản tóm tắt cho ngày cụ thể
-            // Không truyền memberId vì BE tự động lấy từ AuthenticationPrincipal
-            const summary = await dailySummaryService.getDailySummaryByDate(date);
-            setDailySummary(summary);
-        } catch (err) {
-            // Nếu getDailySummaryByDate trả về null, nó sẽ không ném lỗi ở đây.
-            // Nếu có lỗi khác, nó sẽ được bắt ở đây.
-            setError(err instanceof Error ? err.message : "Failed to fetch daily summary");
-            setDailySummary(null);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [date]); // Dependency là date để re-fetch khi ngày thay đổi
+  const fetchDailySummary = useCallback(async () => {
+    if (!date) { // Chỉ fetch nếu có ngày
+      setIsLoading(false);
+      return;
+    }
+    try {
+      setIsLoading(true);
+      setError(null);
+      // Gọi service để lấy bản tóm tắt cho ngày cụ thể
+      // Không truyền memberId vì BE tự động lấy từ AuthenticationPrincipal
+      const summary = await dailySummaryService.getDailySummaryByDate(date);
+      setDailySummary(summary);
+    } catch (err) {
+      // Nếu getDailySummaryByDate trả về null, nó sẽ không ném lỗi ở đây.
+      // Nếu có lỗi khác, nó sẽ được bắt ở đây.
+      setError(err instanceof Error ? err.message : "Failed to fetch daily summary");
+      setDailySummary(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [date]); // Dependency là date để re-fetch khi ngày thay đổi
 
-    useEffect(() => {
-        fetchDailySummary();
-    }, [fetchDailySummary]);
+  useEffect(() => {
+    fetchDailySummary();
+  }, [fetchDailySummary]);
 
-    return {
-        dailySummary,
-        isLoading,
-        error,
-        refetch: fetchDailySummary,
-    };
+  return {
+    dailySummary,
+    isLoading,
+    error,
+    refetch: fetchDailySummary,
+  };
 }
+

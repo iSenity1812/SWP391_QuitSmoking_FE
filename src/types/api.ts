@@ -111,6 +111,18 @@ export interface WeeklyScheduleResponse {
   registeredSlots: WeeklyScheduleSlot[]
 }
 
+// Coach Schedule Range Request
+export interface CoachScheduleRangeRequest {
+  coachId: number
+  startDate: string
+  endDate: string
+}
+export interface CoachScheduleRangeResponse {
+  coachId: number
+  date: string
+  timeSlots: TimeSlot[]
+}
+
 // Coach Types
 export interface Coach {
   coachId: number

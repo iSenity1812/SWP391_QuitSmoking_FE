@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Users, Calendar, MessageSquare, User, BookOpen, Bell, Activity, TrendingUp, Menu, X } from "lucide-react"
+import { Users, Calendar, MessageSquare, User, BookOpen, Activity, TrendingUp, Menu, X } from "lucide-react"
 import { CoachOverview } from "./components/CoachOverview"
 import { CustomerManagement } from "./components/CustomerManagement"
 import { CommunicationCenter } from "./components/CommunicationCenter"
@@ -15,12 +15,15 @@ import { CoachBlogManagement } from "./components/CoachBlogManagement"
 import { AppointmentScheduler } from "./components/AppointmentSchedulerNew"
 import { AnimatePresence, motion } from "framer-motion"
 import { useAuth } from "@/hooks/useAuth"
+import { userService, type CoachProfileResponse } from "@/services/userService"
 
 export default function CoachDashboard() {
     const { user, logout } = useAuth()
     const [activeTab, setActiveTab] = useState("appointments")
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const [coachProfile, setCoachProfile] = useState<CoachProfileResponse | null>(null)
+    const [profileLoading, setProfileLoading] = useState(true)
 
     const navItems = [
         // { id: "overview", label: "Tổng Quan", icon: Activity },
@@ -30,6 +33,40 @@ export default function CoachDashboard() {
         { id: "blog", label: "Quản Lý Blog", icon: BookOpen },
         { id: "profile", label: "Hồ Sơ Cá Nhân", icon: User },
     ]
+
+    useEffect(() => {
+        const fetchCoachProfile = async () => {
+            try {
+                setProfileLoading(true)
+                const profileData = await userService.getCoachProfile()
+                setCoachProfile(profileData)
+            } catch (err) {
+                console.error("Error fetching coach profile:", err)
+            } finally {
+                setProfileLoading(false)
+            }
+        }
+
+        if (user?.role === "COACH") {
+            fetchCoachProfile()
+        } else {
+            setProfileLoading(false)
+        }
+    }, [user])
+
+    const getProfilePictureUrl = (profilePicture?: string | null) => {
+        if (!profilePicture) return null
+
+        // If it's already a full URL, return as is
+        if (profilePicture.startsWith("http")) {
+            return profilePicture
+        }
+
+        // If it's a relative path, construct the full URL
+        const baseUrl = "http://localhost:8080"
+        const cleanPath = profilePicture.startsWith("/") ? profilePicture : `/${profilePicture}`
+        return `${baseUrl}${cleanPath}`
+    }
 
     const renderContent = () => {
         switch (activeTab) {
@@ -49,6 +86,11 @@ export default function CoachDashboard() {
                 return <AppointmentScheduler />
         }
     }
+
+    // Use coach profile picture if available, otherwise fallback to user profile picture
+    const profileImageUrl = getProfilePictureUrl(coachProfile?.profilePicture || user?.profilePicture)
+    const displayUsername = coachProfile?.username || user?.username
+    const displayEmail = coachProfile?.email || user?.email
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -118,9 +160,17 @@ export default function CoachDashboard() {
                         className={`flex items-center space-x-3 p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg ${sidebarCollapsed ? "justify-center" : ""
                             }`}
                     >
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                            <AvatarFallback className="bg-blue-500 text-white">HLV</AvatarFallback>
+                        <Avatar className="h-8 w-8 border-2 border-blue-200 dark:border-blue-500">
+                            {profileImageUrl ? (
+                                <AvatarImage
+                                    src={profileImageUrl || "/placeholder.svg"}
+                                    alt={displayUsername || "Coach"}
+                                    className="object-cover"
+                                />
+                            ) : null}
+                            <AvatarFallback className="bg-blue-500 text-white text-sm">
+                                {displayUsername?.charAt(0).toUpperCase() || "HLV"}
+                            </AvatarFallback>
                         </Avatar>
                         <AnimatePresence>
                             {!sidebarCollapsed && (
@@ -131,12 +181,16 @@ export default function CoachDashboard() {
                                     transition={{ duration: 0.2 }}
                                     className="flex-1 min-w-0"
                                 >
-                                    <p className="text-slate-900 dark:text-white text-sm font-medium truncate">{user?.username}</p>
-                                    <p className="text-slate-600 dark:text-slate-400 text-xs truncate">{user?.email}</p>
+                                    <p className="text-slate-900 dark:text-white text-sm font-medium truncate">
+                                        {profileLoading ? "Đang tải..." : displayUsername}
+                                    </p>
+                                    <p className="text-slate-600 dark:text-slate-400 text-xs truncate">
+                                        {profileLoading ? "..." : displayEmail}
+                                    </p>
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className="mt-2 w-full"
+                                        className="mt-2 w-full bg-transparent"
                                         onClick={() => {
                                             logout()
                                             setMobileMenuOpen(false)
@@ -174,7 +228,7 @@ export default function CoachDashboard() {
                         </div>
 
                         <div className="flex items-center space-x-4">
-                            {/* <Button variant="outline" size="sm" className="hidden md:flex">
+                            {/* <Button variant="outline" size="sm" className="hidden md:flex bg-transparent">
                                 <Bell className="w-4 h-4 mr-2" />
                                 Thông báo
                                 <Badge className="ml-2 bg-red-500 text-white">3</Badge>

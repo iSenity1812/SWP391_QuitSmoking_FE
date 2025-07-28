@@ -257,7 +257,9 @@ const BlogFormDialog: React.FC<BlogFormDialogProps> = ({
                                     onError={(e) => {
                                         console.error("Preview image failed to load:", imagePreview)
                                         const target = e.target as HTMLImageElement
-                                        target.src = "/placeholder.svg?height=192&width=400"
+                                        if (!target.src.includes("placeholder.svg")) {
+                                            target.src = "/placeholder.svg?height=192&width=400"
+                                        }
                                     }}
                                     onLoad={() => console.log("Preview image loaded successfully:", imagePreview)}
                                 />

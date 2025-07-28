@@ -18,6 +18,21 @@ interface TimeLeft {
   seconds: number
 }
 
+function translateTimeUnit(unit: string): string {
+  switch (unit) {
+    case "Days":
+      return "Ngày";
+    case "Hours":
+      return "Giờ";
+    case "Minutes":
+      return "Phút";
+    case "Seconds":
+      return "Giây";
+    default:
+      return `${unit}`;
+  }
+}
+
 export function CountdownTimer({ targetDate, label, isCountUp = false, planStartDate }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 })
   const [currentDayOfPlan, setCurrentDayOfPlan] = useState(0); // Trạng thái mới cho ngày hiện tại của kế hoạch
@@ -122,7 +137,7 @@ export function CountdownTimer({ targetDate, label, isCountUp = false, planStart
       >
         <span className="text-2xl font-bold tabular-nums">{value.toString().padStart(2, "0")}</span>
       </div>
-      <span className="text-sm text-gray-600 mt-2 font-medium">{unit}</span>
+      <span className="text-sm text-gray-600 mt-2 font-medium">{translateTimeUnit(unit)}</span>
     </motion.div>
   )
 
@@ -137,7 +152,7 @@ export function CountdownTimer({ targetDate, label, isCountUp = false, planStart
         transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
       >
         <div className="text-lg">⏳</div>
-        <span className="font-bold text-lg">DAY {currentDayOfPlan.toString().padStart(2, "0")}</span>
+        <span className="font-bold text-lg">NGÀY {currentDayOfPlan.toString().padStart(2, "0")}</span>
       </motion.div>
 
       <h3 className="text-lg font-semibold text-gray-800 mb-4">{label}</h3>

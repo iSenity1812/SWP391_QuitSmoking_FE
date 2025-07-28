@@ -16,7 +16,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Edit, Trash2, Brain, Search, Filter, XCircle } from "lucide-react"
+import { Edit, Trash2, Brain, Search, XCircle, Filter } from "lucide-react"
 import { TaskService } from "@/services/taskService"
 import type { QuizResponseDTO } from "@/types/task"
 import { CreateQuizDialog } from "./dialogs/CreateQuizDialog"
@@ -184,7 +184,6 @@ export function QuizManagement() {
                                         <CardTitle className="text-lg">{quiz.title}</CardTitle>
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                        <Badge variant="secondary">{quiz.scorePossible} điểm</Badge>
                                         <Badge variant="outline">{quiz.options.length} lựa chọn</Badge>
                                     </div>
                                 </div>
@@ -196,12 +195,23 @@ export function QuizManagement() {
                                     {quiz.options.map((option, index) => (
                                         <div
                                             key={option.optionId}
-                                            className="flex items-center space-x-3 p-2 rounded bg-slate-50 dark:bg-slate-800/50"
+                                            className={`flex items-center space-x-3 p-2 rounded ${option.correct
+                                                ? 'bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800'
+                                                : 'bg-slate-50 dark:bg-slate-800/50'
+                                                }`}
                                         >
-                                            <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-300">
+                                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${option.correct
+                                                ? 'bg-green-500 text-white'
+                                                : 'bg-slate-300 dark:bg-slate-600 text-slate-700 dark:text-slate-300'
+                                                }`}>
                                                 {String.fromCharCode(65 + index)}
                                             </span>
-                                            <span className="text-slate-700 dark:text-slate-300">{option.content}</span>
+                                            <span className={`${option.correct
+                                                ? 'text-green-800 dark:text-green-200 font-medium'
+                                                : 'text-slate-700 dark:text-slate-300'
+                                                }`}>
+                                                {option.content}
+                                            </span>
                                         </div>
                                     ))}
 

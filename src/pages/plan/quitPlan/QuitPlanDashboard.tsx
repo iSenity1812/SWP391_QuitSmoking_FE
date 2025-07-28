@@ -15,8 +15,11 @@ import { DeepBreathingExercise } from "@/pages/feature/BreathingExercise"
 import { format } from "date-fns"
 import { useDailySummary } from "@/services/dailySummaryService"
 import { dataVisualizationService, type DailyChartDataResponse } from "@/services/dataVisualizationService"
+import { useNavigate } from "react-router-dom"
 
 export function QuitPlanDashboard() {
+  const navigate = useNavigate()
+
   // Lấy dữ liệu kế hoạch bỏ thuốc của người dùng hiện tại
   const { quitPlan, isLoading, error, refetch } = useQuitPlan()
   const [activeTab, setActiveTab] = useState("overview")
@@ -67,7 +70,14 @@ export function QuitPlanDashboard() {
     fetchHistoricalDailySummaries()
   }, [fetchHistoricalDailySummaries])
 
-    // Hiển thị trạng thái tải
+  // useEffect để navigate khi không có quitPlan
+  useEffect(() => {
+    if (!isLoading && !quitPlan) {
+      navigate("/plan/create")
+    }
+  }, [isLoading, quitPlan, navigate])
+
+  // Hiển thị trạng thái tải
   if (isLoading || isTodaySummaryLoading || isHistoricalDailySummariesLoading) {
     return (
       <div className="min-h-screen pt-20 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-6">
@@ -128,23 +138,9 @@ export function QuitPlanDashboard() {
     )
   }
 
-  // Hiển thị khi không có kế hoạch cai thuốc nào
+  // Hiển thị khi không có kế hoạch cai thuốc nào - navigate được xử lý trong useEffect
   if (!quitPlan) {
-    return (
-      <div className="min-h-screen pt-20 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Chưa có kế hoạch cai thuốc nào đang hoạt động</h2>
-            <p className="text-gray-600 mb-6">
-              Bạn chưa có kế hoạch cai thuốc nào đang hoạt động. Hãy tạo một kế hoạch để bắt đầu theo dõi tiến trình của mình.
-            </p>
-            <button className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg hover:from-emerald-600 hover:to-teal-700 transition-all">
-              Tạo Kế Hoạch Cai Thuốc
-            </button>
-          </Card>
-        </div>
-      </div>
-    )
+    return null // Hoặc có thể return loading spinner
   }
 
   return (
@@ -217,8 +213,10 @@ export function QuitPlanDashboard() {
                   transition={{ duration: 0.3 }}
                 >
                   <ProgressTab
-                  quitPlan={quitPlan}
-                  dailyData={historicalDailySummaries}
+                    quitPlan={quitPlan}
+                    refetchQuitPlan={refetch}
+                    dailySummary={todayDailySummary}
+                    refetchDailySummary={refetchTodaySummary}
                   />
                 </motion.div>
               </TabsContent>

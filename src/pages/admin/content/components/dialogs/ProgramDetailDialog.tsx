@@ -71,7 +71,9 @@ export function ProgramDetailDialog({ open, onOpenChange, program }: ProgramDeta
                                 className="w-full h-64 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement
-                                    target.src = "/placeholder.svg?height=256&width=512"
+                                    if (!target.src.includes("placeholder.svg")) {
+                                        target.src = "/placeholder.svg?height=256&width=512"
+                                    }
                                 }}
                             />
                         </div>

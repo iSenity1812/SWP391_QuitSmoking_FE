@@ -24,12 +24,9 @@ export function EditQuizDialog({ quiz, isOpen, onClose, onQuizUpdated }: EditQui
     const [formData, setFormData] = useState<QuizCreationRequestDTO>({
         title: "",
         description: "",
-        scorePossible: 10,
         options: [
-            { content: "", isCorrect: false },
-            { content: "", isCorrect: false },
-            { content: "", isCorrect: false },
-            { content: "", isCorrect: false },
+            { content: "", correct: false },
+            { content: "", correct: false },
         ],
     })
 
@@ -38,10 +35,9 @@ export function EditQuizDialog({ quiz, isOpen, onClose, onQuizUpdated }: EditQui
             setFormData({
                 title: quiz.title,
                 description: quiz.description || "",
-                scorePossible: quiz.scorePossible,
                 options: quiz.options.map((option) => ({
                     content: option.content,
-                    isCorrect: false, // We don't know which is correct from response
+                    correct: option.correct, // Giữ nguyên trạng thái đúng/sai từ API
                 })),
             })
         }
@@ -55,11 +51,6 @@ export function EditQuizDialog({ quiz, isOpen, onClose, onQuizUpdated }: EditQui
         setFormData((prev) => ({ ...prev, description: e.target.value }))
     }, [])
 
-    const handleScoreChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = Number.parseInt(e.target.value) || 10
-        setFormData((prev) => ({ ...prev, scorePossible: Math.max(1, Math.min(100, value)) }))
-    }, [])
-
     const handleOptionChange = useCallback((index: number, value: string) => {
         setFormData((prev) => ({
             ...prev,
@@ -70,7 +61,10 @@ export function EditQuizDialog({ quiz, isOpen, onClose, onQuizUpdated }: EditQui
     const handleCorrectAnswerChange = useCallback((index: number) => {
         setFormData((prev) => ({
             ...prev,
-            options: prev.options.map((option, i) => ({ ...option, isCorrect: i === index })),
+            options: prev.options.map((option, i) => ({
+                ...option,
+                correct: i === index ? !option.correct : option.correct
+            })),
         }))
     }, [])
 
@@ -78,7 +72,7 @@ export function EditQuizDialog({ quiz, isOpen, onClose, onQuizUpdated }: EditQui
         if (formData.options.length < 6) {
             setFormData((prev) => ({
                 ...prev,
-                options: [...prev.options, { content: "", isCorrect: false }],
+                options: [...prev.options, { content: "", correct: false }],
             }))
         }
     }, [formData.options.length])
@@ -101,30 +95,42 @@ export function EditQuizDialog({ quiz, isOpen, onClose, onQuizUpdated }: EditQui
         try {
             // Validation
             if (!formData.title.trim()) {
-                toast.error("Vui lòng nhập tiêu đề quiz")
+                toast.error("Vui lòng nhập tiêu đề quiz!")
                 return
             }
 
-            if (formData.options.some((option) => !option.content.trim())) {
-                toast.error("Vui lòng điền đầy đủ tất cả các lựa chọn")
+            const validOptions = formData.options.filter((opt) => opt.content.trim())
+            if (validOptions.length < 2) {
+                toast.error("Quiz phải có ít nhất 2 lựa chọn")
                 return
             }
 
-            const hasCorrectAnswer = formData.options.some((option) => option.isCorrect)
+            const hasCorrectAnswer = validOptions.some((option) => option.correct)
             if (!hasCorrectAnswer) {
-                toast.error("Vui lòng chọn ít nhất một đáp án đúng")
+                toast.error("Vui lòng chọn ít nhất một đáp án đúng!")
                 return
             }
 
             setIsSubmitting(true)
-            await TaskService.updateQuiz(quiz.quizId, formData)
+
+            // Tạo payload với chỉ những options có nội dung
+            const updatePayload: QuizCreationRequestDTO = {
+                title: formData.title.trim(),
+                description: formData.description?.trim() || undefined,
+                options: validOptions.map((opt) => ({
+                    content: opt.content.trim(),
+                    correct: opt.correct,
+                })),
+            }
+
+            await TaskService.updateQuiz(quiz.quizId, updatePayload)
 
             // Success
             toast.success("Cập nhật quiz thành công!")
             onClose()
             onQuizUpdated()
-        } catch (err: any) {
-            toast.error(`Lỗi cập nhật quiz: ${err.message}`)
+        } catch (err: unknown) {
+            toast.error(`Lỗi cập nhật quiz: ${err instanceof Error ? err.message : 'Đã xảy ra lỗi'}`)
         } finally {
             setIsSubmitting(false)
         }
@@ -163,21 +169,11 @@ export function EditQuizDialog({ quiz, isOpen, onClose, onQuizUpdated }: EditQui
                     </div>
 
                     <div>
-                        <Label htmlFor="edit-quiz-score">Điểm số (1-100)</Label>
-                        <Input
-                            id="edit-quiz-score"
-                            type="number"
-                            min="1"
-                            max="100"
-                            value={formData.scorePossible}
-                            onChange={handleScoreChange}
-                            className="mt-1"
-                        />
-                    </div>
-
-                    <div>
                         <div className="flex items-center justify-between mb-3">
-                            <Label>Các lựa chọn *</Label>
+                            <div>
+                                <Label>Các lựa chọn *</Label>
+                                <p className="text-sm text-muted-foreground">Có thể chọn nhiều đáp án đúng</p>
+                            </div>
                             {formData.options.length < 6 && (
                                 <Button type="button" variant="outline" size="sm" onClick={addOption}>
                                     <Plus className="w-4 h-4 mr-1" />
@@ -191,13 +187,13 @@ export function EditQuizDialog({ quiz, isOpen, onClose, onQuizUpdated }: EditQui
                                 <div key={index} className="flex items-center space-x-3">
                                     <Button
                                         type="button"
-                                        variant={option.isCorrect ? "default" : "outline"}
+                                        variant={option.correct ? "default" : "outline"}
                                         size="sm"
                                         onClick={() => handleCorrectAnswerChange(index)}
-                                        className={`min-w-[40px] ${option.isCorrect ? "bg-green-600 hover:bg-green-700" : "hover:bg-green-50 hover:border-green-300"
+                                        className={`min-w-[40px] ${option.correct ? "bg-green-600 hover:bg-green-700" : "hover:bg-green-50 hover:border-green-300"
                                             }`}
                                     >
-                                        {option.isCorrect ? <CheckCircle className="w-4 h-4" /> : String.fromCharCode(65 + index)}
+                                        {option.correct ? <CheckCircle className="w-4 h-4" /> : String.fromCharCode(65 + index)}
                                     </Button>
                                     <Input
                                         value={option.content}
@@ -219,7 +215,9 @@ export function EditQuizDialog({ quiz, isOpen, onClose, onQuizUpdated }: EditQui
                                 </div>
                             ))}
                         </div>
-                        <p className="text-sm text-slate-500 mt-2">Click vào chữ cái để chọn đáp án đúng</p>
+                        <p className="text-sm text-slate-500 mt-2">
+                            Click vào chữ cái để chọn/bỏ chọn đáp án đúng. Có thể chọn nhiều đáp án đúng.
+                        </p>
                     </div>
 
                     <div className="flex justify-end space-x-2 pt-4">

@@ -88,8 +88,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const userInfo = localStorage.getItem('user_info');
       if (userInfo) {
         const parsedUser = JSON.parse(userInfo);
+        console.log('AuthContext: Updating user from localStorage:', parsedUser);
         setUser(parsedUser);
-        console.log('User info updated from localStorage:', parsedUser);
+        console.log('AuthContext: User state updated successfully');
       }
     } catch (error) {
       console.error('Failed to update user from localStorage:', error);
@@ -114,7 +115,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const handleUserInfoUpdate = () => {
       console.log('User info update event received, updating from localStorage...');
-      // First try to update from localStorage (immediate update)
+      // Immediately update from localStorage
       updateUserFromLocalStorage();
 
       // Then try to refresh from API (for full sync, but don't fail if it errors)
@@ -122,12 +123,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         refreshUserInfo().catch(error => {
           console.log('API refresh failed, but localStorage update succeeded:', error.message);
         });
-      }, 500);
-    };
+      }, 100); // Small delay to ensure localStorage is updated
+    }
 
     window.addEventListener('userInfoUpdated', handleUserInfoUpdate);
+    window.addEventListener('profilePictureUpdated', handleUserInfoUpdate);
     return () => {
       window.removeEventListener('userInfoUpdated', handleUserInfoUpdate);
+      window.removeEventListener('profilePictureUpdated', handleUserInfoUpdate);
     };
   }, [refreshUserInfo, updateUserFromLocalStorage]);
 

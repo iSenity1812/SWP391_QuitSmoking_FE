@@ -13,7 +13,6 @@ import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
 import { OnboardingPage } from "@/pages/onboarding/onBoardingPage"
 import ProgramPage from "@/pages/learning/ProgramPage"
-import TaskPage from "@/pages/task/TaskPage"
 // import { PlanSelectionDirectPage } from "@/pages/plan-selection/PlanDirectPage"
 
 // Protected pages
@@ -38,7 +37,6 @@ import HealthBenefitsPage from "@/pages/health-benefits/HealthBenefitsPage"
 import { NotificationsPage } from "@/pages/notifications/NotificationsPage"
 import { LeaderboardPage } from "@/pages/leaderboard/LeaderboardPage"
 import CreateQuitPlanLayout from "@/layouts/CreateQuitPlanLayout"
-import PlanPage from "@/pages/plan/PlanPage"
 import { QuitPlanDashboard } from "@/pages/plan/quitPlan/QuitPlanDashboard"
 import AchievementsPage from "@/pages/achievements/AchievementsPage"
 
@@ -158,6 +156,21 @@ export function AppRoutes() {
         }
       />
 
+      {/* Member Routes - NORMAL_MEMBER & PREMIUM_MEMBER */}
+      <Route
+        path="/plan/create"
+        element={
+          <ProtectedRoute
+            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+            requireAuth={true}
+          >
+            <QuitPlanGuard>
+              <CreateQuitPlanLayout />
+            </QuitPlanGuard>
+          </ProtectedRoute>
+        }
+      />
+
       {/* Program Page - accessible by PREMIUM_MEMBER only -- Made by Duy */}
       <Route
         path="/program"
@@ -179,20 +192,6 @@ export function AppRoutes() {
             <LeaderboardPage />
           </ProtectedRoute>
         }
-      />
-
-      {/* Member Routes - NORMAL_MEMBER & PREMIUM_MEMBER */}
-      <Route
-        path="/task"
-        element={
-          <ProtectedRoute
-            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER', 'COACH']}
-            requireAuth={false}
-          >
-            <TaskPage />
-          </ProtectedRoute>
-        }
-
       />
 
       <Route
@@ -308,9 +307,6 @@ export function AppRoutes() {
 
       <Route path="/user/:userId" element={<PublicUserProfilePage />} />
 
-      {/* Catch all - 404 or redirect to home */}
-      <Route path="*" element={<LandingPage />} />
-
       {/* Development/Testing Route - Remove in production */}
       <Route
         path="/route-test"
@@ -320,6 +316,9 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Catch all - 404 or redirect to home */}
+      <Route path="*" element={<LandingPage />} />
     </Routes>
   )
 }

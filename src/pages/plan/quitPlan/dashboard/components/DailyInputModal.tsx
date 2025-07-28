@@ -50,7 +50,7 @@ export function DailyInputModal({
   const [cigarettesSmoked, setCigarettesSmoked] = useState(0)
   const [cravingCount, setCravingCount] = useState(0)
   const [selectedSituation, setSelectedSituation] = useState<Situation | undefined>(undefined);
-  const [selectedWithWhom, setSelectedWithWhom] = useState<WithWhom | undefined>(undefined); 
+  const [selectedWithWhom, setSelectedWithWhom] = useState<WithWhom | undefined>(undefined);
   const [showAllSituations, setShowAllSituations] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
@@ -62,7 +62,7 @@ export function DailyInputModal({
     }
   }, [formError])
 
-    useEffect(() => {
+  useEffect(() => {
     if (!isOpen) {
       setCigarettesSmoked(0)
       setCravingCount(0)
@@ -74,7 +74,7 @@ export function DailyInputModal({
     }
   }, [isOpen])
 
-    // Hàm xử lý chọn/bỏ chọn tình huống (chỉ chọn một)
+  // Hàm xử lý chọn/bỏ chọn tình huống (chỉ chọn một)
   const handleSituationToggle = (situation: Situation) => {
     setSelectedSituation(prev => (prev === situation ? undefined : situation));
   };
@@ -100,14 +100,14 @@ export function DailyInputModal({
         smokedCount: cigarettesSmoked,
         cravingsCount: cravingCount,
         situation: selectedSituation,
-        withWhom: selectedWithWhom, 
+        withWhom: selectedWithWhom,
       };
 
       await cravingTrackingService.checkInCraving(requestData);
-      
+
       // Thêm một delay nhỏ để backend có thời gian process
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       onRecordSuccess(); // Gọi callback khi thành công
       onClose(); // Đóng modal
     } catch (error) {

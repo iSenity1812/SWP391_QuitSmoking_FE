@@ -1,105 +1,117 @@
 "use client"
 
-import type React from "react"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Heart, Brain, Wind, Star, Sparkles } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { X, Sparkles } from "lucide-react"
 import { DailyInputModal } from "./DailyInputModal"
+import { cravingTrackingService, type CravingTrackingCreateRequest } from "@/services/cravingTrackingService";
+import { toast } from "react-toastify"
+import { QuizTaskComponent } from "@/pages/task/components/QuizTaskComponent"
+import { TipTaskComponent } from "@/pages/task/components/TipTaskComponent"
+import { useTask } from "@/hooks/use-task"
+import { Button } from "@/components/ui/button"
 
 interface CravingSupportModalProps {
     isOpen: boolean
     onClose: () => void
-    onRecordSmoking: (data: { cigarettesSmoked: number; cravingCount: number }) => void
+    onRecordSuccess: () => void
     planType: string
 }
 
-type FlowStep = "confirmation" | "support-content" | "follow-up" | "celebration" | "record-smoking"
+type FlowStep = "confirmation" | "task-content" | "motivation" | "follow-up" | "celebration" | "record-smoking"
 
-interface SupportContent {
-    type: "tip" | "question" | "breathing" | "motivation"
-    title: string
-    content: string
-    icon: React.ReactNode
-    options?: string[]
-}
+const motivationalQuotes = [
+    "Mỗi lượt vượt qua cơn thèm thuốc khiến bạn mạnh mẽ hơn",
+    "Bạn chính là người kiểm soát chính mình — không phải cơn thèm thuốc của bạn",
+    "Cơn thèm này rồi sẽ qua. Hãy cố gắng vì một cơ thể khỏe mạnh",
+    "Hãy nghĩ về những gì bạn đã trải qua. Đừng bỏ cuộc bây giờ!",
+    "Tương lai của bạn sẽ cảm ơn bạn vì khoảnh khắc này",
+    "Cố gắng thêm một chút nữa thôi — bạn đang làm rất tốt",
+];
 
-const supportContents: SupportContent[] = [
-    {
-        type: "tip",
-        title: "Mẹo Vượt Qua Cơn Thèm",
-        content:
-            "Hãy thử uống một ly nước lạnh hoặc nhai kẹo cao su. Điều này sẽ giúp bạn chuyển hướng sự chú ý và giảm cảm giác thèm thuốc.",
-        icon: <Heart className="w-6 h-6 text-red-500" />,
-    },
-    {
-        type: "question",
-        title: "Điều Gì Khiến Bạn Thèm Thuốc?",
-        content: "Hãy xác định nguyên nhân khiến bạn thèm thuốc để có thể đối phó tốt hơn:",
-        icon: <Brain className="w-6 h-6 text-purple-500" />,
-        options: ["Căng thẳng", "Buồn chán", "Thói quen", "Áp lực xã hội"],
-    },
-    {
-        type: "breathing",
-        title: "Bài Tập Thở Sâu",
-        content:
-            "Hít vào sâu trong 4 giây, giữ hơi trong 4 giây, thở ra trong 6 giây. Lặp lại 3 lần để cảm thấy thư giãn hơn.",
-        icon: <Wind className="w-6 h-6 text-blue-500" />,
-    },
-    {
-        type: "motivation",
-        title: "Bạn Đang Làm Rất Tốt!",
-        content:
-            "Mỗi lần bạn vượt qua cơn thèm là một chiến thắng. Cơ thể bạn đang hồi phục và sức khỏe đang được cải thiện từng ngày.",
-        icon: <Star className="w-6 h-6 text-yellow-500" />,
-    },
-]
-
-export function CravingSupportModal({ isOpen, onClose, onRecordSmoking, planType }: CravingSupportModalProps) {
+export function CravingSupportModal({ isOpen, onClose, onRecordSuccess, planType }: CravingSupportModalProps) {
     const [currentStep, setCurrentStep] = useState<FlowStep>("confirmation")
-    const [currentContentIndex, setCurrentContentIndex] = useState(0)
-    const [selectedTrigger, setSelectedTrigger] = useState<string>("")
-    const [cigarettesSmoked, setCigarettesSmoked] = useState(1)
-    const [cravingCount, setCravingCount] = useState(1)
+    const [hasOvercomeCraving, setHasOvercomeCraving] = useState(false)
+    const [currentMotivation, setCurrentMotivation] = useState("")
+    const [currentQuizResult, setCurrentQuizResult] = useState<boolean | undefined>(undefined)
+
+    // Task logic
+    const {
+        currentTask,
+        isLoading: taskLoading,
+        error: taskError,
+        generateNewTask,
+        resetSession,
+        handleQuizAnswer,
+        currentQuizIndex,
+        markQuizTaskCompleted,
+        markTipTaskCompleted,
+        goToNextQuiz,
+    } = useTask()
 
     const resetModal = () => {
         setCurrentStep("confirmation")
-        setCurrentContentIndex(0)
-        setSelectedTrigger("")
-        setCigarettesSmoked(1)
-        setCravingCount(1)
+        setCurrentMotivation("")
+        setCurrentQuizResult(undefined)
     }
 
     const handleClose = () => {
-        resetModal()
-        onClose()
+        // Only call onRecordSuccess if a craving was successfully overcome
+        if (hasOvercomeCraving) {
+            onRecordSuccess(); // Trigger refetch in parent component (OverviewTab)
+            setHasOvercomeCraving(false); // Reset the state
+        }
+        resetModal();
+        onClose();
     }
 
     const handleWantHelp = () => {
-        setCurrentStep("support-content")
+        // Generate new task when user wants help
+        generateNewTask()
+        setCurrentQuizResult(undefined) // Reset quiz result for new task
+        setCurrentStep("task-content")
+    }
+
+    const handleTaskCompleted = () => {
+        // Select random motivation
+        const randomMotivation = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]
+        setCurrentMotivation(randomMotivation)
+        setCurrentStep("motivation")
+    }
+
+    const handleMotivationNext = () => {
+        setCurrentStep("follow-up")
     }
 
     const handleWillSmoke = () => {
         setCurrentStep("record-smoking")
     }
 
-    const handleNextContent = () => {
-        if (currentContentIndex < supportContents.length - 1) {
-            setCurrentContentIndex(currentContentIndex + 1)
-        } else {
-            setCurrentStep("follow-up")
-        }
-    }
-
-    const handleFollowUpResponse = (response: "overcome" | "help-again" | "no-help") => {
+    const handleFollowUpResponse = async (response: "overcome" | "help-again" | "no-help") => {
         switch (response) {
-            case "overcome":
+            case "overcome": {
+                try {
+                    // Create a new craving tracking record for overcoming a craving
+                    const newCravingTracking: CravingTrackingCreateRequest = {
+                        smokedCount: 0, // User overcame craving, so smoked count is 0
+                        cravingsCount: 1 // Increment craving count by 1
+                    };
+
+                    await cravingTrackingService.checkInCraving(newCravingTracking);
+                    toast.success("Đã ghi nhận 1 lượt thèm thuốc được vượt qua!");
+                    setHasOvercomeCraving(true);
+                } catch (error) {
+                    console.error("Error recording craving tracking:", error);
+                    toast.error(`Lỗi khi ghi nhận lượt thèm thuốc: ${error instanceof Error ? error.message : "Lỗi không xác định"}`);
+                    setHasOvercomeCraving(false);
+                }
                 setCurrentStep("celebration")
                 break
+            }
             case "help-again":
-                setCurrentContentIndex(0)
-                setCurrentStep("support-content")
+                resetSession() // Reset task session like in original task logic
+                generateNewTask() // Generate new task
+                setCurrentStep("task-content")
                 break
             case "no-help":
                 setCurrentStep("record-smoking")
@@ -107,9 +119,9 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSmoking, planType
         }
     }
 
-    const handleRecordSubmit = () => {
-        onRecordSmoking({ cigarettesSmoked, cravingCount })
-        handleClose()
+    const handleDailyInputSuccessFromCravingModal = () => {
+        onRecordSuccess(); // Trigger the success callback passed from OverviewTab
+        handleClose(); // Close the CravingSupportModal
     }
 
     const renderConfirmationStep = () => (
@@ -117,7 +129,7 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSmoking, planType
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="text-center space-y-6"
+            className="text-center space-y-6 min-h-[300px] flex flex-col justify-center"
         >
             <div className="">
                 <div className="text-6xl">🤔</div>
@@ -148,68 +160,145 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSmoking, planType
         </motion.div>
     )
 
-    const renderSupportContent = () => {
-        const content = supportContents[currentContentIndex]
+    const renderTaskContent = () => {
+        if (taskLoading) {
+            return (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-center space-y-6 min-h-[300px] flex flex-col justify-center"
+                >
+                    <div className="text-6xl">⏳</div>
+                    <h3 className="text-xl font-bold text-slate-800">Đang tải thử thách...</h3>
+                    <p className="text-slate-600">Vui lòng chờ một chút</p>
+                </motion.div>
+            )
+        }
+
+        if (taskError) {
+            return (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-center space-y-6 min-h-[300px] flex flex-col justify-center"
+                >
+                    <div className="text-6xl">❌</div>
+                    <h3 className="text-xl font-bold text-red-600">Có lỗi xảy ra</h3>
+                    <p className="text-slate-600">{taskError}</p>
+                    <Button onClick={generateNewTask} className="bg-emerald-500 hover:bg-emerald-600">
+                        Thử lại
+                    </Button>
+                </motion.div>
+            )
+        }
+
+        if (!currentTask) {
+            return (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-center space-y-6 min-h-[300px] flex flex-col justify-center"
+                >
+                    <div className="text-6xl">🎯</div>
+                    <h3 className="text-xl font-bold text-slate-800">Sẵn sàng cho thử thách?</h3>
+                    <p className="text-slate-600">Nhấn nút để bắt đầu</p>
+                    <Button onClick={generateNewTask} className="bg-emerald-500 hover:bg-emerald-600">
+                        Bắt đầu thử thách
+                    </Button>
+                </motion.div>
+            )
+        }
 
         return (
             <motion.div
-                key={currentContentIndex}
-                initial={{ opacity: 0, x: 50 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -50 }}
-                className="space-y-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-4 min-h-[350px]"
             >
-                <div className="text-center space-y-4">
-                    <div className="flex justify-center">{content.icon}</div>
-                    <h3 className="text-xl font-bold text-slate-800">{content.title}</h3>
-                    <p className="text-slate-600 leading-relaxed">{content.content}</p>
-                </div>
-
-                {content.options && (
-                    <div className="space-y-3">
-                        <p className="font-medium text-slate-700">Chọn một lý do:</p>
-                        <div className="grid grid-cols-2 gap-2">
-                            {content.options.map((option) => (
-                                <Button
-                                    key={option}
-                                    variant="outline"
-                                    className={cn("text-sm py-2", selectedTrigger === option && "bg-emerald-100 border-emerald-300")}
-                                    onClick={() => setSelectedTrigger(option)}
-                                >
-                                    {option}
-                                </Button>
-                            ))}
-                        </div>
-                    </div>
+                {currentTask.type === 'QUIZ' && currentTask.quizzes && currentTask.quizzes.length > 0 && currentQuizIndex < currentTask.quizzes.length && (
+                    <QuizTaskComponent
+                        quiz={currentTask.quizzes[currentQuizIndex]}
+                        onAnswerSelected={(quizId, optionId) => {
+                            if (optionId !== null) {
+                                handleQuizAnswer(quizId, optionId)
+                                // Determine if answer is correct by checking the selected option
+                                const selectedOption = currentTask.quizzes![currentQuizIndex]?.options?.find(opt => opt.optionId === optionId)
+                                setCurrentQuizResult(selectedOption?.correct || false)
+                            } else {
+                                // Time out case - no answer selected
+                                setCurrentQuizResult(false)
+                            }
+                        }}
+                        onNext={() => {
+                            // Reset quiz result for next question
+                            setCurrentQuizResult(undefined)
+                            // Move to next quiz or complete task
+                            if (currentQuizIndex < currentTask.quizzes!.length - 1) {
+                                goToNextQuiz()
+                            } else {
+                                markQuizTaskCompleted()
+                                handleTaskCompleted()
+                            }
+                        }}
+                        isLastQuiz={currentQuizIndex === currentTask.quizzes.length - 1}
+                        quizAttemptResult={currentQuizResult}
+                        currentQuizIndex={currentQuizIndex}
+                        totalQuizzes={currentTask.quizzes.length}
+                    />
                 )}
 
-                <div className="flex justify-between items-center pt-4">
-                    <div className="flex space-x-1">
-                        {supportContents.map((_, index) => (
-                            <div
-                                key={index}
-                                className={cn("w-2 h-2 rounded-full", index === currentContentIndex ? "bg-emerald-500" : "bg-gray-300")}
-                            />
-                        ))}
-                    </div>
-
-                    <Button
-                        onClick={handleNextContent}
-                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
-                    >
-                        {currentContentIndex < supportContents.length - 1 ? "Tiếp theo" : "Hoàn thành"}
-                    </Button>
-                </div>
+                {currentTask.type === 'TIP' && currentTask.tips && (
+                    <TipTaskComponent
+                        tips={currentTask.tips}
+                        onComplete={() => {
+                            markTipTaskCompleted()
+                            handleTaskCompleted()
+                        }}
+                    />
+                )}
             </motion.div>
         )
     }
+
+    const renderMotivation = () => (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="text-center space-y-6 min-h-[300px] flex flex-col justify-center"
+        >
+            <div className="space-y-4">
+                <div className="text-6xl">💪</div>
+                <h3 className="text-2xl font-bold text-emerald-600">Tuyệt vời!</h3>
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                    <p className="text-lg text-emerald-800 dark:text-emerald-200 font-medium italic">
+                        "{currentMotivation}"
+                    </p>
+                </div>
+                <p className="text-slate-600">
+                    Bạn đã hoàn thành thử thách một cách xuất sắc! Hãy tiếp tục với tinh thần này.
+                </p>
+            </div>
+
+            <Button
+                onClick={handleMotivationNext}
+                className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
+            >
+                Tiếp tục
+            </Button>
+        </motion.div>
+    )
 
     const renderFollowUp = () => (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="text-center space-y-6"
+            className="text-center space-y-6 min-h-[300px] flex flex-col justify-center"
         >
             <div className="space-y-1">
                 <div className="text-6xl">🤔</div>
@@ -254,7 +343,7 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSmoking, planType
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="text-center space-y-6"
+            className="text-center space-y-6 min-h-[350px] flex flex-col justify-center"
         >
             <motion.div
                 initial={{ scale: 0 }}
@@ -327,7 +416,7 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSmoking, planType
         <DailyInputModal
             isOpen={isOpen}
             onClose={handleClose}
-            onSubmit={handleRecordSubmit}
+            onRecordSuccess={handleDailyInputSuccessFromCravingModal}
             planType={planType}
         />
     )
@@ -343,25 +432,28 @@ export function CravingSupportModal({ isOpen, onClose, onRecordSmoking, planType
                     onClick={handleClose}
                 >
                     <motion.div
-                        className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative overflow-hidden"
+                        className="bg-white rounded-2xl p-6 w-full max-w-lg min-w-[320px] sm:min-w-[480px] max-h-[90vh] shadow-2xl relative flex flex-col"
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.9, opacity: 0 }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="flex items-center justify-end mb-6">
+                        <div className="flex items-center justify-end mb-6 flex-shrink-0">
                             <Button variant="ghost" size="icon" onClick={handleClose} className="text-gray-500 hover:text-gray-700">
                                 <X className="w-5 h-5" />
                             </Button>
                         </div>
 
-                        <AnimatePresence mode="wait">
-                            {currentStep === "confirmation" && renderConfirmationStep()}
-                            {currentStep === "support-content" && renderSupportContent()}
-                            {currentStep === "follow-up" && renderFollowUp()}
-                            {currentStep === "celebration" && renderCelebration()}
-                            {currentStep === "record-smoking" && renderRecordSmoking()}
-                        </AnimatePresence>
+                        <div className="flex-1 overflow-y-auto">
+                            <AnimatePresence mode="wait">
+                                {currentStep === "confirmation" && renderConfirmationStep()}
+                                {currentStep === "task-content" && renderTaskContent()}
+                                {currentStep === "motivation" && renderMotivation()}
+                                {currentStep === "follow-up" && renderFollowUp()}
+                                {currentStep === "celebration" && renderCelebration()}
+                                {currentStep === "record-smoking" && renderRecordSmoking()}
+                            </AnimatePresence>
+                        </div>
                     </motion.div>
                 </motion.div>
             )}

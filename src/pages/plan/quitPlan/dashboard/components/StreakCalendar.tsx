@@ -46,7 +46,7 @@ export const StreakCalendar: React.FC<StreakCalendarProps> = ({ data }) => {
     let base = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition-all"
 
     if (isToday) {
-      base += " ring-2 ring-offset-2 ring-blue-500 dark:ring-blue-400"
+      base += " ring-2 ring-offset-2 ring-emerald-500 dark:ring-emerald-400"
     }
 
     if (!entry || entry.actual === null) {

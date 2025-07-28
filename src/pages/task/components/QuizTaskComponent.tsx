@@ -1,176 +1,195 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { motion } from "framer-motion"
 import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Clock, HelpCircle, AlertCircle, Star } from "lucide-react"
-import type { TaskResponseDTO, QuizResponseDTO } from "@/types/task"
+import { Clock, CheckCircle, XCircle, HeartHandshake } from "lucide-react"
+import type { QuizResponseDTO } from "@/types/task"
 
 interface QuizTaskComponentProps {
-    task: TaskResponseDTO
-    quiz: QuizResponseDTO
-    onSubmit: (selectedOptionId: number, timeSpent: number) => void
+    quiz: QuizResponseDTO | undefined
+    onAnswerSelected: (quizId: string, selectedOptionId: number | null) => void; // Callback khi chọn đáp án
+    onNext: () => void; // Callback cho nút "Tiếp theo"
+    isLastQuiz: boolean; // Cờ báo hiệu đây có phải câu hỏi cuối cùng không
+    quizAttemptResult: boolean | undefined;
+    currentQuizIndex?: number; // Current quiz index for progress dots
+    totalQuizzes?: number; // Total number of quizzes for progress dots
 }
 
-export function QuizTaskComponent({ task, quiz, onSubmit }: QuizTaskComponentProps) {
+export function QuizTaskComponent({ quiz, onAnswerSelected, onNext, isLastQuiz, quizAttemptResult, currentQuizIndex = 0, totalQuizzes = 1 }: QuizTaskComponentProps) {
     const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null)
     const [timeLeft, setTimeLeft] = useState(60) // 60 seconds timer
-    const [isSubmitted, setIsSubmitted] = useState(false)
-    const [showResult, setShowResult] = useState(false)
-    const [startTime] = useState(Date.now())
+    const isChecked = quizAttemptResult !== undefined;
 
+    // Reset state khi quiz thay đổi (chuyển sang câu hỏi mới)
     useEffect(() => {
-        if (timeLeft > 0 && !isSubmitted) {
-            const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
-            return () => clearTimeout(timer)
-        } else if (timeLeft === 0 && !isSubmitted) {
-            handleSubmit()
+        if (quiz?.quizId) {
+            setSelectedOptionId(null);
+            setTimeLeft(60); // Reset timer for new quiz
         }
-    }, [timeLeft, isSubmitted])
+    }, [quiz?.quizId]);
 
-    const handleSubmit = () => {
-        if (selectedOptionId === null && timeLeft > 0) return
+    // Timer logic
+    useEffect(() => {
+        if (timeLeft > 0 && !isChecked && quiz) {
+            const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+            return () => clearTimeout(timer);
+        } else if (timeLeft === 0 && !isChecked && quiz) {
+            // Auto-submit when time runs out if not already answered
+            onAnswerSelected(quiz.quizId, null); // Submit null for no selection
+            // Auto-advance to next question after time out
+            setTimeout(() => {
+                onNext();
+            }, 1000);
+        }
+    }, [timeLeft, isChecked, quiz, onAnswerSelected, onNext]);
 
-        const timeSpent = Math.floor((Date.now() - startTime) / 1000)
-        setIsSubmitted(true)
-        setShowResult(true)
-
-        // Show result for 2 seconds then submit
-        setTimeout(() => {
-            onSubmit(selectedOptionId || 0, timeSpent)
-        }, 2000)
+    // Early return after all hooks
+    if (!quiz) {
+        return (
+            <div className="text-center space-y-4">
+                <div className="text-6xl">⏳</div>
+                <p className="text-slate-600">Đang tải câu hỏi...</p>
+            </div>
+        );
     }
+
+    const handleSelectOption = (optionId: number) => {
+        if (isChecked) return; // Prevent selection if already checked
+
+        setSelectedOptionId(optionId);
+        // Immediately call the parent callback. The parent will then handle the result
+        // and eventually update `quizAttemptResult` prop here.
+        onAnswerSelected(quiz.quizId, optionId);
+
+        // Show answer for 2 seconds then auto-advance
+        setTimeout(() => {
+            onNext();
+        }, 2000);
+    };
 
     const progressPercentage = ((60 - timeLeft) / 60) * 100
 
-    // Find correct option (assuming first correct option is the answer)
-    const correctOption = quiz.options.find((opt, index) => {
-        // Since we don't have isCorrect field in OptionResponseDTO,
-        // we'll need to handle this differently or assume first option is correct
-        // For now, let's assume the backend will handle correctness validation
-        return false // We can't determine correct answer from frontend
-    })
+    // Grid class logic for answer layout
+    const getGridClass = () => {
+        const optionCount = quiz?.options?.length || 0
+        if (optionCount === 2) return 'grid-cols-2' // 2 answers in 1 row
+        if (optionCount === 3) return 'grid-cols-1' // 3 answers in 3 rows (1 per row)
+        if (optionCount === 4) return 'grid-cols-2' // 4 answers in 2 rows (2 per row)
+        return 'grid-cols-1' // Default for other cases
+    }
 
     return (
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
-            <Card className="max-w-3xl mx-auto shadow-xl border-0 bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-slate-900">
-                <CardHeader className="text-center pb-4">
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                        <HelpCircle className="h-6 w-6 text-blue-600" />
-                        <Badge variant="outline" className="text-blue-600 border-blue-600">
-                            Câu hỏi trắc nghiệm
-                        </Badge>
-                        <Badge variant="outline" className="text-yellow-600 border-yellow-600">
-                            <Star className="h-3 w-3 mr-1" />
-                            {quiz.scorePossible} điểm
-                        </Badge>
-                    </div>
-                    <CardTitle className="text-2xl font-bold text-slate-800 dark:text-white">{quiz.title}</CardTitle>
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-6"
+        >
+            {/* Quiz Header */}
+            <div className="text-center space-y-2">
+                <div className="flex items-center justify-center"><HeartHandshake className="w-8 h-8 text-red-400" /></div>
+                <h3 className="text-2xl font-bold text-slate-800">{quiz.title}</h3>
+                {quiz.description && (
+                    <p className="text-slate-600">{quiz.description}</p>
+                )}
+            </div>
 
-                    {quiz.description && <p className="text-slate-600 dark:text-slate-300 mt-2">{quiz.description}</p>}
+            {/* Timer Progress */}
+            <div className="flex items-center justify-center gap-4">
+                <div className="flex items-center gap-2 text-slate-600">
+                    <Clock className="h-4 w-4" />
+                    <span className={`font-semibold ${timeLeft <= 10 && !isChecked ? "text-red-500 animate-pulse" : ""}`}>
+                        {timeLeft} giây
+                    </span>
+                </div>
+                <Progress value={progressPercentage} className="w-2/3 h-2 bg-blue-100" />
+            </div>
 
-                    {/* Timer and Progress */}
-                    <div className="flex items-center justify-center gap-4 mt-4">
-                        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                            <Clock className="h-4 w-4" />
-                            <span className={`font-mono ${timeLeft <= 10 ? "text-red-500" : ""}`}>
-                                {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, "0")}
-                            </span>
-                        </div>
-                        <Progress value={progressPercentage} className="w-32" />
-                    </div>
-                </CardHeader>
+            {/* Quiz Options */}
+            <div className="space-y-3">
+                <p className="font-medium text-slate-700">Chọn câu trả lời:</p>
+                <div className={`grid gap-3 ${getGridClass()}`}>
+                    {quiz.options?.map((option) => {
+                        const isCurrentSelection = selectedOptionId === option.optionId;
+                        const isCorrectOption = option.correct;
 
-                <CardContent className="space-y-6">
-                    {/* Question - using quiz title as question since we don't have separate question field */}
-                    <div className="text-center bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4">
-                        <p className="text-lg text-slate-700 dark:text-slate-200 leading-relaxed">
-                            {quiz.description || quiz.title}
-                        </p>
-                    </div>
+                        let buttonClass = `p-4 text-left rounded-lg border-2 transition-colors`;
 
-                    {/* Answer Options */}
-                    <div className="space-y-3">
-                        <AnimatePresence>
-                            {quiz.options.map((option, index) => {
-                                const isSelected = selectedOptionId === option.optionId
+                        if (isChecked) { // Answer has been processed by parent
+                            if (isCurrentSelection) {
+                                buttonClass += isCorrectOption ? " bg-green-100 border-green-500 text-green-800" : " bg-red-100 border-red-500 text-red-800";
+                            } else if (isCorrectOption) { // Highlight correct answer if user chose wrong
+                                buttonClass += " bg-green-50 border-green-300 text-green-700";
+                            } else {
+                                buttonClass += " bg-gray-50 border-gray-200 text-gray-500 opacity-70";
+                            }
+                            buttonClass += " cursor-not-allowed";
+                        } else { // Waiting for user selection
+                            buttonClass += isCurrentSelection ? " bg-purple-100 border-purple-500 text-purple-800" : " bg-white border-slate-200 text-slate-700 hover:border-purple-300 hover:bg-purple-50";
+                        }
 
-                                let buttonClass =
-                                    "w-full justify-start text-left p-4 h-auto transition-all duration-300 hover:shadow-md hover:scale-[1.02]"
-
-                                if (isSelected) {
-                                    buttonClass += " ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20 border-blue-500"
-                                }
-
-                                return (
-                                    <motion.div
-                                        key={option.optionId}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: index * 0.1 }}
-                                    >
-                                        <Button
-                                            variant="outline"
-                                            className={buttonClass}
-                                            onClick={() => !isSubmitted && setSelectedOptionId(option.optionId)}
-                                            disabled={isSubmitted}
+                        return (
+                            <motion.button
+                                key={option.optionId}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.3, delay: 0.1 }}
+                                className={buttonClass}
+                                onClick={() => handleSelectOption(option.optionId)}
+                                disabled={isChecked}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span>{option.content}</span>
+                                    {isChecked && isCurrentSelection && (
+                                        <motion.div
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
                                         >
-                                            <div className="flex items-center gap-3 w-full">
-                                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-sm font-semibold">
-                                                    {String.fromCharCode(65 + index)}
-                                                </div>
-                                                <span className="flex-1">{option.content}</span>
-                                            </div>
-                                        </Button>
-                                    </motion.div>
-                                )
-                            })}
-                        </AnimatePresence>
-                    </div>
-
-                    {/* Submit Button */}
-                    {!isSubmitted && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.5 }}
-                            className="text-center pt-4"
-                        >
-                            <Button
-                                onClick={handleSubmit}
-                                disabled={selectedOptionId === null}
-                                size="lg"
-                                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 disabled:opacity-50"
-                            >
-                                Nộp bài
-                            </Button>
-                        </motion.div>
-                    )}
-
-                    {/* Result Message - Will be shown after backend response */}
-                    <AnimatePresence>
-                        {showResult && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                className="text-center"
-                            >
-                                <div className="p-4 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
-                                    <div className="flex items-center justify-center gap-2 mb-2">
-                                        <AlertCircle className="h-6 w-6 text-blue-600" />
-                                        <span className="font-semibold text-lg">Đang xử lý kết quả... ⏳</span>
-                                    </div>
-                                    <p className="text-sm opacity-90">Vui lòng chờ trong giây lát</p>
+                                            {quizAttemptResult ? (
+                                                <CheckCircle className="h-5 w-5 text-green-600" />
+                                            ) : (
+                                                <XCircle className="h-5 w-5 text-red-600" />
+                                            )}
+                                        </motion.div>
+                                    )}
+                                    {isChecked && !isCurrentSelection && isCorrectOption && (
+                                        <motion.div
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                        >
+                                            <CheckCircle className="h-5 w-5 text-green-600" />
+                                        </motion.div>
+                                    )}
                                 </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </CardContent>
-            </Card>
+                            </motion.button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Bottom navigation */}
+            <div className="flex items-center justify-between">
+                {/* Progress dots bên trái */}
+                <div className="flex space-x-2">
+                    {Array.from({ length: totalQuizzes }, (_, index) => (
+                        <div
+                            key={index}
+                            className={`w-2 h-2 rounded-full ${index === currentQuizIndex ? "bg-emerald-600" :
+                                index < currentQuizIndex ? "bg-emerald-400" : "bg-gray-300"
+                                }`}
+                        />
+                    ))}
+                </div>
+
+                {/* Button Tiếp theo bên phải */}
+                <button
+                    onClick={onNext}
+                    className="px-6 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+                >
+                    {isLastQuiz ? "Hoàn thành" : "Tiếp theo"}
+                </button>
+            </div>
         </motion.div>
-    )
+    );
 }

@@ -158,8 +158,8 @@ export function ImportQuizDialog({ onQuizzesImported }: ImportQuizDialogProps) {
             <Label>Chọn file Excel</Label>
             <div
               className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${dragActive
-                  ? "border-green-400 bg-green-50"
-                  : "border-gray-300 hover:border-gray-400"
+                ? "border-green-400 bg-green-50"
+                : "border-gray-300 hover:border-gray-400"
                 }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
@@ -223,11 +223,18 @@ export function ImportQuizDialog({ onQuizzesImported }: ImportQuizDialogProps) {
               <div className="text-sm text-blue-700">
                 <p className="font-medium mb-1">Định dạng file Excel:</p>
                 <ul className="text-xs space-y-1 ml-2">
-                  <li>• Cột A: Tiêu đề quiz</li>
-                  <li>• Cột B: Mô tả quiz (tùy chọn)</li>
-                  <li>• Cột C: Điểm tối đa</li>
-                  <li>• Cột D trở đi: Các lựa chọn câu trả lời</li>
-                </ul>
+                  <li>• <strong>Title:</strong> Tiêu đề câu hỏi</li>
+                  <li>• <strong>Description:</strong> Mô tả câu hỏi</li>
+                  <li>• <strong>Score:</strong> Điểm số (VD: 10)</li>
+                  <li>• <strong>Possible:</strong> Số lượng đáp án có thể (VD: 4)</li>
+                  <li>• <strong>Option1, isCorrect1:</strong> Đáp án 1 và TRUE/FALSE</li>
+                  <li>• <strong>Option2, isCorrect2:</strong> Đáp án 2 và TRUE/FALSE</li>
+                  <li>• <strong>Option3, isCorrect3:</strong> Đáp án 3 và TRUE/FALSE</li>
+                  <li>• <strong>Option4, isCorrect4:</strong> Đáp án 4 và TRUE/FALSE</li>
+                </ul>v
+                <p className="text-xs mt-2 text-blue-600">
+                  <strong>Lưu ý:</strong> Mỗi câu hỏi phải có ít nhất một đáp án đúng (TRUE)
+                </p>
               </div>
             </div>
           </div>

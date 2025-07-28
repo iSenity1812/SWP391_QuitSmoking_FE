@@ -56,41 +56,41 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
       {
         type: "immediate",
         planType: "IMMEDIATE",
-        title: "Immediate",
-        subtitle: "Full stop",
+        title: "Ngừng Hoàn Toàn",
+        subtitle: "Dừng ngay lập tức",
         description:
-          "Perfect for those ready to quit completely right away. Requires strong commitment but delivers immediate results.",
+          "Hoàn hảo cho những ai sẵn sàng bỏ thuốc ngay lập tức. Cần quyết tâm cao và mang lại kết quả tức thì",
         icon: "🚀",
         recommended: recommendedTypes.includes("IMMEDIATE"),
       },
       {
         type: "gradual",
-        variant: "Linear",
+        variant: "Giảm Đều",
         planType: "LINEAR",
         title: "Gradual",
-        subtitle: "Reduce the same amount each day",
+        subtitle: "Giảm đều số lượng thuốc theo thời gian",
         description:
-          "Steady, predictable progress that's easier to maintain. Stick to a clear and linear path to freedom. Ideal if you prefer consistency.",
+          "Kế hoạch được đề xuất sẽ ổn định và dễ duy trì. Sẽ lý tưởng cho những ai thích sự đồng đều trong quá trình giảm số lượng thuốc",
         icon: "📉",
         recommended: recommendedTypes.includes("LINEAR"),
       },
       {
         type: "gradual",
-        variant: "Strong Start",
+        variant: "Khởi Đầu Mạnh",
         planType: "EXPONENTIAL",
         title: "Gradual",
-        subtitle: "Start slow, then accelerate reduction",
-        description: "Take your time at first, then finish strong with rapid progress later. Great for those who need time to adapt early on.",
+        subtitle: "Bắt đầu mạnh mẽ, nhẹ nhàng về sau",
+        description: "Giai đoạn đầu có thể sẽ khó khăn và cần sự nỗ lực, nhưng nếu đã vượt qua thì về sau sẽ càng dễ dàng. Lý tưởng cho người muốn thấy kết quả nhanh chóng",
         icon: "📈",
         recommended: recommendedTypes.includes("EXPONENTIAL"),
       },
       {
         type: "gradual",
-        variant: "Light Start",
+        variant: "Khởi Đầu Nhẹ",
         planType: "LOGARITHMIC",
         title: "Gradual",
-        subtitle: "Quick initial reduction, then slower pace",
-        description: "Get ahead early and maintain balance. Designed for those motivated by early impact.",
+        subtitle: "Bắt đầu nhẹ nhàng, tăng tốc về sau",
+        description: "Khởi động nhẹ nhàng để thích nghi, sau đó tăng tốc nhanh chóng. Phù hợp với người cần thời gian làm quen ban đầu",
         icon: "📊",
         recommended: recommendedTypes.includes("LOGARITHMIC"),
       },
@@ -223,13 +223,13 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                 className="text-center mb-12"
               >
                 <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-4">
-                  Choose Your{" "}
+                  Kế Hoạch{" "}
                   <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 bg-clip-text text-transparent">
-                    Quit Strategy
+                    Phù Hợp Với Bạn
                   </span>
                 </h1>
                 <p className="text-xl text-muted-foreground">
-                  Everyones journey is different. Choose what suits you best
+                   Hành trình của mỗi người là khác nhau. Hãy chọn phương pháp phù hợp nhất với bạn
                 </p>
               </motion.div>
 
@@ -245,14 +245,14 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                     <div className="grid grid-cols-3 md:grid-cols-7 gap-4">
                       <CardTitle className="text-lg flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
                         {/* <Target className="w-5 h-5 text-emerald-600" /> */}
-                        Your Habbit
+                        Thói Quen Của Bạn
                       </CardTitle>
                       <div className="col-span-2 flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg">
                         <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
                           <span className="text-red-600 text-lg">🚬</span>
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">Daily Cigarettes</p>
+                          <p className="text-xs text-muted-foreground">Số điếu mỗi ngày</p>
                           <p className="font-semibold text-foreground">{formData.initialSmokingAmount}</p>
                         </div>
                       </div>
@@ -262,7 +262,7 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                           <span className="text-green-600 text-lg">💸</span>
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">Cost Per Week</p>
+                          <p className="text-xs text-muted-foreground">Chi trả mỗi tuần</p>
                           <p className="font-semibold text-foreground">
                             {(formData.initialSmokingAmount * 7 * (formData.costPerPack / formData.cigarettesPerPack)).toLocaleString("vi-VN")} VNĐ
                           </p>
@@ -274,8 +274,8 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                           <span className="text-purple-600 text-lg">🌱</span>
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">Previous Quit Attempts</p>
-                          <p className="font-semibold text-foreground">{attempts > 0 ? attempts : "First Attempt"}</p>
+                          <p className="text-xs text-muted-foreground">Số lần cố gắng trước</p>
+                          <p className="font-semibold text-foreground">{attempts > 0 ? attempts : "Lần đầu tiên"}</p>
                         </div>
                       </div>
                     </div>
@@ -294,7 +294,7 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
 
               <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
                 <Target className="w-6 h-6 text-emerald-600" />
-                Select Your Plan Type
+                Chọn Loại Kế Hoạch
               </h2>
 
               {/* Auto-adjustment notification */}
@@ -306,7 +306,7 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                   className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg"
                 >
                   <p className="text-sm text-amber-700">
-                    ⚠️ Quit Type is automatically selected to suit with your smoking habits (1 cigarette per day)
+                    ⚠️  Loại kế hoạch đã được chọn tự động nhằm phù hợp với thói quen của bạn (1 điếu mỗi ngày)
                   </p>
                 </motion.div>
               )}
@@ -341,7 +341,7 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                         {isRecommended && (
                           <div className="absolute top-3 right-3 z-10">
                             <span className="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded-full font-medium">
-                              ⭐ Recommended
+                              ⭐ Phù Hợp Với Bạn
                             </span>
                           </div>
                         )}
@@ -365,7 +365,7 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                                     className={`text-lg leading-tight ${selectedPlan === plan.planType ? "text-emerald-700 dark:text-emerald-300" : ""
                                       }`}
                                   >
-                                    {plan.title == "Immediate" ? (<>{plan.title}</>) : (<>{plan.variant}</>)}
+                                    {plan.title == "Ngừng Hoàn Toàn" ? (<>{plan.title}</>) : (<>{plan.variant}</>)}
 
                                     <div className="text-sm font-medium text-muted-foreground mt-1">{plan.subtitle}</div>
                                   </CardTitle>
@@ -415,9 +415,9 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                   <div className="flex items-center gap-4 mb-7">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-6 h-6 text-emerald-600" />
-                      <h2 className="text-2xl font-bold mb-0">Set Your Timeline</h2>
+                      <h2 className="text-2xl font-bold mb-0">Thời Gian Thực Hiện</h2>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Maximum duration: 90 days</p>
+                    <p className="text-xs text-muted-foreground mt-1">Thời gian tối đa: 90 ngày</p>
                   </div>
 
                   {/* Auto-adjustment notification */}
@@ -429,7 +429,7 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                       className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg"
                     >
                       <p className="text-sm text-amber-700">
-                        ⚠️ Goal date automatically adjusted to stay within 90-day maximum duration
+                        ⚠️ Ngày kết thúc đã được điều chỉnh tự động nhằm đảm bảo thời gian tối đa cho kế hoạch là 90 ngày
                       </p>
                     </motion.div>
                   )}
@@ -437,7 +437,7 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="startDate" className="text-sm font-medium">
-                        Start Date
+                        Ngày Bắt Đầu
                       </Label>
                       <input
                         id="startDate"
@@ -448,16 +448,16 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                         className="w-full px-3 py-3 mt-1
                     bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                       />
-                      <p className="text-xs text-muted-foreground">You can start today or choose a future date</p>
+                      <p className="text-xs text-muted-foreground">Bạn có thể bắt đầu hôm nay hoặc chọn một ngày trong tương lai</p>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <Label htmlFor="endDate" className="text-sm font-medium">
-                          Target Quit Date
+                          Ngày Kết Thúc
                         </Label>
                         <p className="text-xs text-right text-emerald-600 font-medium">
-                          Recommended: {recommendedDuration.min + 1}–{recommendedDuration.max + 1} days
+                          Phù Hợp Với Bạn: {recommendedDuration.min + 1}–{recommendedDuration.max + 1} ngày
                         </p>
 
                       </div>
@@ -474,10 +474,10 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                       {startDate && endDate && (
                         <div className="mt-2 p-2 bg-emerald-50 rounded-lg">
                           <p className="text-sm text-emerald-700">
-                            Duration:{" "}
+                            Thời Gian:{" "}
                             {QuitPlanCalculator.getTotalDays(startDate, endDate)
                             }{" "}
-                            days
+                            ngày
                           </p>
                         </div>
                       )}
@@ -501,7 +501,7 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                 className="px-8 py-3 text-base font-medium border-emerald-300 text-emerald-700 hover:bg-emerald-50 bg-transparent"
               >
                 <ChevronLeft className="w-5 h-5 mr-2" />
-                Back to Previous Step
+                Quay Lại Bước Trước
               </Button>
 
               <Button
@@ -511,7 +511,7 @@ const CreateQuitPlanStep3 = ({ onNext, onBack }: { onNext: () => void; onBack: (
                 className="px-8 py-3 text-base font-medium bg-emerald-500 hover:bg-emerald-600 text-white group disabled:opacity-50"
               >
                 <Star className="w-5 h-5 mr-2" />
-                <span className="mr-2">Continue to Confirmation</span>
+                <span className="mr-2">Xác Nhận Kế Hoạch</span>
                 <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </motion.div>

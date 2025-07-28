@@ -30,7 +30,7 @@ interface DynamicReductionScheduleProps {
     totalDays: number;
     reductionType: "LINEAR" | "EXPONENTIAL" | "LOGARITHMIC";
     currentDay: number;
-    userRecords?: { day: number; recommended: number; actual: number; date: string; }[]; // Đã thay đổi kiểu dữ liệu
+    userRecords?: { day: number; recommended: number; actual: number | null; date: string; }[]; // Đã thay đổi kiểu dữ liệu
     startDate?: Date;
 }
 
@@ -160,7 +160,7 @@ export const DynamicReductionSchedule: React.FC<DynamicReductionScheduleProps> =
             payload: {
                 day: number
                 recommended: number
-                actual: number
+                actual: number | null
                 date: string
             }
             value: number
@@ -203,6 +203,11 @@ export const DynamicReductionSchedule: React.FC<DynamicReductionScheduleProps> =
                         {actual === 0 && (
                             <p className="text-emerald-700 text-xs font-medium">
                                 🎉 Không hút điếu nào!
+                            </p>
+                        )}
+                        {actual === null && (
+                            <p className="text-emerald-700 text-xs font-medium">
+                                Không có ghi nhận!
                             </p>
                         )}
                     </div>

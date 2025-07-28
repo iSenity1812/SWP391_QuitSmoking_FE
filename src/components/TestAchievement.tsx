@@ -3,7 +3,7 @@ import React from 'react';
 export const TestAchievement: React.FC = () => {
   const testAchievementToast = () => {
     console.log('[TestAchievement] Testing achievement toast manually');
-    
+
     const mockAchievement = {
       achievementId: 1,
       name: "Test Achievement",

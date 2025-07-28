@@ -30,7 +30,6 @@ const baseMemberNavLinks = [
   { href: "/plan", label: "Tiến trình", icon: ChartColumnIncreasing },
   { href: "/about", label: "Thông tin", icon: Info },
   { href: "/subscription", label: "Gói trả phí", icon: Gem },
-  { href: "/task", label: "Nhiệm vụ", icon: Wind },
 ];
 
 const coachNavLinks = [
@@ -75,13 +74,6 @@ export function Navbar() {
       // Thêm booking page chỉ cho PREMIUM_MEMBER
       if (user?.role === "PREMIUM_MEMBER") {
         const bookingLink = { href: "/booking", label: "Đặt lịch", icon: Calendar };
-        const taskIndex = currentMemberNavLinks.findIndex((link) => link.href === "/task");
-        if (taskIndex !== -1) { // Đảm bảo tìm thấy link "Task" trước khi thêm
-          currentMemberNavLinks.splice(taskIndex + 1, 0, bookingLink);
-        } else {
-          // Fallback nếu không tìm thấy "Task"
-          currentMemberNavLinks.push(bookingLink);
-        }
       }
       return currentMemberNavLinks;
     }

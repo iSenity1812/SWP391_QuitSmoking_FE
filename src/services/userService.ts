@@ -81,9 +81,27 @@ export interface UserProfileMeResponse {
     last3Achievements?: Achievement[]; // For normal members
 }
 
+export interface CoachProfileResponse {
+    userId: string
+    username: string
+    email: string
+    profilePicture?: string | null
+    role: string
+    followersCount: number
+    followingCount: number
+}
+
 export interface UpdateProfileRequest {
     name: string;
     email: string;
+}
+
+export interface UploadAvatarResponse {
+    success: boolean;
+    message: string;
+    data: {
+        profilePicture: string;
+    };
 }
 
 export interface ChangePasswordRequest {
@@ -97,10 +115,70 @@ export interface UserQuitStatsResponse {
     moneySaved: number;
 }
 
+export interface UpdateProfilePictureResponse {
+    success: boolean
+    data: {
+        profilePicture: string
+    }
+}
+
 export const userService = {
     getPublicProfile: async (userId: string): Promise<UserProfileResponse> => {
         const response = await axiosConfig.get<UserProfileResponse>(`/public/profile/${userId}`);
         return response.data;
+    },
+
+    uploadAvatar: async (file: File): Promise<UploadAvatarResponse> => {
+        const formData = new FormData();
+        formData.append("profilePicture", file);
+
+        try {
+            const response = await axiosConfig.patch<UploadAvatarResponse>(
+                "/profile/picture",
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data"
+                    }
+                }
+            );
+
+            console.log('Upload response:', response.data);
+
+            if (response.status === 200) {
+                // Đảm bảo response.data.data không null trước khi truy cập
+                if (response.data.data) {
+                    return {
+                        success: true,
+                        message: response.data.message || "Upload thành công",
+                        data: response.data.data
+                    };
+                } else {
+                    // Xử lý trường hợp data là null nhưng status là 200 (có thể không xảy ra tùy API)
+                    throw new Error("Upload thành công nhưng không có dữ liệu hình ảnh.");
+                }
+            } else {
+                throw new Error(response.data.message || "Upload failed");
+            }
+        } catch (error: any) { // Vẫn dùng any ở đây để dễ dàng truy cập error.response
+            console.error('Upload avatar error:', error);
+
+            // Kiểm tra nếu error.response tồn tại và có data với cấu trúc mong muốn
+            if (error.response && error.response.status === 200 && error.response.data?.data?.profilePicture) {
+                // Trường hợp API trả về lỗi nhưng thực tế lại có dữ liệu profilePicture hợp lệ (ít xảy ra)
+                return {
+                    success: true,
+                    message: error.response.data.message || "Upload thành công (từ lỗi)",
+                    data: {
+                        profilePicture: error.response.data.data.profilePicture
+                    }
+                };
+            }
+
+            // Xử lý lỗi thông thường
+            const errorMessage = error.response?.data?.message || error.message || "Đã xảy ra lỗi không xác định.";
+            throw new Error(errorMessage);
+        }
     },
 
     isFollowing: async (userId: string, currentUserId: string): Promise<boolean> => {
@@ -151,6 +229,18 @@ export const userService = {
             timestamp: string;
         }>(`/profiles/${userId}`);
         return response.data.data;
+    },
+
+    getCoachProfile: async (): Promise<CoachProfileResponse> => {
+        const response = await axiosConfig.get<{
+            status: number
+            message: string
+            data: CoachProfileResponse
+            error: null
+            errorCode: null
+            timestamp: string
+        }>("/profile")
+        return response.data.data
     },
 
     getQuitStats: async (): Promise<UserQuitStatsResponse> => {

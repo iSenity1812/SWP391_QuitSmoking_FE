@@ -162,7 +162,7 @@ export function OverviewTab({
                 console.error("Error refreshing data:", error);
             });
         }, 300); // Delay 300ms
-        
+
         return () => clearTimeout(timeoutId);
     }, [refetchDailySummary, refetchQuitPlan, refetchCravingTrackings]);
 

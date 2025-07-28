@@ -9,6 +9,9 @@ import { Link } from "react-router-dom"
 
 export const UserDropdown: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
+  const [imageError, setImageError] = useState(false)
+  const [headerImageError, setHeaderImageError] = useState(false)
+  const [forceRefresh, setForceRefresh] = useState(0) // Add force refresh counter
   const dropdownRef = useRef<HTMLDivElement>(null)
   const { user, logout } = useAuth()
   const { canAccessPlan, canAccessCoach, canAccessAdmin, canAccessContentAdmin } = useUserRoutes()
@@ -24,21 +27,101 @@ export const UserDropdown: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  // Reset image error states when user changes
+  useEffect(() => {
+    setImageError(false)
+    setHeaderImageError(false)
+    setForceRefresh(prev => prev + 1) // Force component to re-evaluate image URLs
+  }, [user?.userId, user?.profilePicture, user?.email]) // Add more dependencies to ensure refresh
+
+  // Listen for profile picture update events
+  useEffect(() => {
+    const handleProfilePictureUpdate = () => {
+      console.log("UserDropdown: Profile picture update event received")
+      setImageError(false)
+      setHeaderImageError(false)
+      setForceRefresh(prev => prev + 1)
+
+      // Force a small delay to ensure localStorage is updated
+      setTimeout(() => {
+        setForceRefresh(prev => prev + 1)
+      }, 100)
+    }
+
+    window.addEventListener('profilePictureUpdated', handleProfilePictureUpdate)
+    window.addEventListener('userInfoUpdated', handleProfilePictureUpdate) // Also listen for general user info updates
+
+    return () => {
+      window.removeEventListener('profilePictureUpdated', handleProfilePictureUpdate)
+      window.removeEventListener('userInfoUpdated', handleProfilePictureUpdate)
+    }
+  }, [])
+
+  // Additional effect to watch for user object changes
+  useEffect(() => {
+    if (user) {
+      console.log("UserDropdown: User object changed, forcing refresh...")
+      setImageError(false)
+      setHeaderImageError(false)
+      setForceRefresh(prev => prev + 1)
+    }
+  }, [user]) // Watch entire user object
+
   if (!user) return null
+
+  // Debug logging
+  console.log("=== UserDropdown Debug ===")
+  console.log("User object:", user)
+  console.log("Profile picture from user:", user?.profilePicture)
+  console.log("Image error state:", imageError)
+  console.log("Header image error state:", headerImageError)
+  console.log("Force refresh counter:", forceRefresh)
+  console.log("=== End UserDropdown Debug ===")
 
   // Get profile picture URL
   const getProfilePictureUrl = () => {
-    if (user.profilePicture) {
+    // Use forceRefresh to ensure function re-evaluates
+    const refresh = forceRefresh
+    console.log("UserDropdown: Getting profile picture URL, refresh:", refresh)
+
+    if (!imageError && user?.profilePicture) {
       // If it's a full URL, use it directly
       if (user.profilePicture.startsWith("http")) {
+        console.log("UserDropdown: Using full URL:", user.profilePicture)
         return user.profilePicture
       }
       // If it's a relative path, prepend base URL
       const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"
-      return `${baseUrl}${user.profilePicture}`
+      const fullUrl = `${baseUrl}${user.profilePicture}`
+      console.log("UserDropdown: Constructed URL:", fullUrl)
+      return fullUrl
     }
-    // Default fallback image
-    return "/placeholder.svg?height=40&width=40"
+    console.log("UserDropdown: No profile picture or error occurred")
+    // Default fallback when error occurred or no profile picture
+    return null
+  }
+
+  // Get header profile picture URL
+  const getHeaderProfilePictureUrl = () => {
+    // Use forceRefresh to ensure function re-evaluates
+    const refresh = forceRefresh
+    console.log("UserDropdown: Getting header profile picture URL, refresh:", refresh)
+
+    if (!headerImageError && user?.profilePicture) {
+      // If it's a full URL, use it directly
+      if (user.profilePicture.startsWith("http")) {
+        console.log("UserDropdown: Using full URL for header:", user.profilePicture)
+        return user.profilePicture
+      }
+      // If it's a relative path, prepend base URL
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080"
+      const fullUrl = `${baseUrl}${user.profilePicture}`
+      console.log("UserDropdown: Constructed header URL:", fullUrl)
+      return fullUrl
+    }
+    console.log("UserDropdown: No header profile picture or error occurred")
+    // Default fallback when error occurred or no profile picture
+    return null
   }
 
   // Get role badge text
@@ -124,16 +207,21 @@ export const UserDropdown: React.FC = () => {
         className="flex items-center gap-3 p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-slate-700 transition-all duration-300 hover:scale-105 group relative"
       >
         <div className="relative">
-          <img
-            src={getProfilePictureUrl() || "/placeholder.svg"}
-            alt={user.username}
-            className="w-10 h-10 rounded-full border-2 border-emerald-200 dark:border-emerald-500 shadow-lg group-hover:border-emerald-300 dark:group-hover:border-emerald-400 transition-colors duration-300 object-cover"
-            onError={(e) => {
-              // Fallback to placeholder if image fails to load
-              const target = e.target as HTMLImageElement
-              target.src = "/placeholder.svg?height=40&width=40"
-            }}
-          />
+          {getProfilePictureUrl() ? (
+            <img
+              src={getProfilePictureUrl()!}
+              alt={user.username}
+              className="w-10 h-10 rounded-full border-2 border-emerald-200 dark:border-emerald-500 shadow-lg group-hover:border-emerald-300 dark:group-hover:border-emerald-400 transition-colors duration-300 object-cover"
+              onError={() => setImageError(true)}
+              onLoad={() => setImageError(false)}
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full border-2 border-emerald-200 dark:border-emerald-500 shadow-lg group-hover:border-emerald-300 dark:group-hover:border-emerald-400 transition-colors duration-300 bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center">
+              <span className="text-emerald-600 dark:text-emerald-300 font-bold text-lg">
+                {user.username.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
           {/* Role Badge */}
           {/* {getRoleBadgeText() && (
             <span className="absolute -top-1 -right-1 bg-emerald-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
@@ -154,16 +242,21 @@ export const UserDropdown: React.FC = () => {
           {/* Header with user info */}
           <div className="p-4 bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-b border-emerald-200 dark:border-slate-600">
             <div className="flex items-center gap-3">
-              <img
-                src={getProfilePictureUrl() || "/placeholder.svg"}
-                alt={user.username}
-                className="w-12 h-12 rounded-full border-2 border-emerald-300 dark:border-emerald-500 shadow-lg object-cover"
-                onError={(e) => {
-                  // Fallback to placeholder if image fails to load
-                  const target = e.target as HTMLImageElement
-                  target.src = "/placeholder.svg?height=48&width=48"
-                }}
-              />
+              {getHeaderProfilePictureUrl() ? (
+                <img
+                  src={getHeaderProfilePictureUrl()!}
+                  alt={user.username}
+                  className="w-12 h-12 rounded-full border-2 border-emerald-300 dark:border-emerald-500 shadow-lg object-cover"
+                  onError={() => setHeaderImageError(true)}
+                  onLoad={() => setHeaderImageError(false)}
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full border-2 border-emerald-300 dark:border-emerald-500 shadow-lg bg-emerald-100 dark:bg-emerald-800 flex items-center justify-center">
+                  <span className="text-emerald-600 dark:text-emerald-300 font-bold text-xl">
+                    {user.username.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
               <div className="flex-1 min-w-0">
                 <p className="font-black text-slate-800 dark:text-white truncate">{user.username}</p>
                 <p className="text-sm text-slate-600 dark:text-slate-300 truncate max-w-full">{user.email}</p>
