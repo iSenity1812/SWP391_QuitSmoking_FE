@@ -25,6 +25,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-tooltip": "^1.2.7",
+    "@react-oauth/google": "^0.12.2",
     "@reduxjs/toolkit": "^2.8.2",
     "@stomp/stompjs": "^7.1.1",
     "@tailwindcss/vite": "^4.1.7",
@@ -55,8 +56,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
-    "@stagewise-plugins/react": "^0.4.9",
-    "@stagewise/toolbar-react": "^0.4.9",
     "@types/node": "^22.15.21",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
