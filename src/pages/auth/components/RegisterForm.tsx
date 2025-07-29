@@ -212,8 +212,8 @@ export const RegisterForm: React.FC = () => {
     >
       <Card className="form-card bg-white/80 dark:bg-slate-900/80">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Create Account</CardTitle>
-          <CardDescription className="text-center">Join us on your journey to quit smoking</CardDescription>
+          <CardTitle className="text-2xl text-center">Tạo tài khoản</CardTitle>
+          <CardDescription className="text-center">Tham gia cùng chúng tôi trong hành trình từ bỏ thuốc lá</CardDescription>
           <AuthFormProgress value={getFormProgress()} />
         </CardHeader>
         <CardContent>
@@ -264,10 +264,10 @@ export const RegisterForm: React.FC = () => {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm">
-            Already have an account?{" "}
+            Bạn đã có tài khoản?{" "}
             <Link to="/login" className="text-emerald-500 hover:underline inline-flex items-center group">
               <ArrowRight size={12} className="mr-1" />
-              Login here
+              Đăng nhập tại đây
               <motion.span
                 initial={{ x: -5, opacity: 0 }}
                 whileHover={{ x: 0, opacity: 1 }}

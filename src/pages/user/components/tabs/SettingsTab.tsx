@@ -2,23 +2,47 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Camera, Save, Edit3, Moon, Sun, Lock, Eye, EyeOff } from "lucide-react"
+import { Camera, Save, Edit3, Moon, Sun, Lock, Eye, EyeOff, Award, Share2, Users } from "lucide-react"
 import type { UserProfile } from "../../types/UserProfile"
 import { userService } from "@/services/userService"
+import { achievementService } from "@/services/achievementService"
 import { useTheme } from "@/context/ThemeContext"
 import { useAuth } from "@/hooks/useAuth"
 import { toast } from "react-toastify"
+import type { MemberAchievementDTO } from "@/types/achievement"
 
 interface SettingsTabProps {
   user: UserProfile
 }
 
 export default function SettingsTab({ user }: SettingsTabProps) {
+  // Helper function to translate achievement names to Vietnamese
+  const translateAchievementName = (name: string): string => {
+    const translations: Record<string, string> = {
+      "First Day Smoke-Free": "Ngày đầu không thuốc",
+      "3 Days Smoke-Free": "3 ngày không thuốc",
+      "1 Week Smoke-Free": "1 tuần không thuốc",
+      "1 Month Smoke-Free": "1 tháng không thuốc",
+      "Money Saver": "Tiết kiệm tiền",
+      "Cigarette Avoider": "Tránh thuốc lá",
+      "Craving Resister": "Chống cơn thèm",
+      "Health Improver": "Cải thiện sức khỏe",
+      "Daily Goal": "Mục tiêu hàng ngày",
+      "Weekly Goal": "Mục tiêu hàng tuần",
+      "Goal Streak": "Chuỗi mục tiêu",
+      "Resilience": "Kiên trì",
+      "Special Achievement": "Thành tựu đặc biệt"
+    }
+    return translations[name] || name
+  }
+
   const [isEditing, setIsEditing] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [userAchievements, setUserAchievements] = useState<MemberAchievementDTO[]>([])
+  const [achievementsLoading, setAchievementsLoading] = useState(false)
 
   const [formData, setFormData] = useState({
     displayName: user.displayName || "",
@@ -44,6 +68,25 @@ export default function SettingsTab({ user }: SettingsTabProps) {
       profilePicture: user.profilePicture || ""
     })
   }, [user])
+
+  // Load user achievements
+  useEffect(() => {
+    const loadUserAchievements = async () => {
+      if (!user.userId) return
+
+      try {
+        setAchievementsLoading(true)
+        const achievements = await achievementService.getMemberAchievements(user.userId)
+        setUserAchievements(achievements)
+      } catch (error) {
+        console.error("Error loading user achievements:", error)
+      } finally {
+        setAchievementsLoading(false)
+      }
+    }
+
+    loadUserAchievements()
+  }, [user.userId])
 
   const handleSave = async () => {
     setIsLoading(true)
@@ -115,6 +158,32 @@ export default function SettingsTab({ user }: SettingsTabProps) {
       confirmPassword: ""
     })
     setIsChangingPassword(false)
+  }
+
+  const handleToggleAchievementShare = async (achievementId: number, currentStatus: boolean) => {
+    if (!user.userId) return
+
+    try {
+      await achievementService.updateAchievementShareStatus(user.userId, achievementId, !currentStatus)
+
+      // Update local state
+      setUserAchievements(prev =>
+        prev.map(achievement =>
+          achievement.achievementId === achievementId
+            ? { ...achievement, isShared: !currentStatus }
+            : achievement
+        )
+      )
+
+      toast.success(
+        !currentStatus
+          ? "Đã bật chia sẻ thành tựu trên profile công khai"
+          : "Đã tắt chia sẻ thành tựu trên profile công khai"
+      )
+    } catch (error) {
+      console.error("Error toggling achievement share status:", error)
+      toast.error("Có lỗi xảy ra khi cập nhật trạng thái chia sẻ")
+    }
   }
 
   return (
@@ -374,6 +443,109 @@ export default function SettingsTab({ user }: SettingsTabProps) {
                 >
                   Hủy
                 </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Achievement Sharing Section */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+          <div className="flex items-center space-x-2 mb-6">
+            <Award className="w-5 h-5 text-amber-600" />
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              Chia sẻ thành tựu
+            </h3>
+          </div>
+
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+            Chọn những thành tựu bạn muốn hiển thị trên profile công khai của mình. Người khác có thể xem những thành tựu này khi vào trang profile của bạn.
+          </p>
+
+          {achievementsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600"></div>
+              <span className="ml-2 text-slate-600 dark:text-slate-400">Đang tải thành tựu...</span>
+            </div>
+          ) : userAchievements.length === 0 ? (
+            <div className="text-center py-8">
+              <Award className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+              <p className="text-slate-500 dark:text-slate-500">
+                Bạn chưa có thành tựu nào. Hãy tiếp tục hành trình bỏ thuốc để mở khóa thành tựu đầu tiên!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {userAchievements.map((achievement) => (
+                <div
+                  key={achievement.achievementId}
+                  className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center">
+                      {achievement.iconUrl ? (
+                        <img
+                          src={achievement.iconUrl}
+                          alt={achievement.name}
+                          className="w-6 h-6 object-cover rounded"
+                        />
+                      ) : (
+                        <Award className="w-5 h-5 text-white" />
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                        {translateAchievementName(achievement.name) || "Thành tựu"}
+                      </h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Đạt được: {new Date(achievement.dateAchieved).toLocaleDateString("vi-VN")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    {achievement.isShared && (
+                      <div className="flex items-center space-x-1 text-emerald-600 dark:text-emerald-400">
+                        <Users className="w-4 h-4" />
+                        <span className="text-xs">Công khai</span>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        const id = achievement.achievementId;
+                        if (id) {
+                          handleToggleAchievementShare(id, achievement.isShared);
+                        } else {
+                          console.error('Achievement ID is undefined:', achievement);
+                          toast.error('Không thể cập nhật: ID thành tựu không hợp lệ');
+                        }
+                      }}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${achievement.isShared
+                        ? 'bg-emerald-600'
+                        : 'bg-slate-200 dark:bg-slate-600'
+                        }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${achievement.isShared ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              <div className="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-700">
+                <div className="flex items-start space-x-2">
+                  <Share2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
+                      Mẹo về chia sẻ thành tựu
+                    </p>
+                    <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1">
+                      Chia sẻ thành tựu giúp bạn truyền cảm hứng cho cộng đồng và nhận được sự ủng hộ từ những người khác trong hành trình bỏ thuốc.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

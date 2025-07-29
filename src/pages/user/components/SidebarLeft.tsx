@@ -26,13 +26,14 @@ export default function SidebarLeft({ activeTab, onTabChange }: SidebarLeftProps
   const navigate = useNavigate();
 
   const handleTabClick = (tabId: string) => {
-    // Always redirect to appropriate pages instead of using tabs
+    // Always redirect to appropriate pages instead of using tabs, except for settings
     if (tabId === "overview") {
       navigate("/profile")
     } else if (tabId === "achievements") {
       navigate("/achievements")
     } else if (tabId === "settings") {
-      navigate("/profile/me") // Or settings page if exists
+      // Use tab change for settings instead of navigation
+      onTabChange(tabId)
     } else if (tabId === "booking") {
       navigate("/booking")
     } else if (tabId === "leaderboard") {

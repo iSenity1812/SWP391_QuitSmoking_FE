@@ -49,7 +49,7 @@ export const RegSubmitButton: React.FC<RegSubmitButtonProps> = ({ isSubmitting, 
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              Register
+              Đăng ký
             </motion.span>
           )}
         </AnimatePresence>

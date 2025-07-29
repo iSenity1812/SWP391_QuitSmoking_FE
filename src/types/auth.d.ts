@@ -53,3 +53,18 @@ export interface ValidationApiError {
   errorCode: string;
   timestamp: string;
 }
+
+
+// Password Reset Types
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
+export interface GoogleAuthRequest {
+  idToken: string;
+}

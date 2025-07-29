@@ -10,8 +10,8 @@ export const AuthHeader: React.FC = () => {
       transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
       className="mb-8 text-center"
     >
-      <h1 className="text-4xl font-bold text-primary mb-2">Fresh Start</h1>
-      <p className="text-muted-foreground">Your journey to a smoke-free life begins here</p>
+      <h1 className="text-4xl font-bold text-primary mb-2">Khởi đầu mới</h1>
+      <p className="text-muted-foreground">Hành trình của bạn đến một cuộc sống không khói thuốc bắt đầu từ đây</p>
     </motion.div>
   )
 }

@@ -25,6 +25,12 @@ export interface Achievement {
     shared?: boolean; // Optional for normal members
 }
 
+interface SharedAchievementDTO {
+    name: string;
+    iconUrl?: string;
+    dateAchieved: string;
+}
+
 export interface PublicProfileResponse {
     userId: string;
     username: string;
@@ -36,7 +42,7 @@ export interface PublicProfileResponse {
     totalAchievementsEarned: number;
     followersCount: number;
     followingCount: number;
-    sharedAchievements: Achievement[];
+    sharedAchievements: SharedAchievementDTO[];
     premiumSince?: string;
     hasPremiumBadge: boolean;
     premium: boolean;
@@ -160,7 +166,7 @@ export const userService = {
             } else {
                 throw new Error(response.data.message || "Upload failed");
             }
-        } catch (error: any) { // Vẫn dùng any ở đây để dễ dàng truy cập error.response
+        } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
             console.error('Upload avatar error:', error);
 
             // Kiểm tra nếu error.response tồn tại và có data với cấu trúc mong muốn

@@ -24,7 +24,7 @@ export const ConfirmPasswordInput: React.FC<ConfirmPasswordInputProps> = ({
     <div className="space-y-2">
       <Label htmlFor="confirmPassword" className="flex items-center gap-2">
         <Lock size={16} />
-        Confirm Password
+        Xác nhận mật khẩu
       </Label>
       <div className="relative">
         <Input
@@ -36,10 +36,10 @@ export const ConfirmPasswordInput: React.FC<ConfirmPasswordInputProps> = ({
             validateConfirmPassword(e.target.value);
           }}
           className={`pr-10 ${isConfirmPasswordValid === true
-              ? "border-primary focus:ring-primary"
-              : isConfirmPasswordValid === false
-                ? "border-destructive focus:ring-destructive"
-                : ""
+            ? "border-primary focus:ring-primary"
+            : isConfirmPasswordValid === false
+              ? "border-destructive focus:ring-destructive"
+              : ""
             }`}
         />
         <motion.span

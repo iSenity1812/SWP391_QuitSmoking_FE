@@ -23,7 +23,10 @@ export const PasswordRequirements: React.FC<PasswordRequirementsProps> = ({
   return (
     <div className="space-y-2 mt-2">
       <div className="flex justify-between items-center text-xs">
-        <span>Password strength:</span>
+        {/* chuyen sang tieng viet */}
+        <span>
+          Mức độ mạnh của mật khẩu: {passwordStrength}%
+        </span>
         <span
           className={`font-medium ${passwordStrength < 40
             ? "text-destructive"
@@ -40,50 +43,52 @@ export const PasswordRequirements: React.FC<PasswordRequirementsProps> = ({
       <div className="grid grid-cols-2 gap-1 text-xs mt-2">
         <div className="flex items-center gap-1">
           {hasMinLength ? (
-            <Check className="text-primary" size={12} />
+            <Check className="text-emerald-500" size={12} />
           ) : (
-            <X className="text-muted-foreground" size={12} />
+            <X className="text-red-500" size={12} />
           )}
-          <span className={hasMinLength ? "text-primary" : "text-muted-foreground"}>
-            8+ characters
+          <span className={hasMinLength ? "text-emerald-500" : "text-red-500"}>
+            Ít nhất 8 ký tự
           </span>
         </div>
         <div className="flex items-center gap-1">
           {hasUppercase ? (
-            <Check className="text-primary" size={12} />
+            <Check className="text-emerald-500" size={12} />
           ) : (
-            <X className="text-muted-foreground" size={12} />
+            <X className="text-red-500" size={12} />
           )}
-          <span className={hasUppercase ? "text-primary" : "text-muted-foreground"}>
-            Uppercase
+          <span className={hasUppercase ? "text-emerald-500" : "text-red-500"}>
+            Chữ hoa
           </span>
         </div>
         <div className="flex items-center gap-1">
           {hasLowercase ? (
-            <Check className="text-primary" size={12} />
+            <Check className="text-emerald-500" size={12} />
           ) : (
-            <X className="text-muted-foreground" size={12} />
+            <X className="text-red-500" size={12} />
           )}
-          <span className={hasLowercase ? "text-primary" : "text-muted-foreground"}>
-            Lowercase
+          <span className={hasLowercase ? "text-emerald-500" : "text-red-500"}>
+            Chữ thường
           </span>
         </div>
         <div className="flex items-center gap-1">
           {hasNumber ? (
-            <Check className="text-primary" size={12} />
+            <Check className="text-emerald-500" size={12} />
           ) : (
-            <X className="text-muted-foreground" size={12} />
+            <X className="text-red-500" size={12} />
           )}
-          <span className={hasNumber ? "text-primary" : "text-muted-foreground"}>Number</span>
+          <span className={hasNumber ? "text-emerald-500" : "text-red-500"}>
+            Số
+          </span>
         </div>
         <div className="flex items-center gap-1">
           {hasSpecial ? (
-            <Check className="text-primary" size={12} />
+            <Check className="text-emerald-500" size={12} />
           ) : (
-            <X className="text-muted-foreground" size={12} />
+            <X className="text-red-500" size={12} />
           )}
-          <span className={hasSpecial ? "text-primary" : "text-muted-foreground"}>
-            Special char
+          <span className={hasSpecial ? "text-emerald-500" : "text-red-500"}>
+            Ký tự đặc biệt
           </span>
         </div>
       </div>

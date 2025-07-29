@@ -4,7 +4,13 @@ import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
 import { Crown, Calendar, Target, TrendingUp, Award, Users, UserPlus, Loader2, Shield, Star, ArrowLeft, UserMinus } from "lucide-react"
 import { motion } from "framer-motion"
-import { userService, type PublicProfileResponse, type Achievement } from "@/services/userService"
+import { userService, type PublicProfileResponse } from "@/services/userService"
+
+interface SharedAchievementDTO {
+  name: string;
+  iconUrl?: string;
+  dateAchieved: string;
+}
 import { followService } from "@/services/followService"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/hooks/useAuth"
@@ -356,9 +362,9 @@ export default function PublicProfileCard({ onFollowChange }: PublicProfileCardP
 
           {profileData.sharedAchievements && profileData.sharedAchievements.length > 0 ? (
             <div className="space-y-3">
-              {profileData.sharedAchievements.map((achievement: Achievement, index: number) => (
+              {profileData.sharedAchievements.map((achievement: SharedAchievementDTO, index: number) => (
                 <motion.div
-                  key={achievement.id}
+                  key={`${achievement.name}-${index}`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -384,11 +390,6 @@ export default function PublicProfileCard({ onFollowChange }: PublicProfileCardP
                     <h4 className="text-base font-semibold text-slate-900 dark:text-slate-100 truncate">
                       {achievement.name}
                     </h4>
-                    {achievement.detailedDescription && (
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                        {achievement.detailedDescription}
-                      </p>
-                    )}
                     <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
                       {new Date(achievement.dateAchieved).toLocaleDateString("vi-VN", {
                         year: "numeric",

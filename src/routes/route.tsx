@@ -28,7 +28,6 @@ import CoachPage from "@/pages/coach/CoachPage"
 import ContentAdminPage from "@/pages/admin/content/ContentAdminPage"
 
 // Test components (remove in production)
-import { RouteTestDashboard } from "@/components/auth/RouteTestDashboard"
 import BookingPage from "@/pages/booking/BookingPage"
 import { MeetingPage } from "@/pages/meeting/MeetingPage"
 import QuitStatsPage from "@/pages/user/QuitStatsPage"
@@ -39,6 +38,8 @@ import { LeaderboardPage } from "@/pages/leaderboard/LeaderboardPage"
 import CreateQuitPlanLayout from "@/layouts/CreateQuitPlanLayout"
 import { QuitPlanDashboard } from "@/pages/plan/quitPlan/QuitPlanDashboard"
 import AchievementsPage from "@/pages/achievements/AchievementsPage"
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage"
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage"
 
 export function AppRoutes() {
   return (
@@ -120,6 +121,8 @@ export function AppRoutes() {
       {/* Auth routes - prevent authenticated users from accessing */}
       <Route path="/login" element={<AuthRedirect><LoginPage /></AuthRedirect>} />
       <Route path="/register" element={<AuthRedirect><RegisterPage /></AuthRedirect>} />
+      <Route path="/forgot-password" element={<AuthRedirect><ForgotPasswordPage /></AuthRedirect>} />
+      <Route path="/reset-password" element={<AuthRedirect><ResetPasswordPage /></AuthRedirect>} />
       <Route path="/onboarding" element={<OnboardingPage />} />
       {/* <Route path="/plan-selection" element={<PlanSelectionDirectPage />} /> */}
 
@@ -306,16 +309,6 @@ export function AppRoutes() {
       />
 
       <Route path="/user/:userId" element={<PublicUserProfilePage />} />
-
-      {/* Development/Testing Route - Remove in production */}
-      <Route
-        path="/route-test"
-        element={
-          <ProtectedRoute requireAuth={true}>
-            <RouteTestDashboard />
-          </ProtectedRoute>
-        }
-      />
 
       {/* Catch all - 404 or redirect to home */}
       <Route path="*" element={<LandingPage />} />

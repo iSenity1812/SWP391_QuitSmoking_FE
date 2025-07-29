@@ -12,6 +12,7 @@ import "react-toastify/dist/ReactToastify.css"
 // import { StagewiseToolbar } from "@stagewise/toolbar-react"
 // import { ReactPlugin } from "@stagewise-plugins/react"
 import { AchievementToast } from "./components/AchievementToast"
+import GoogleOAuthProvider from "./components/auth/GoogleOAuthProvider"
 // import { TestAchievement } from "./components/TestAchievement"
 
 function shouldHideNavbar(pathname: string) {
@@ -88,51 +89,53 @@ export default function App() {
     )
   }
   return (
-    <div className="min-h-screen flex flex-col">
-      {shouldShowNavbar && <Navbar />}
-      <main className="flex-1">
-        {/* Hidden button for development to force complete onboarding */}
-        {!isOnboardingCompleted && (
-          <button
-            onClick={forceCompleteOnboarding}
-            className="fixed bottom-4 right-4 bg-red-500 text-white px-3 py-1 rounded-md text-xs z-50"
-          >
-            Skip Onboarding (Dev)
-          </button>
-        )}
+    <GoogleOAuthProvider>
+      <div className="min-h-screen flex flex-col">
+        {shouldShowNavbar && <Navbar />}
+        <main className="flex-1">
+          {/* Hidden button for development to force complete onboarding */}
+          {!isOnboardingCompleted && (
+            <button
+              onClick={forceCompleteOnboarding}
+              className="fixed bottom-4 right-4 bg-red-500 text-white px-3 py-1 rounded-md text-xs z-50"
+            >
+              Skip Onboarding (Dev)
+            </button>
+          )}
 
-        <AnimatePresence mode="wait" initial={false}>
-          <AppRoutes />
-        </AnimatePresence>
-      </main>
+          <AnimatePresence mode="wait" initial={false}>
+            <AppRoutes />
+          </AnimatePresence>
+        </main>
 
-      {/* Toast Container */}
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        className="mt-16"
-      />
+        {/* Toast Container */}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+          className="mt-16"
+        />
 
-      {/* Achievement Toast Notifications */}
-      <AchievementToast />
+        {/* Achievement Toast Notifications */}
+        <AchievementToast />
 
-      {/* Test Achievement Button - Development only */}
-      {/* <TestAchievement /> */}
+        {/* Test Achievement Button - Development only */}
+        {/* <TestAchievement /> */}
 
-      {/* Stagewise Toolbar - Development only */}
-      {/* <StagewiseToolbar
+        {/* Stagewise Toolbar - Development only */}
+        {/* <StagewiseToolbar
         config={{
           plugins: [ReactPlugin],
         }}
       /> */}
-    </div>
+      </div>
+    </GoogleOAuthProvider>
   )
 }

@@ -109,10 +109,6 @@ export function TipManagement() {
 
                         <CreateTipDialog onTipCreated={loadTips} />
 
-                        <Button variant="outline">
-                            <Filter className="w-4 h-4 mr-2" />
-                            Lọc
-                        </Button>
                     </div>
                 </CardContent>
             </Card>

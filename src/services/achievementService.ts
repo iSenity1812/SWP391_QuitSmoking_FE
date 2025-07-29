@@ -1,7 +1,7 @@
 // made by gia bao
 
 import axiosConfig from '@/config/axiosConfig';
-import type { Achievement, MemberAchievement, AchievementWithStatus } from '@/types/achievement';
+import type { Achievement, MemberAchievementDTO, AchievementWithStatus } from '@/types/achievement';
 
 const API_BASE_URL = '/achievements'; // Đã có /api ở baseURL axiosConfig
 
@@ -30,8 +30,8 @@ export const achievementService = {
     return res.data;
   },
 
-  async getMemberAchievements(memberId: string): Promise<MemberAchievement[]> {
-    const res = await axiosConfig.get(`${API_BASE_URL}/member/${memberId}/all`);
+  async getMemberAchievements(memberId: string): Promise<MemberAchievementDTO[]> {
+    const res = await axiosConfig.get(`${API_BASE_URL}/member/${memberId}`);
     if (Array.isArray(res.data)) return res.data;
     if (res.data && Array.isArray(res.data.data)) return res.data.data;
     return [];
@@ -124,5 +124,18 @@ export const achievementService = {
   async getNextMilestone(memberId: string): Promise<unknown> {
     const res = await axiosConfig.get(`/achievements/member/${memberId}/next-milestone`);
     return res.data;
+  },
+
+  /**
+   * Update trạng thái share của achievement
+   */
+  async updateAchievementShareStatus(memberId: string, achievementId: number, isShared: boolean): Promise<MemberAchievementDTO> {
+    try {
+      const res = await axiosConfig.put(`/achievements/member/${memberId}/achievement/${achievementId}/share?isShared=${isShared}`);
+      return res.data.data || res.data;
+    } catch (err) {
+      console.error('Error updating achievement share status:', err);
+      throw new Error('Không thể cập nhật trạng thái chia sẻ thành tựu');
+    }
   },
 }; 

@@ -14,6 +14,7 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import type { ApiResponse, LoginRequest } from "@/types/auth"; // Import LoginRequest và các type liên quan nếu cần
 import { toast } from "react-toastify";
 import { useAuth } from "@/hooks/useAuth";
+import GoogleLoginButton from "@/components/auth/GoogleLoginButton";
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState(""); // Đổi tên thành email để khớp với LoginRequest
@@ -119,8 +120,8 @@ export const LoginForm: React.FC = () => {
     >
       <Card className="form-card bg-white/80 dark:bg-slate-900/80">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Login to Your Account</CardTitle>
-          <CardDescription className="text-center">Welcome back! Please enter your details.</CardDescription>
+          <CardTitle className="text-2xl text-center">Đăng nhập</CardTitle>
+          <CardDescription className="text-center">Chào mừng trở lại! Vui lòng nhập thông tin của bạn.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -144,19 +145,46 @@ export const LoginForm: React.FC = () => {
               validatePassword={validatePassword}
             />
 
+            <div className="text-right">
+              <Link to="/forgot-password" className="text-sm text-emerald-500 hover:underline">
+                Quên mật khẩu?
+              </Link>
+            </div>
+
             <SubmitButton
               isSubmitting={isSubmitting}
               isPasswordValid={isPasswordValid}
               isEmailValid={isEmailValid} // Đổi tên prop
             />
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white dark:bg-slate-900 px-2 text-muted-foreground">
+                  Hoặc
+                </span>
+              </div>
+            </div>
+
+            <GoogleLoginButton
+              className="mt-4"
+              onSuccess={() => {
+                toast.success('Đăng nhập Google thành công!');
+              }}
+              onError={(error) => {
+                toast.error(error);
+              }}
+            />
           </form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-center text-sm">
-            Don't have an account?{" "}
+            <span className="text-muted-foreground">Bạn chưa có tài khoản?{" "}</span>
             <Link to="/register" className="text-emerald-500 hover:underline inline-flex items-center group">
               <ArrowRight size={16} className="mr-1" />
-              Register here
+              Đăng ký ngay
               <motion.span
                 initial={{ x: -5, opacity: 0 }}
                 whileHover={{ x: 0, opacity: 1 }}
@@ -203,7 +231,7 @@ export default function LoginPage() {
           className="mb-8 text-center"
         >
           <h1 className="text-4xl font-bold text-primary mb-2">Chào mừng trở lại</h1>
-          <p className="text-muted-foreground">Your journey to a smoke-free life begins here</p>
+          <p className="text-muted-foreground">Hành trình cai thuốc lá của bạn bắt đầu từ đây</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-1 gap-6 items-center">

@@ -24,7 +24,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
     <div className="space-y-2">
       <Label htmlFor="password" className="flex items-center gap-2">
         <Lock size={16} />
-        Password
+        Mật khẩu
       </Label>
       <div className="relative">
         <Input

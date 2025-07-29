@@ -11,19 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { achievementService } from '@/services/achievementService'
 import { toast } from 'react-toastify';
-
-interface Achievement {
-    achievementId: number
-    name: string
-    description: string
-    icon: string
-    achievementType: 'DAYS_QUIT' | 'MONEY_SAVED' | 'CIGARETTES_NOT_SMOKED' | 'RESILIENCE' | 'HEALTH' | 'SOCIAL' | 'SPECIAL' | 'DAILY'
-    requirements: string
-    milestoneValue: number
-    unlockedBy: number
-    isActive: boolean
-    createdAt: string
-}
+import type { Achievement } from '@/types/achievement';
 
 export function AchievementsManagement() {
     const [achievements, setAchievements] = useState<Achievement[]>([])
@@ -47,16 +35,7 @@ export function AchievementsManagement() {
         setError(null)
         try {
             const data = await achievementService.getAllAchievements()
-            setAchievements(data.map(a => ({
-                ...a,
-                description: a.description ?? "",
-                icon: a.icon ?? "",
-                achievementType: a.achievementType ?? "DAYS_QUIT",
-                requirements: a.requirements ?? "",
-                milestoneValue: a.milestoneValue ?? 0,
-                unlockedBy: a.unlockedBy ?? 0,
-                isActive: a.isActive ?? true
-            })))
+            setAchievements(data)
         } catch (err: unknown) {
             if (err instanceof Error) {
                 setError(err.message || 'Lỗi khi tải danh sách thành tựu')
@@ -83,7 +62,7 @@ export function AchievementsManagement() {
         }
         setLoading(true)
         try {
-            const payload: Partial<Achievement> = {
+            const payload = {
                 achievementType: formData.achievementType,
                 name: formData.name,
                 icon: formData.icon,
@@ -110,12 +89,12 @@ export function AchievementsManagement() {
     const handleEditAchievement = (achievement: Achievement) => {
         setSelectedAchievement(achievement)
         setFormData({
-            name: achievement.name,
-            description: achievement.description,
-            icon: achievement.icon,
-            achievementType: achievement.achievementType,
-            requirements: achievement.requirements,
-            milestoneValue: achievement.milestoneValue,
+            name: achievement.name || "",
+            description: achievement.description || "",
+            icon: achievement.icon || "",
+            achievementType: achievement.achievementType || "DAYS_QUIT",
+            requirements: achievement.requirements || "",
+            milestoneValue: achievement.milestoneValue || 1,
         })
         setIsEditModalOpen(true)
     }
@@ -128,7 +107,7 @@ export function AchievementsManagement() {
         }
         setLoading(true)
         try {
-            await achievementService.updateAchievement(selectedAchievement.achievementId, formData)
+            await achievementService.updateAchievement(selectedAchievement.achievementId || selectedAchievement.id || 0, formData)
             toast.success('Cập nhật thành tựu thành công!')
             setIsEditModalOpen(false)
             resetForm()
@@ -157,7 +136,7 @@ export function AchievementsManagement() {
     }
 
     const handleDeleteAchievement = async (achievementId: number) => {
-        if (!window.confirm('Bạn có chắc chắn muốn xóa thành tựu này?')) return
+        if (!confirm("Bạn có chắc chắn muốn xóa thành tựu này?")) return
         setLoading(true)
         try {
             await achievementService.deleteAchievement(achievementId)
@@ -172,14 +151,6 @@ export function AchievementsManagement() {
         } finally {
             setLoading(false)
         }
-    }
-
-    const toggleAchievementStatus = (achievementId: number) => {
-        setAchievements((prev) =>
-            prev.map((achievement) =>
-                achievement.achievementId === achievementId ? { ...achievement, isActive: !achievement.isActive } : achievement,
-            ),
-        )
     }
 
     const getCategoryIcon = (category: string) => {
@@ -212,51 +183,77 @@ export function AchievementsManagement() {
         }
     }
 
-    const getRarityColor = (rarity: string) => {
-        switch (rarity) {
-            case "common":
-                return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
-            case "rare":
-                return "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
-            case "epic":
-                return "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400"
-            case "legendary":
-                return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
+    const getTypeLabel = (type: Achievement["achievementType"]) => {
+        switch (type) {
+            case "DAYS_QUIT":
+                return "Ngày cai thuốc"
+            case "MONEY_SAVED":
+                return "Tiền tiết kiệm"
+            case "CIGARETTES_NOT_SMOKED":
+                return "Điếu không hút"
+            case "CRAVING_RESISTED":
+                return "Chống chọi cơn thèm"
+            case "DAILY":
+                return "Hàng ngày"
+            case "WEEKLY_GOAL":
+                return "Mục tiêu tuần"
+            case "GOAL_STREAK":
+                return "Chuỗi mục tiêu"
+            case "RESILIENCE":
+                return "Kiên trì"
+            case "HEALTH":
+                return "Sức khỏe"
+            case "SOCIAL":
+                return "Cộng đồng"
+            case "SPECIAL":
+                return "Đặc biệt"
             default:
-                return "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
+                return "Khác"
         }
     }
 
-    const getTypeLabel = (type: Achievement["achievementType"]) => {
-        switch (type) {
-            case "DAYS_QUIT": return "Chuỗi ngày";
-            case "MONEY_SAVED": return "Tiết kiệm tiền";
-            case "CIGARETTES_NOT_SMOKED": return "Điếu thuốc tránh được";
-            case "RESILIENCE": return "Kiên trì";
-            case "HEALTH": return "Sức khỏe";
-            case "SOCIAL": return "Xã hội";
-            case "SPECIAL": return "Đặc biệt";
-            case "DAILY": return "Hàng ngày";
-            default: return "Khác";
-        }
+    if (loading && achievements.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-slate-600 dark:text-slate-400">Đang tải danh sách thành tựu...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="text-center py-8">
+                <p className="text-red-600 dark:text-red-400">{error}</p>
+                <Button onClick={fetchAchievements} className="mt-4">
+                    Thử lại
+                </Button>
+            </div>
+        )
     }
 
     return (
         <div className="space-y-6">
-            {loading && <div>Đang tải dữ liệu...</div>}
-            {error && <div className="text-red-500">{error}</div>}
-            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+            <Card>
                 <CardHeader>
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                         <div>
-                            <CardTitle className="text-slate-900 dark:text-white">Quản Lý Thành Tựu</CardTitle>
-                            <CardDescription className="text-slate-600 dark:text-slate-400">
-                                Tạo, chỉnh sửa và quản lý hệ thống thành tựu cho người dùng
+                            <CardTitle className="flex items-center gap-2">
+                                <Trophy className="w-6 h-6 text-yellow-600" />
+                                Quản Lý Thành Tựu
+                            </CardTitle>
+                            <CardDescription>
+                                Quản lý các thành tựu trong hệ thống
                             </CardDescription>
                         </div>
-                        <Button onClick={() => setIsCreateModalOpen(true)}>
+                        <Button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                        >
                             <Plus className="w-4 h-4 mr-2" />
-                            Tạo Thành Tựu Mới
+                            Tạo Thành Tựu
                         </Button>
                     </div>
                 </CardHeader>
@@ -264,17 +261,16 @@ export function AchievementsManagement() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {achievements.map((achievement) => (
                             <Card
-                                key={achievement.achievementId}
-                                className={`bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 ${!achievement.isActive ? "opacity-60" : ""
-                                    }`}
+                                key={achievement.achievementId || achievement.id}
+                                className="bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600"
                             >
                                 <CardHeader className="pb-3">
                                     <div className="flex items-start justify-between">
                                         <div className="flex items-center space-x-2">
-                                            <span className="text-2xl">{achievement.icon}</span>
+                                            <span className="text-2xl">{achievement.icon || "🏆"}</span>
                                             <div className="flex items-center space-x-1">
-                                                {getCategoryIcon(achievement.achievementType)}
-                                                <Badge className={getCategoryColor(achievement.achievementType)}>
+                                                {getCategoryIcon(achievement.achievementType || "")}
+                                                <Badge className={getCategoryColor(achievement.achievementType || "")}>
                                                     {getTypeLabel(achievement.achievementType)}
                                                 </Badge>
                                             </div>
@@ -283,23 +279,20 @@ export function AchievementsManagement() {
                                     <CardTitle className="text-lg text-slate-900 dark:text-white">{achievement.name}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{achievement.description}</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{achievement.description || "Không có mô tả"}</p>
                                     <div className="space-y-2 mb-4">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-slate-500 dark:text-slate-400">Yêu cầu:</span>
-                                            <span className="text-slate-700 dark:text-slate-300">{achievement.requirements}</span>
+                                            <span className="text-slate-700 dark:text-slate-300">{achievement.requirements || "Không có"}</span>
                                         </div>
-                                        {/* <div className="flex justify-between text-sm">
-                                            <span className="text-slate-500 dark:text-slate-400">Đã mở khóa:</span>
-                                            <span className="text-slate-700 dark:text-slate-300">{achievement.unlockedBy} người</span>
-                                        </div> */}
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-slate-500 dark:text-slate-400">Giá trị mốc:</span>
+                                            <span className="text-slate-700 dark:text-slate-300">{achievement.milestoneValue || 0}</span>
+                                        </div>
                                     </div>
                                     <div className="flex items-center justify-between mb-4">
-                                        <Badge variant={achievement.isActive ? "default" : "secondary"}>
-                                            {achievement.isActive ? "Đang hoạt động" : ""}
-                                        </Badge>
                                         <span className="text-xs text-slate-500 dark:text-slate-400">
-                                            {new Date(achievement.createdAt).toLocaleDateString("vi-VN")}
+                                            {achievement.createdAt ? new Date(achievement.createdAt).toLocaleDateString("vi-VN") : "Không có ngày tạo"}
                                         </span>
                                     </div>
                                     <div className="flex space-x-2">
@@ -315,97 +308,117 @@ export function AchievementsManagement() {
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            onClick={() => handleDeleteAchievement(achievement.achievementId)}
+                                            onClick={() => handleDeleteAchievement(achievement.achievementId || achievement.id || 0)}
                                             className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                         >
-                                            <Trash2 className="w-4 h-4" />
+                                            <Trash2 className="w-4 h-4 mr-1" />
+                                            Xóa
                                         </Button>
                                     </div>
                                 </CardContent>
                             </Card>
                         ))}
                     </div>
+
+                    {achievements.length === 0 && (
+                        <div className="text-center py-12">
+                            <Trophy className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                            <h3 className="text-lg font-semibold text-slate-600 dark:text-slate-400 mb-2">
+                                Chưa có thành tựu nào
+                            </h3>
+                            <p className="text-slate-500 dark:text-slate-500 mb-4">
+                                Tạo thành tựu đầu tiên để bắt đầu
+                            </p>
+                            <Button onClick={() => setIsCreateModalOpen(true)}>
+                                <Plus className="w-4 h-4 mr-2" />
+                                Tạo Thành Tựu
+                            </Button>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
+
             {/* Create Achievement Modal */}
             <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                <DialogContent className="sm:max-w-[600px]">
+                <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Tạo Thành Tựu Mới</DialogTitle>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="achievement-name">Tên thành tựu</Label>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Tên thành tựu</Label>
                             <Input
-                                id="achievement-name"
+                                id="name"
                                 value={formData.name}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                                placeholder="Ví dụ: Tuần Đầu Tiên"
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                placeholder="Nhập tên thành tựu"
                             />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="achievement-icon">Icon (Emoji)</Label>
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Mô tả</Label>
+                            <Textarea
+                                id="description"
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                placeholder="Nhập mô tả thành tựu"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="icon">Biểu tượng</Label>
                             <Input
-                                id="achievement-icon"
+                                id="icon"
                                 value={formData.icon}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, icon: e.target.value }))}
-                                placeholder="🎯"
+                                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                                placeholder="Nhập emoji hoặc icon"
                             />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="achievement-type">Danh mục</Label>
+                        <div className="space-y-2">
+                            <Label htmlFor="achievementType">Loại thành tựu</Label>
                             <select
-                                id="achievement-type"
+                                id="achievementType"
                                 value={formData.achievementType}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, achievementType: e.target.value as Achievement["achievementType"] }))}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                onChange={(e) => setFormData({ ...formData, achievementType: e.target.value as Achievement["achievementType"] })}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md dark:border-slate-600 dark:bg-slate-700"
                             >
-                                <option value="DAYS_QUIT">Chuỗi ngày không hút thuốc</option>
-                                <option value="MONEY_SAVED">Tiết kiệm tiền</option>
-                                <option value="CIGARETTES_NOT_SMOKED">Điếu thuốc tránh được</option>
-                                <option value="RESILIENCE">Kiên trì/quay lại</option>
-                                <option value="HEALTH">Sức khỏe</option>
-                                <option value="SOCIAL">Xã hội</option>
-                                <option value="SPECIAL">Đặc biệt</option>
+                                <option value="DAYS_QUIT">Ngày cai thuốc</option>
+                                <option value="MONEY_SAVED">Tiền tiết kiệm</option>
+                                <option value="CIGARETTES_NOT_SMOKED">Điếu không hút</option>
+                                <option value="CRAVING_RESISTED">Chống chọi cơn thèm</option>
                                 <option value="DAILY">Hàng ngày</option>
+                                <option value="WEEKLY_GOAL">Mục tiêu tuần</option>
+                                <option value="GOAL_STREAK">Chuỗi mục tiêu</option>
+                                <option value="RESILIENCE">Kiên trì</option>
+                                <option value="HEALTH">Sức khỏe</option>
+                                <option value="SOCIAL">Cộng đồng</option>
+                                <option value="SPECIAL">Đặc biệt</option>
                             </select>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="achievement-requirements">Yêu cầu</Label>
+                        <div className="space-y-2">
+                            <Label htmlFor="requirements">Yêu cầu</Label>
                             <Input
-                                id="achievement-requirements"
+                                id="requirements"
                                 value={formData.requirements}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, requirements: e.target.value }))}
-                                placeholder="Ví dụ: 7 ngày liên tiếp không hút thuốc"
+                                onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+                                placeholder="Nhập yêu cầu để đạt thành tựu"
                             />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="achievement-description">Mô tả</Label>
-                            <Textarea
-                                id="achievement-description"
-                                value={formData.description}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                                placeholder="Mô tả chi tiết về thành tựu..."
-                                className="min-h-[100px]"
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="achievement-milestone">Giá trị mốc (Milestone)</Label>
+                        <div className="space-y-2">
+                            <Label htmlFor="milestoneValue">Giá trị mốc</Label>
                             <Input
-                                id="achievement-milestone"
+                                id="milestoneValue"
                                 type="number"
                                 value={formData.milestoneValue}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, milestoneValue: parseInt(e.target.value, 10) || 0 }))}
-                                placeholder="Ví dụ: 7"
+                                onChange={(e) => setFormData({ ...formData, milestoneValue: parseInt(e.target.value) || 1 })}
+                                placeholder="Nhập giá trị mốc"
                             />
                         </div>
                     </div>
-                    <div className="flex justify-end gap-4">
+                    <div className="flex justify-end space-x-2">
                         <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
                             Hủy
                         </Button>
-                        <Button onClick={handleCreateAchievement} disabled={!formData.name.trim() || !formData.description.trim()}>
-                            Tạo Thành Tựu
+                        <Button onClick={handleCreateAchievement} disabled={loading}>
+                            {loading ? "Đang tạo..." : "Tạo"}
                         </Button>
                     </div>
                 </DialogContent>
@@ -413,73 +426,85 @@ export function AchievementsManagement() {
 
             {/* Edit Achievement Modal */}
             <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                <DialogContent className="sm:max-w-[600px]">
+                <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Chỉnh Sửa Thành Tựu</DialogTitle>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-achievement-name">Tên thành tựu</Label>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-name">Tên thành tựu</Label>
                             <Input
-                                id="edit-achievement-name"
+                                id="edit-name"
                                 value={formData.name}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-                                placeholder="Ví dụ: Tuần Đầu Tiên"
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                placeholder="Nhập tên thành tựu"
                             />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-achievement-icon">Icon (Emoji)</Label>
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-description">Mô tả</Label>
+                            <Textarea
+                                id="edit-description"
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                placeholder="Nhập mô tả thành tựu"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-icon">Biểu tượng</Label>
                             <Input
-                                id="edit-achievement-icon"
+                                id="edit-icon"
                                 value={formData.icon}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, icon: e.target.value }))}
-                                placeholder="🎯"
+                                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                                placeholder="Nhập emoji hoặc icon"
                             />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-achievement-type">Danh mục</Label>
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-achievementType">Loại thành tựu</Label>
                             <select
-                                id="edit-achievement-type"
+                                id="edit-achievementType"
                                 value={formData.achievementType}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, achievementType: e.target.value as Achievement["achievementType"] }))}
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                onChange={(e) => setFormData({ ...formData, achievementType: e.target.value as Achievement["achievementType"] })}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md dark:border-slate-600 dark:bg-slate-700"
                             >
-                                <option value="DAYS_QUIT">Chuỗi ngày không hút thuốc</option>
-                                <option value="MONEY_SAVED">Tiết kiệm tiền</option>
-                                <option value="CIGARETTES_NOT_SMOKED">Điếu thuốc tránh được</option>
-                                <option value="RESILIENCE">Kiên trì/quay lại</option>
-                                <option value="HEALTH">Sức khỏe</option>
-                                <option value="SOCIAL">Xã hội</option>
-                                <option value="SPECIAL">Đặc biệt</option>
+                                <option value="DAYS_QUIT">Ngày cai thuốc</option>
+                                <option value="MONEY_SAVED">Tiền tiết kiệm</option>
+                                <option value="CIGARETTES_NOT_SMOKED">Điếu không hút</option>
+                                <option value="CRAVING_RESISTED">Chống chọi cơn thèm</option>
                                 <option value="DAILY">Hàng ngày</option>
+                                <option value="WEEKLY_GOAL">Mục tiêu tuần</option>
+                                <option value="GOAL_STREAK">Chuỗi mục tiêu</option>
+                                <option value="RESILIENCE">Kiên trì</option>
+                                <option value="HEALTH">Sức khỏe</option>
+                                <option value="SOCIAL">Cộng đồng</option>
+                                <option value="SPECIAL">Đặc biệt</option>
                             </select>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-achievement-requirements">Yêu cầu</Label>
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-requirements">Yêu cầu</Label>
                             <Input
-                                id="edit-achievement-requirements"
+                                id="edit-requirements"
                                 value={formData.requirements}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, requirements: e.target.value }))}
-                                placeholder="Ví dụ: 7 ngày liên tiếp không hút thuốc"
+                                onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+                                placeholder="Nhập yêu cầu để đạt thành tựu"
                             />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="edit-achievement-description">Mô tả</Label>
-                            <Textarea
-                                id="edit-achievement-description"
-                                value={formData.description}
-                                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-                                placeholder="Mô tả chi tiết về thành tựu..."
-                                className="min-h-[100px]"
+                        <div className="space-y-2">
+                            <Label htmlFor="edit-milestoneValue">Giá trị mốc</Label>
+                            <Input
+                                id="edit-milestoneValue"
+                                type="number"
+                                value={formData.milestoneValue}
+                                onChange={(e) => setFormData({ ...formData, milestoneValue: parseInt(e.target.value) || 1 })}
+                                placeholder="Nhập giá trị mốc"
                             />
                         </div>
                     </div>
-                    <div className="flex justify-end gap-4">
+                    <div className="flex justify-end space-x-2">
                         <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
                             Hủy
                         </Button>
-                        <Button onClick={handleUpdateAchievement} disabled={!formData.name.trim() || !formData.description.trim()}>
-                            Cập Nhật
+                        <Button onClick={handleUpdateAchievement} disabled={loading}>
+                            {loading ? "Đang cập nhật..." : "Cập nhật"}
                         </Button>
                     </div>
                 </DialogContent>
