@@ -1,6 +1,7 @@
-export { PlanDetailsCard } from './PlanDetailsCard'
-export { DailyDiaryCard } from './DailyDiaryCard'
-export { SummaryCards } from './SummaryCards'
-export { StatisticsCharts } from './StatisticsCharts'
-export { StatisticsCards } from './StatisticsCards'
-export { RestartConfirmationModal } from './RestartConfirmationModal'
+export { PlanDetailsCard } from "./PlanDetailsCard";
+export { DailyDiaryCard } from "./DailyDiaryCard";
+export { SummaryCards } from "./SummaryCards";
+export { StatisticsCharts } from "./StatisticsCharts";
+export { StatisticsCards } from "./StatisticsCards";
+export { RestartConfirmationModal } from "./RestartConfirmationModal";
+export { CompletedPlanModal } from "./CompletedPlanModal";

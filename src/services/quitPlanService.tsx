@@ -240,7 +240,7 @@ export class QuitPlanService {
 
   /**
    * Fetches the current active quit plan for the authenticated member.
-   * Lấy kế hoạch bỏ thuốc lá hiện tại (IN_PROGRESS) của thành viên đã xác thực.
+   * Lấy kế hoạch bỏ thuốc lá hiện tại của thành viên đã xác thực.
    * GET /api/quit-plans/current-plan
    * @returns QuitPlanResponseDTO của kế hoạch hiện tại.
    */
@@ -331,7 +331,7 @@ export class QuitPlanService {
    */
   resetQuitPlanStatus = async (quitPlanId: number): Promise<QuitPlanResponseDTO> => {
     try {
-      const response = await axiosConfig.post<ApiResponse<QuitPlanResponseDTO>>(`${this.API_BASE_URL}/reset/${quitPlanId}`);
+      const response = await axiosConfig.patch<ApiResponse<QuitPlanResponseDTO>>(`${this.API_BASE_URL}/reset/${quitPlanId}`);
       if (response.status === 200 && response.data && response.data.data) {
         return response.data.data;
       } else {
@@ -339,6 +339,46 @@ export class QuitPlanService {
       }
     } catch (error: unknown) {
       console.error(`Error resetting quit plan status for ID ${quitPlanId}:`, error);
+      throw new Error(handleApiError(error));
+    }
+  };
+
+  resetQuitPlanStatusByChangeStartDate = async (quitPlanId: number): Promise<QuitPlanResponseDTO> => {
+    try {
+      const response = await axiosConfig.patch<ApiResponse<QuitPlanResponseDTO>>(`${this.API_BASE_URL}/resetByDate/${quitPlanId}`);
+      if (response.status === 200 && response.data && response.data.data) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.message || `Failed to reset quit plan status for ID: ${quitPlanId}`);
+      }
+    } catch (error: unknown) {
+      console.error(`Error resetting quit plan status for ID ${quitPlanId}:`, error);
+      throw new Error(handleApiError(error));
+    }
+  };
+
+  /**
+   * Converts the latest COMPLETED quit plan to an IMMEDIATE plan.
+   * Chuyển đổi kế hoạch bỏ thuốc lá gần nhất có trạng thái COMPLETED thành kế hoạch Dừng Hẳn (IMMEDIATE).
+   * PATCH /api/quit-plans/update-to-immediate
+   * @returns A Promise that resolves to the updated QuitPlanResponseDTO.
+   * @throws An Error if the API call fails or if conditions for conversion are not met.
+   */
+  convertToImmediatePlan = async (): Promise<QuitPlanResponseDTO> => {
+    try {
+      const response = await axiosConfig.patch<ApiResponse<QuitPlanResponseDTO>>(`${this.API_BASE_URL}/update-to-immediate`);
+
+      // Backend trả về HttpStatus.OK (200) khi thành công
+      if (response.status === 200 && response.data && response.data.data) {
+        return response.data.data;
+      } else {
+        // Trường hợp hiếm: HTTP status 2xx nhưng cấu trúc ApiResponse không như mong đợi
+        console.error("API returned success status but data field is missing or status is not 200:", response.data);
+        throw new Error(response.data.message || "Phản hồi API không hợp lệ.");
+      }
+    } catch (error: unknown) {
+      console.error("Error in convertToImmediatePlan catch block:", error);
+      // Sử dụng hàm handleApiError để xử lý và trả về thông báo lỗi thân thiện
       throw new Error(handleApiError(error));
     }
   };

@@ -97,7 +97,7 @@ export function PlanDetailsCard({ quitPlan, refetchQuitPlan, onRestartPlan, isRe
     const getReductionTypeLabel = (type: string) => {
         switch (type) {
             case "IMMEDIATE":
-                return "Dừung Hoàn Toàn"
+                return "Dừng Hoàn Toàn"
             case "LINEAR":
                 return "Giảm Dần - Giảm Đều"
             case "EXPONENTIAL":
@@ -214,20 +214,24 @@ export function PlanDetailsCard({ quitPlan, refetchQuitPlan, onRestartPlan, isRe
                             <Label className="text-sm text-gray-600">Ngày bắt đầu</Label>
                             <div className="font-medium">{new Date(quitPlan.startDate).toLocaleDateString('vi-VN')}</div>
                         </div>
+                        {quitPlan.reductionType !== "IMMEDIATE" && (
                         <div>
                             <Label className="text-sm text-gray-600">Ngày mục tiêu</Label>
                             <div className="font-medium">{new Date(quitPlan.goalDate).toLocaleDateString('vi-VN')}</div>
                         </div>
+                        )}
                         <div>
                             <Label className="text-sm text-gray-600">Lượng hút ban đầu</Label>
                             <div className="font-medium">{quitPlan.initialSmokingAmount} điếu/ngày</div>
                         </div>
-                        <div>
+                        {quitPlan.reductionType !== "IMMEDIATE" && (
+                            <div>
                             <Label className="text-sm text-gray-600">Tiến độ</Label>
                             <div className="font-medium">
                                 {daysSinceStart + 1}/{totalDays} ngày ({(((daysSinceStart + 1) / totalDays) * 100).toFixed(1)}%)
                             </div>
                         </div>
+                        )}
                         <div>
                             <Label className="text-sm text-gray-600">Số điếu trong gói</Label>
                             {isEditing ? (

@@ -1,122 +1,171 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { DollarSign, Heart, Award, TrendingUp, Clock } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import type { Achievement, HealthMilestone, QuitPlanResponseDTO } from "@/services/quitPlanService"
-import { QuitPlanCalculator } from "@/utils/QuitPlanCalculator"
-import { AnimatedSection } from "@/components/ui/AnimatedSection"
+import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import type {
+  HealthMilestone,
+  QuitPlanResponseDTO,
+} from "@/services/quitPlanService";
+import { QuitPlanCalculator } from "@/utils/QuitPlanCalculator";
+import { AnimatedSection } from "@/components/ui/AnimatedSection";
+import { Clock, DollarSign, Heart, TrendingUp, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { format } from "date-fns";
+import {
+  dataVisualizationService,
+  type DailyChartDataResponse,
+} from "@/services/dataVisualizationService";
 
 interface BenefitsTabProps {
-  quitPlan: QuitPlanResponseDTO
+  quitPlan: QuitPlanResponseDTO;
 }
 
-export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
-  const daysSinceStart = QuitPlanCalculator.getDaysSinceStart(quitPlan.startDate)
+export default function BenefitTab({ quitPlan }: BenefitsTabProps) {
+  const daysSinceStart = QuitPlanCalculator.getDaysSinceStart(
+    quitPlan.startDate
+  );
 
-  // Mock data for calculations
-  const cigarettesAvoided = 150
-  const moneySaved = QuitPlanCalculator.calculateMoneySaved(
-    daysSinceStart,
-    cigarettesAvoided,
-    quitPlan.cigarettesPerPack,
-    quitPlan.pricePerPack,
-  )
+  // State cho dữ liệu từ API
+  const [dailyData, setDailyData] = useState<DailyChartDataResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch dữ liệu daily summaries từ startDate đến hiện tại
+  const fetchDailyData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const currentDate = format(new Date(), "yyyy-MM-dd");
+      const startDate = format(new Date(quitPlan.startDate), "yyyy-MM-dd");
+
+      const data = await dataVisualizationService.getDailyDataForDayRange(
+        startDate,
+        currentDate
+      );
+      setDailyData(data);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch daily data"
+      );
+      console.error("Error fetching daily data:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [quitPlan.startDate]);
+
+  useEffect(() => {
+    fetchDailyData();
+  }, [fetchDailyData]);
+
+  // Tính toán các giá trị dựa trên dữ liệu thực từ API
+  const calculateRealMetrics = () => {
+    if (!dailyData.length) {
+      return {
+        totalMoneySaved: 0,
+        totalCigarettesAvoided: 0,
+        totalTimeRegained: 0,
+      };
+    }
+
+    // 1. Money Saved: Tổng tiền tiết kiệm từ các record có trong DB
+    const totalMoneySaved = dailyData.reduce((sum, record) => {
+      return sum + (record.moneySaved || 0);
+    }, 0);
+
+    // 2. Cigarettes Avoided: (số ngày * initialSmokingAmount) - tổng số điếu đã hút
+    const totalDaysInPlan = daysSinceStart;
+    const totalCigarettesPlanned =
+      totalDaysInPlan * quitPlan.initialSmokingAmount;
+    const totalCigarettesSmoked = dailyData.reduce((sum, record) => {
+      return sum + (record.totalSmokedCount || 0);
+    }, 0);
+    const totalCigarettesAvoided = Math.max(
+      0,
+      totalCigarettesPlanned - totalCigarettesSmoked
+    );
+
+    // 3. Time Regained: số điếu tránh được * 3 phút (chuyển đổi sang giờ)
+    const totalTimeRegained = Math.floor((totalCigarettesAvoided * 3) / 60);
+
+    return {
+      totalMoneySaved,
+      totalCigarettesAvoided,
+      totalTimeRegained,
+    };
+  };
+
+  const { totalMoneySaved, totalCigarettesAvoided, totalTimeRegained } =
+    calculateRealMetrics();
 
   const healthMilestones: HealthMilestone[] = [
     {
-      timeframe: "20 minutes",
-      title: "Heart Rate Normalizes",
-      description: "Your heart rate and blood pressure drop to normal levels",
+      timeframe: "20 phút",
+      title: "Nhịp Tim Đã Bình Thường",
+      description: "Nhịp tim và huyết áp của bạn trở về mức bình thường",
       icon: "❤️",
       achieved: daysSinceStart >= 1,
     },
     {
-      timeframe: "12 hours",
-      title: "Carbon Monoxide Clears",
-      description: "Carbon monoxide levels in your blood return to normal",
+      timeframe: "12 giờ",
+      title: "Mức Carbon Monoxide Trong Máu Đã Bình Thường",
+      description: "Mức carbon monoxide trong máu của bạn trở về bình thường",
       icon: "🫁",
       achieved: daysSinceStart >= 1,
     },
     {
-      timeframe: "2 weeks",
-      title: "Circulation Improves",
-      description: "Your circulation improves and lung function increases",
+      timeframe: "1 tuần",
+      title: "Vị Giác Và Khứu Giác Cải Thiện",
+      description: "Vị giác và khứu giác của bạn bắt đầu cải thiện",
+      icon: "🌱",
+      achieved: daysSinceStart >= 7,
+    },
+    {
+      timeframe: "2 tuần",
+      title: "Tuần Hoàn Cải Thiện",
+      description:
+        "Tuần hoàn của bạn cải thiện và chức năng phổi hồi phục đáng kể",
       icon: "🔄",
       achieved: daysSinceStart >= 14,
     },
     {
-      timeframe: "1 month",
-      title: "Coughing Decreases",
-      description: "Coughing and shortness of breath decrease significantly",
+      timeframe: "1 tháng",
+      title: "Giảm Ho",
+      description: "Ho và khó thở giảm đáng kể",
       icon: "😮‍💨",
       achieved: daysSinceStart >= 30,
     },
     {
-      timeframe: "1 year",
-      title: "Heart Disease Risk Halved",
-      description: "Your risk of coronary heart disease is cut in half",
+      timeframe: "3 tháng",
+      title: "Chức Năng Phổi Cải Thiện Rõ Rệt",
+      description: "Chức năng phổi của bạn bắt đầu cải thiện rõ rệt",
+      icon: "🫁",
+      achieved: daysSinceStart >= 90,
+    },
+    {
+      timeframe: "6 tháng",
+      title: "Thời Gian Thưởng Bản Thân",
+      description: "Bạn có thể tự thưởng cho bản thân một điều đặc biệt",
+      icon: "🎁",
+      achieved: daysSinceStart >= 180,
+    },
+    {
+      timeframe: "1 năm",
+      title: "Nguy Cơ Bệnh Tim Giảm Một Nửa",
+      description: "Nguy cơ bệnh tim mạch của bạn giảm một nửa",
       icon: "💪",
       achieved: daysSinceStart >= 365,
     },
     {
-      timeframe: "5 years",
-      title: "Stroke Risk Reduced",
-      description: "Your stroke risk is reduced to that of a non-smoker",
+      timeframe: "5 năm",
+      title: "Nguy Cơ Đột Quỵ Giảm",
+      description:
+        "Nguy cơ đột quỵ của bạn giảm xuống bằng với người không hút thuốc",
       icon: "🧠",
       achieved: daysSinceStart >= 1825,
     },
-  ]
-
-  const achievements: Achievement[] = [
-    {
-      id: "first-day",
-      title: "First Day Hero",
-      description: "Completed your first day without exceeding limits",
-      icon: "🌟",
-      unlockedAt: "2025-01-01",
-      progress: 1,
-      maxProgress: 1,
-    },
-    {
-      id: "week-warrior",
-      title: "Week Warrior",
-      description: "Completed one full week of your quit plan",
-      icon: "⚡",
-      unlockedAt: daysSinceStart >= 7 ? "2025-01-07" : undefined,
-      progress: Math.min(daysSinceStart, 7),
-      maxProgress: 7,
-    },
-    {
-      id: "money-saver",
-      title: "Money Saver",
-      description: "Saved over 100,000 VND",
-      icon: "💰",
-      unlockedAt: moneySaved >= 100000 ? "2025-01-05" : undefined,
-      progress: Math.min(moneySaved, 100000),
-      maxProgress: 100000,
-    },
-    {
-      id: "craving-crusher",
-      title: "Craving Crusher",
-      description: "Successfully managed 50 cravings without giving in",
-      icon: "🛡️",
-      unlockedAt: undefined,
-      progress: 32,
-      maxProgress: 50,
-    },
-    {
-      id: "month-master",
-      title: "Month Master",
-      description: "Completed one full month of your quit journey",
-      icon: "🏆",
-      unlockedAt: daysSinceStart >= 30 ? "2025-01-30" : undefined,
-      progress: Math.min(daysSinceStart, 30),
-      maxProgress: 30,
-    },
-  ]
+  ];
 
   const motivationalQuotes = [
     "Thời gian tốt nhất để trồng cây là 20 năm trước, thời gian tốt thứ hai là bây giờ",
@@ -124,14 +173,56 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
     "Tương lai của bạn sẽ cảm ơn bạn vì những lựa chọn bạn thực hiện hôm nay",
     "Sức mạnh không đến từ những gì bạn có thể làm. Nó đến từ việc vượt qua những gì bạn nghĩ là không thể",
     "Hành trình không thể thực hiện chỉ là hành trình bạn không bao giờ bắt đầu",
-  ]
+  ];
 
-  const todayQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]
+  const todayQuote =
+    motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+
+  // Hiển thị loading state
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto space-y-6">
+        <Card className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-bold mb-2">Đang tải dữ liệu...</h2>
+            <div className="flex items-center justify-center space-x-2">
+              <Loader2 className="w-6 h-6 animate-spin" />
+              <span>Vui lòng chờ trong giây lát</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Hiển thị error state
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto space-y-6">
+        <Card className="bg-gradient-to-r from-red-500 to-red-600 text-white">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-bold mb-2">Có lỗi xảy ra</h2>
+            <p className="text-lg">{error}</p>
+            <button
+              onClick={fetchDailyData}
+              className="mt-4 px-4 py-2 bg-white text-red-600 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Thử lại
+            </button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Motivational Quote */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <Card className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white">
           <CardContent className="p-6 text-center">
             <h2 className="text-xl font-bold mb-2">Bạn Hãy Nhớ Rằng</h2>
@@ -149,7 +240,7 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-green-700">
                   <DollarSign className="w-5 h-5" />
-                  Money Saved
+                  Tổng Tiền Đã Tiết Kiệm
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -159,9 +250,11 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 200, delay: 0.3 }}
                 >
-                  {moneySaved.toLocaleString()} VND
+                  {totalMoneySaved.toLocaleString()} VND
                 </motion.div>
-                <p className="text-sm text-gray-600 mt-2">In {daysSinceStart} days of progress</p>
+                <p className="text-sm text-gray-600 mt-2">
+                  Trong {daysSinceStart} ngày hành trình
+                </p>
               </CardContent>
             </Card>
           </AnimatedSection>
@@ -171,7 +264,7 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-blue-700">
                   <TrendingUp className="w-5 h-5" />
-                  Cigarettes Avoided
+                  Số Điếu Thuốc Đã Tránh
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -181,9 +274,11 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
                 >
-                  {cigarettesAvoided}
+                  {totalCigarettesAvoided.toLocaleString()}
                 </motion.div>
-                <p className="text-sm text-gray-600 mt-2">Cigarettes not smoked</p>
+                <p className="text-sm text-gray-600 mt-2">
+                  Điếu thuốc đã không hút
+                </p>
               </CardContent>
             </Card>
           </AnimatedSection>
@@ -193,7 +288,7 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-purple-700">
                   <Clock className="w-5 h-5" />
-                  Time Regained
+                  Thời Gian Đã Giành Lại
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -203,9 +298,11 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 200, delay: 0.5 }}
                 >
-                  {Math.floor((cigarettesAvoided * 5) / 60)}h
+                  {totalTimeRegained.toLocaleString()} giờ
                 </motion.div>
-                <p className="text-sm text-gray-600 mt-2">Hours of life regained</p>
+                <p className="text-sm text-gray-600 mt-2">
+                  Giờ sống đã được giành lại
+                </p>
               </CardContent>
             </Card>
           </AnimatedSection>
@@ -218,7 +315,7 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Heart className="w-5 h-5 text-red-500" />
-                  Health Improvement Timeline
+                  Hành Trình Cải Thiện Sức Khỏe
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -226,8 +323,11 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
                   {healthMilestones.map((milestone, index) => (
                     <motion.div
                       key={milestone.timeframe}
-                      className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${milestone.achieved ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"
-                        }`}
+                      className={`flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
+                        milestone.achieved
+                          ? "bg-green-50 border-green-200"
+                          : "bg-gray-50 border-gray-200"
+                      }`}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
@@ -239,9 +339,15 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
                           <Badge variant="outline" className="text-xs">
                             {milestone.timeframe}
                           </Badge>
-                          {milestone.achieved && <Badge className="bg-green-100 text-green-800 text-xs">✅ Achieved</Badge>}
+                          {milestone.achieved && (
+                            <Badge className="bg-green-100 text-green-800 text-xs">
+                              ✅ Đạt được
+                            </Badge>
+                          )}
                         </div>
-                        <p className="text-sm text-gray-600">{milestone.description}</p>
+                        <p className="text-sm text-gray-600">
+                          {milestone.description}
+                        </p>
                       </div>
                     </motion.div>
                   ))}
@@ -251,59 +357,6 @@ export function BenefitsTab({ quitPlan }: BenefitsTabProps) {
           </AnimatedSection>
         </div>
       </div>
-
-      {/* Achievements */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-yellow-500" />
-              Achievements & Badges
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {achievements.map((achievement, index) => (
-                <motion.div
-                  key={achievement.id}
-                  className={`p-4 rounded-lg border-2 transition-all ${achievement.unlockedAt ? "bg-yellow-50 border-yellow-200" : "bg-gray-50 border-gray-200"
-                    }`}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="text-2xl">{achievement.icon}</div>
-                    <div>
-                      <h3 className="font-semibold">{achievement.title}</h3>
-                      {achievement.unlockedAt && (
-                        <Badge className="bg-yellow-100 text-yellow-800 text-xs">
-                          Unlocked {new Date(achievement.unlockedAt).toLocaleDateString()}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">{achievement.description}</p>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>Progress</span>
-                      <span>
-                        {achievement.progress}/{achievement.maxProgress}
-                      </span>
-                    </div>
-                    <Progress value={(achievement.progress / achievement.maxProgress) * 100} className="h-2" />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
     </div>
-  )
+  );
 }
