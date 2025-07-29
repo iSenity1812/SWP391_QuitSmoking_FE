@@ -10,7 +10,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { TrendingUp, Users, Target, Clock, Star, Loader2, BarChart3, AlertCircle, RefreshCw, ChevronDown, DollarSign, Receipt } from "lucide-react"
+import { TrendingUp, Users, Target, Star, Loader2, BarChart3, AlertCircle, RefreshCw, ChevronDown, DollarSign, Receipt, Crown } from "lucide-react"
 import { adminService, type DashboardStats, type SystemAlert } from "@/pages/admin/component/service/adminService"
 import { ChartContainer, LineChartComponent, BarChartComponent } from "@/components/ui/Chart"
 import { useTheme } from "@/context/ThemeContext"
@@ -146,8 +146,8 @@ export function AdminDashboard() {
     */
 
     // Empty data arrays - replace with real API data when available
-    const weeklyGrowthData: Array<{ day: string, users: number, plans: number, success: number }> = []
-    const dailyActivityData: Array<{ hour: string, activity: number }> = []
+    // const weeklyGrowthData: Array<{ day: string, users: number, plans: number, success: number }> = []
+    // const dailyActivityData: Array<{ hour: string, activity: number }> = []
 
     // Clean console logging for production
     if (revenueError) {
@@ -235,7 +235,7 @@ export function AdminDashboard() {
 
                                 {/* Users Statistics Cards */}
                                 {dailyUsersData && dailyUsersData.length > 0 && !usersLoading && !usersError && (
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
                                         <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
                                             <div className="flex items-center space-x-2">
                                                 <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -243,6 +243,16 @@ export function AdminDashboard() {
                                             </div>
                                             <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">
                                                 {dailyUsersData[dailyUsersData.length - 1]?.users.toLocaleString()}
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-700">
+                                            <div className="flex items-center space-x-2">
+                                                <Crown className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                                                <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">Premium Users</span>
+                                            </div>
+                                            <p className="text-2xl font-bold text-yellow-900 dark:text-yellow-100 mt-1">
+                                                {dailyUsersData[dailyUsersData.length - 1]?.premiumUsers.toLocaleString()}
                                             </p>
                                         </div>
 
@@ -317,7 +327,10 @@ export function AdminDashboard() {
                                         <LineChartComponent
                                             dataset={dailyUsersData}
                                             xAxis={[{ scaleType: "point", dataKey: "day" }]}
-                                            series={[{ dataKey: "users", label: "Tổng người dùng", color: chartColors.primary }]}
+                                            series={[
+                                                { dataKey: "users", label: "Tổng người dùng", color: chartColors.primary },
+                                                { dataKey: "premiumUsers", label: "Người dùng Premium", color: chartColors.warning }
+                                            ]}
                                             width={800}
                                             height={400}
                                         />

@@ -70,7 +70,7 @@ export function UserManagement() {
         username: string;
         email: string;
         password: string;
-        role: 'NORMAL_MEMBER' | 'COACH' | 'CONTENT_ADMIN' | 'SUPER_ADMIN';
+        role: 'COACH' | 'CONTENT_ADMIN' | 'SUPER_ADMIN';
         fullName: string;
         coachBio: string;
         active: boolean;
@@ -78,7 +78,7 @@ export function UserManagement() {
         username: "",
         email: "",
         password: "",
-        role: "NORMAL_MEMBER",
+        role: "COACH",
         fullName: "",
         coachBio: "",
         active: true
@@ -154,7 +154,7 @@ export function UserManagement() {
     const handleInputChange = (field: string, value: string | boolean) => {
         setUserForm(prev => ({
             ...prev,
-            [field]: field === 'role' ? value as 'NORMAL_MEMBER' | 'COACH' | 'CONTENT_ADMIN' | 'SUPER_ADMIN' : value
+            [field]: field === 'role' ? value as 'COACH' | 'CONTENT_ADMIN' | 'SUPER_ADMIN' : value
         }))
     }
 
@@ -163,7 +163,7 @@ export function UserManagement() {
             username: "",
             email: "",
             password: "",
-            role: "NORMAL_MEMBER",
+            role: "COACH",
             fullName: "",
             coachBio: "",
             active: true
@@ -652,7 +652,6 @@ export function UserManagement() {
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="NORMAL_MEMBER">Thành viên thường</SelectItem>
                                     <SelectItem value="COACH">Huấn luyện viên</SelectItem>
                                     <SelectItem value="CONTENT_ADMIN">Quản trị nội dung</SelectItem>
                                     <SelectItem value="SUPER_ADMIN">Quản trị viên</SelectItem>
@@ -660,35 +659,33 @@ export function UserManagement() {
                             </Select>
                         </div>
 
-                        {userForm.role === "COACH" && (
-                            <>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="fullName" className="text-right">
-                                        Họ tên *
-                                    </Label>
-                                    <Input
-                                        id="fullName"
-                                        value={userForm.fullName}
-                                        onChange={(e) => handleInputChange('fullName', e.target.value)}
-                                        className="col-span-3"
-                                        placeholder="Nhập họ tên đầy đủ"
-                                    />
-                                </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="fullName" className="text-right">
+                                Họ tên {userForm.role === "COACH" ? "*" : ""}
+                            </Label>
+                            <Input
+                                id="fullName"
+                                value={userForm.fullName}
+                                onChange={(e) => handleInputChange('fullName', e.target.value)}
+                                className="col-span-3"
+                                placeholder="Nhập họ tên đầy đủ"
+                            />
+                        </div>
 
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="coachBio" className="text-right">
-                                        Tiểu sử
-                                    </Label>
-                                    <Textarea
-                                        id="coachBio"
-                                        value={userForm.coachBio}
-                                        onChange={(e) => handleInputChange('coachBio', e.target.value)}
-                                        className="col-span-3"
-                                        placeholder="Nhập tiểu sử của huấn luyện viên"
-                                        rows={3}
-                                    />
-                                </div>
-                            </>
+                        {userForm.role === "COACH" && (
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="coachBio" className="text-right">
+                                    Tiểu sử
+                                </Label>
+                                <Textarea
+                                    id="coachBio"
+                                    value={userForm.coachBio}
+                                    onChange={(e) => handleInputChange('coachBio', e.target.value)}
+                                    className="col-span-3"
+                                    placeholder="Nhập tiểu sử của huấn luyện viên"
+                                    rows={3}
+                                />
+                            </div>
                         )}
                     </div>
 

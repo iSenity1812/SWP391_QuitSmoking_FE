@@ -15,7 +15,7 @@ export interface BaseUser {
   createdAt: string;
   updatedAt?: string;
   isActive: boolean;
-  role: 'MEMBER' | 'PREMIUM_MEMBER' | 'COACH' | 'SUPER_ADMIN';
+  role: 'NORMAL_MEMBER' | 'PREMIUM_MEMBER' | 'COACH' | 'SUPER_ADMIN' | 'CONTENT_ADMIN';
 }
 
 /**
@@ -120,7 +120,7 @@ export interface QuitPlanProgressData {
  * Filter and search interfaces
  */
 export interface UserTableFilters {
-  role: 'ALL' | 'MEMBER' | 'PREMIUM_MEMBER' | 'COACH';
+  role: 'ALL' | 'NORMAL_MEMBER' | 'PREMIUM_MEMBER' | 'COACH' | 'CONTENT_ADMIN';
   status: 'ALL' | 'ACTIVE' | 'INACTIVE';
   subscriptionStatus: 'ALL' | 'ACTIVE' | 'EXPIRED';
   quitPlanStatus: 'ALL' | 'ACTIVE' | 'COMPLETED' | 'PAUSED';
@@ -263,7 +263,7 @@ export type QuitPlanStatus = MemberData['quitPlanStatus'];
  * Type guards
  */
 export function isMemberData(user: BaseUser): user is MemberData {
-  return user.role === 'MEMBER' || user.role === 'PREMIUM_MEMBER';
+  return user.role === 'NORMAL_MEMBER' || user.role === 'PREMIUM_MEMBER';
 }
 
 export function isCoachData(user: BaseUser): user is CoachData {

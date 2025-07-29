@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Table,
   TableBody,
@@ -49,7 +49,7 @@ interface UserTableProps {
 
 interface UserTableFilters {
   searchTerm: string;
-  role: 'ALL' | 'MEMBER' | 'PREMIUM_MEMBER' | 'COACH';
+  role: 'ALL' | 'NORMAL_MEMBER' | 'PREMIUM_MEMBER' | 'COACH' | 'CONTENT_ADMIN';
   status: 'ALL' | 'ACTIVE' | 'INACTIVE';
   subscriptionStatus: 'ALL' | 'ACTIVE' | 'EXPIRED';
   quitPlanStatus: 'ALL' | 'ACTIVE' | 'COMPLETED' | 'PAUSED';
@@ -76,12 +76,14 @@ const UserTable: React.FC<UserTableProps> = ({
   // State management
   const [members, setMembers] = useState<MemberProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  // Search state for debouncing
+  // Search state for debouncing - separated from filters
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   // Filters and sorting
   const [filters, setFilters] = useState<UserTableFilters>({
@@ -106,19 +108,37 @@ const UserTable: React.FC<UserTableProps> = ({
 
   // Debounce search input
   useEffect(() => {
+    if (searchInput !== debouncedSearchTerm) {
+      setIsSearching(true);
+    }
+
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchInput);
-    }, 300); // Reduced to 300ms for faster response
+      setIsSearching(false);
+    }, 500); // Increased to 500ms to reduce API calls
 
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+    return () => {
+      clearTimeout(timer);
+      setIsSearching(false);
+    };
+  }, [searchInput, debouncedSearchTerm]);
 
   // Update filters when debounced search term changes
   useEffect(() => {
-    setFilters(prev => ({ ...prev, searchTerm: debouncedSearchTerm }));
-    // Only reset to first page if we're not already on the first page
-    setPagination(prev => prev.page === 1 ? prev : { ...prev, page: 1 });
-  }, [debouncedSearchTerm]);
+    setFilters(prev => {
+      if (prev.searchTerm !== debouncedSearchTerm) {
+        return { ...prev, searchTerm: debouncedSearchTerm };
+      }
+      return prev;
+    });
+    // Reset to first page only if search term actually changed and we're not on first page
+    setPagination(prev => {
+      if (debouncedSearchTerm !== filters.searchTerm && prev.page !== 1) {
+        return { ...prev, page: 1 };
+      }
+      return prev;
+    });
+  }, [debouncedSearchTerm, filters.searchTerm]);
 
   // Fetch members data with server-side filtering
   useEffect(() => {
@@ -132,7 +152,12 @@ const UserTable: React.FC<UserTableProps> = ({
 
     const fetchMembers = async () => {
       try {
-        setLoading(true);
+        // Only show general loading on initial load or refresh, not during search
+        if (refreshTrigger > 0 || !members.length) {
+          setLoading(true);
+        } else {
+          setSearchLoading(true);
+        }
         setError(null);
 
         // Create pagination object without totalElements to avoid infinite loop
@@ -143,7 +168,7 @@ const UserTable: React.FC<UserTableProps> = ({
         };
 
         // Use server-side search with filters, sorting, and pagination
-        const result = await adminService.searchMembers(filters, sort, paginationParams);
+        const result = await adminService.searchAllUsersClientSide(filters, sort, paginationParams);
 
         setMembers(result.members);
         setPagination(prev => ({ ...prev, totalElements: result.total }));
@@ -152,18 +177,19 @@ const UserTable: React.FC<UserTableProps> = ({
         console.error('Error fetching members:', err);
       } finally {
         setLoading(false);
+        setSearchLoading(false);
       }
     };
 
     fetchMembers();
   }, [refreshTrigger, filters, sort, pagination.page, pagination.size]);
 
-  // Event handlers
-  const handleSearchChange = (value: string) => {
+  // Event handlers - memoized to prevent unnecessary re-renders
+  const handleSearchChange = useCallback((value: string) => {
     setSearchInput(value);
-  };
+  }, []);
 
-  const handleFilterChange = (key: keyof UserTableFilters, value: string) => {
+  const handleFilterChange = useCallback((key: keyof UserTableFilters, value: string) => {
     if (key === 'searchTerm') {
       setSearchInput(value);
     } else {
@@ -176,22 +202,22 @@ const UserTable: React.FC<UserTableProps> = ({
       });
       setPagination(prev => ({ ...prev, page: 1 }));
     }
-  };
+  }, []);
 
-  const handleSortChange = (field: keyof MemberProfile) => {
+  const handleSortChange = useCallback((field: keyof MemberProfile) => {
     setSort(prev => ({
       field: field as UserTableSort['field'],
       direction: prev.field === field && prev.direction === 'ASC' ? 'DESC' : 'ASC'
     }));
-  };
+  }, []);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
     setPagination(prev => ({ ...prev, page }));
-  };
+  }, []);
 
-  const handleToggleDetails = (userId: string) => {
+  const handleToggleDetails = useCallback((userId: string) => {
     setExpandedRow(prev => (prev === userId ? null : userId));
-  };
+  }, []);
 
   const handleQuitPlanDeleted = (memberId: string, planId: number) => {
     // Update the local state to remove the deleted quit plan
@@ -234,6 +260,10 @@ const UserTable: React.FC<UserTableProps> = ({
         return <Crown className="w-4 h-4 text-yellow-500" />;
       case 'COACH':
         return <Shield className="w-4 h-4 text-blue-500" />;
+      case 'CONTENT_ADMIN':
+        return <Edit className="w-4 h-4 text-purple-500" />;
+      case 'NORMAL_MEMBER':
+        return <User className="w-4 h-4 text-gray-500" />;
       default:
         return <User className="w-4 h-4 text-gray-500" />;
     }
@@ -311,12 +341,17 @@ const UserTable: React.FC<UserTableProps> = ({
                 onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10"
               />
-              {searchInput !== debouncedSearchTerm && (
+              {isSearching && (
                 <div className="absolute right-3 top-3">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
                 </div>
               )}
             </div>
+            {isSearching && (
+              <div className="text-xs text-blue-600 mt-1 ml-1">
+                Đang tìm kiếm...
+              </div>
+            )}
           </div>
           <Select
             value={filters.role}
@@ -327,9 +362,10 @@ const UserTable: React.FC<UserTableProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">Tất cả vai trò</SelectItem>
-              <SelectItem value="MEMBER">Member</SelectItem>
+              <SelectItem value="NORMAL_MEMBER">Member</SelectItem>
               <SelectItem value="PREMIUM_MEMBER">Premium Member</SelectItem>
               <SelectItem value="COACH">Coach</SelectItem>
+              <SelectItem value="CONTENT_ADMIN">Content Admin</SelectItem>
             </SelectContent>
           </Select>
           <Select
@@ -377,12 +413,14 @@ const UserTable: React.FC<UserTableProps> = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
+              {loading || searchLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                      <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+                      <span className="ml-2 text-gray-600">
+                        {searchLoading ? 'Đang tìm kiếm...' : 'Đang tải dữ liệu...'}
+                      </span>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -422,7 +460,8 @@ const UserTable: React.FC<UserTableProps> = ({
                           {getRoleIcon(member.role)}
                           {member.role === 'PREMIUM_MEMBER' ? 'Premium' :
                             member.role === 'COACH' ? 'Coach' :
-                              member.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Normal'}
+                              member.role === 'CONTENT_ADMIN' ? 'Content Admin' :
+                                member.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Normal'}
                         </div>
                       </TableCell>
                       <TableCell>{getStatusBadge(member.isActive)}</TableCell>

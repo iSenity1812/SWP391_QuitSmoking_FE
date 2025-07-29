@@ -15,6 +15,9 @@ export interface DailyUserData {
   users: number
   newUsers: number
   cumulativeUsers: number
+  premiumUsers: number
+  newPremiumUsers: number
+  cumulativePremiumUsers: number
 }
 
 export function useDailyUsersData() {
@@ -34,6 +37,7 @@ export function useDailyUsersData() {
 
     // Group users by date
     const dailyGroups: { [key: string]: UserData[] } = {}
+    const dailyPremiumGroups: { [key: string]: UserData[] } = {}
 
     users.forEach(user => {
       if (!user.createdAt) return
@@ -45,6 +49,14 @@ export function useDailyUsersData() {
         dailyGroups[dateKey] = []
       }
       dailyGroups[dateKey].push(user)
+
+      // Track premium users separately
+      if (user.role === 'PREMIUM_MEMBER') {
+        if (!dailyPremiumGroups[dateKey]) {
+          dailyPremiumGroups[dateKey] = []
+        }
+        dailyPremiumGroups[dateKey].push(user)
+      }
     })
 
     // Sort all users by date to calculate cumulative counts
@@ -52,12 +64,24 @@ export function useDailyUsersData() {
       .filter(user => user.createdAt)
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 
+    // Sort premium users by date
+    const sortedPremiumUsers = users
+      .filter(user => user.createdAt && user.role === 'PREMIUM_MEMBER')
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+
     return last14Days.map(dayData => {
       const dateKey = dayData.day.split(' ')[0] // Extract YYYY-MM-DD part
       const newUsers = dailyGroups[dateKey]?.length || 0
+      const newPremiumUsers = dailyPremiumGroups[dateKey]?.length || 0
 
       // Calculate cumulative users up to this day (including this day)
       const cumulativeUsers = sortedUsers.filter(user => {
+        const userDate = new Date(user.createdAt).toISOString().split('T')[0]
+        return userDate <= dateKey
+      }).length
+
+      // Calculate cumulative premium users up to this day
+      const cumulativePremiumUsers = sortedPremiumUsers.filter(user => {
         const userDate = new Date(user.createdAt).toISOString().split('T')[0]
         return userDate <= dateKey
       }).length
@@ -66,7 +90,10 @@ export function useDailyUsersData() {
         day: dayData.day,
         users: cumulativeUsers,
         newUsers: newUsers,
-        cumulativeUsers
+        cumulativeUsers,
+        premiumUsers: cumulativePremiumUsers,
+        newPremiumUsers: newPremiumUsers,
+        cumulativePremiumUsers
       }
     })
   }, [])
@@ -90,7 +117,10 @@ export function useDailyUsersData() {
         day: `${dateKey} (${dayName})`,
         users: 0,
         newUsers: 0,
-        cumulativeUsers: 0
+        cumulativeUsers: 0,
+        premiumUsers: 0,
+        newPremiumUsers: 0,
+        cumulativePremiumUsers: 0
       })
     }
 

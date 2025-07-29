@@ -40,7 +40,7 @@ export default function AdminPage() {
     const navItems = [
         { id: "dashboard", label: "Tổng Quan", icon: BarChart3 },
         { id: "users", label: "Người Dùng", icon: Users },
-        { id: "coaches", label: "Coach", icon: UserCheck },
+        // { id: "coaches", label: "Coach", icon: UserCheck },
         // { id: "reports", label: "Báo Cáo Người Dùng", icon: FileText },
         // { id: "receipts", label: "Hóa Đơn & Thanh Toán", icon: Receipt },
 

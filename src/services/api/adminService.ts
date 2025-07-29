@@ -26,7 +26,7 @@ export interface UserProfile {
   createdAt: string;
   updatedAt?: string;
   isActive: boolean;
-  role: 'MEMBER' | 'PREMIUM_MEMBER' | 'COACH' | 'SUPER_ADMIN';
+  role: 'NORMAL_MEMBER' | 'PREMIUM_MEMBER' | 'COACH' | 'SUPER_ADMIN' | 'CONTENT_ADMIN';
 }
 
 export interface MemberProfile extends UserProfile {
@@ -83,7 +83,7 @@ export interface SubscriptionStatsData {
 }
 
 export interface UserTableFilters {
-  role: 'ALL' | 'MEMBER' | 'PREMIUM_MEMBER' | 'COACH';
+  role: 'ALL' | 'NORMAL_MEMBER' | 'PREMIUM_MEMBER' | 'COACH' | 'CONTENT_ADMIN';
   status: 'ALL' | 'ACTIVE' | 'INACTIVE';
   subscriptionStatus: 'ALL' | 'ACTIVE' | 'EXPIRED';
   quitPlanStatus: 'ALL' | 'ACTIVE' | 'COMPLETED' | 'PAUSED';
@@ -183,6 +183,7 @@ class AdminService {
 
       if (response.data && response.data.data) {
         console.log('✅ [AdminService] Users fetched successfully:', response.data.data.length);
+        console.log('📊 [AdminService] Sample user data:', response.data.data.slice(0, 3)); // Debug first 3 users
         return response.data.data;
       }
 
@@ -239,7 +240,7 @@ class AdminService {
           // Override role based on subscription status for display purposes
           if (memberProfile.subscriptionStatus === 'NONE' && memberProfile.role === 'PREMIUM_MEMBER') {
             // If user has no active subscription but role is premium, show as normal member
-            memberProfile.role = 'MEMBER';
+            memberProfile.role = 'NORMAL_MEMBER';
           }
 
           return memberProfile;
@@ -313,7 +314,7 @@ class AdminService {
 
       // Calculate statistics
       const totalUsers = users.length;
-      const totalMembers = members.filter(m => m.role === 'MEMBER' || m.role === 'PREMIUM_MEMBER').length;
+      const totalMembers = members.filter(m => m.role === 'NORMAL_MEMBER' || m.role === 'PREMIUM_MEMBER').length;
       const totalPremiumMembers = members.filter(m => m.role === 'PREMIUM_MEMBER').length;
       const totalCoaches = coaches.length;
       const activeUsers = users.filter(u => u.isActive).length;
@@ -553,7 +554,7 @@ class AdminService {
 
           // Override role based on subscription status for display purposes
           if (memberProfile.subscriptionStatus === 'NONE' && memberProfile.role === 'PREMIUM_MEMBER') {
-            memberProfile.role = 'MEMBER';
+            memberProfile.role = 'NORMAL_MEMBER';
           }
 
           return memberProfile;
@@ -584,6 +585,233 @@ class AdminService {
       }
 
       throw new Error('Lỗi khi tìm kiếm thành viên. Vui lòng thử lại.');
+    }
+  }
+
+  /**
+   * Search all users (including coaches, admins, members) with server-side filtering, sorting, and pagination
+   */
+  async searchAllUsers(
+    filters: UserTableFilters,
+    sort: UserTableSort,
+    pagination: UserTablePagination
+  ): Promise<{
+    members: MemberProfile[];
+    total: number;
+    totalPages: number;
+  }> {
+    try {
+      const token = authService.getToken();
+      if (!token) {
+        throw new Error('Bạn cần đăng nhập để truy cập dữ liệu này');
+      }
+
+      console.log('🔍 [AdminService] Searching all users with filters:', filters);
+
+      // Build query parameters
+      const params = new URLSearchParams();
+
+      if (filters.searchTerm) params.append('searchTerm', filters.searchTerm);
+      if (filters.role !== 'ALL') params.append('role', filters.role);
+      if (filters.status !== 'ALL') params.append('status', filters.status);
+      if (filters.subscriptionStatus !== 'ALL') params.append('subscriptionStatus', filters.subscriptionStatus);
+      if (filters.quitPlanStatus !== 'ALL') params.append('quitPlanStatus', filters.quitPlanStatus);
+
+      params.append('sortField', sort.field);
+      params.append('sortDirection', sort.direction);
+      params.append('page', pagination.page.toString());
+      params.append('size', pagination.size.toString());
+
+      // Use the general users endpoint instead of members-only
+      const response = await axiosConfig.get(`/superadmin/users/search?${params.toString()}`);
+
+      if (response.data && response.data.data) {
+        const result = response.data.data;
+
+        console.log('✅ [AdminService] All users searched successfully:', result.users?.length || result.members?.length || 0);
+
+        // Handle both possible response formats
+        const users = result.users || result.members || [];
+
+        // Transform data to include member-specific fields
+        const transformedMembers = users.map((user: UserProfile & Record<string, unknown>) => {
+          const memberProfile = {
+            ...user,
+            isActive: (user.active as boolean) ?? true,
+            streak: (user.streak as number) || 0,
+            moneySaved: (user.moneySaved as number) || 0,
+            cigarettesAvoided: (user.cigarettesAvoided as number) || 0,
+            currentPlan: (user.currentPlan as string) || 'Không có gói',
+            quitPlanStatus: (user.quitPlanStatus as MemberProfile['quitPlanStatus']) || 'NONE',
+            totalAchievements: (user.totalAchievements as number) || 0,
+            subscriptionStatus: 'NONE' as const,
+          } as MemberProfile;
+
+          // Only determine subscription status for members, not for admins/coaches
+          if (user.role === 'NORMAL_MEMBER' || user.role === 'PREMIUM_MEMBER') {
+            memberProfile.subscriptionStatus = this.determineSubscriptionStatus(memberProfile);
+
+            // Override role based on subscription status for display purposes
+            if (memberProfile.subscriptionStatus === 'NONE' && memberProfile.role === 'PREMIUM_MEMBER') {
+              memberProfile.role = 'NORMAL_MEMBER';
+            }
+          }
+
+          return memberProfile;
+        });
+
+        return {
+          members: transformedMembers,
+          total: result.totalElements || result.total || users.length,
+          totalPages: result.totalPages || Math.ceil((result.totalElements || result.total || users.length) / pagination.size)
+        };
+      }
+
+      return {
+        members: [],
+        total: 0,
+        totalPages: 0
+      };
+    } catch (error: unknown) {
+      console.error('❌ [AdminService] Error searching all users:', error);
+
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status: number } };
+        if (axiosError.response?.status === 401) {
+          throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        } else if (axiosError.response?.status === 403) {
+          throw new Error('Bạn không có quyền truy cập dữ liệu người dùng.');
+        }
+      }
+
+      throw new Error('Lỗi khi tìm kiếm người dùng. Vui lòng thử lại.');
+    }
+  }
+
+  /**
+   * Search all users with client-side filtering (fallback method)
+   */
+  async searchAllUsersClientSide(
+    filters: UserTableFilters,
+    sort: UserTableSort,
+    pagination: UserTablePagination
+  ): Promise<{
+    members: MemberProfile[];
+    total: number;
+    totalPages: number;
+  }> {
+    try {
+      console.log('🔍 [AdminService] Searching all users client-side with filters:', filters);
+
+      // Get all users first
+      const allUsers = await this.getAllUsers();
+      
+      console.log('📊 [AdminService] All users roles distribution:', 
+        allUsers.reduce((acc, user) => {
+          acc[user.role] = (acc[user.role] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>)
+      );
+
+      // Transform all users to MemberProfile format
+      const transformedUsers = allUsers.map((user: UserProfile) => {
+        const memberProfile = {
+          ...user,
+          isActive: user.isActive ?? true,
+          streak: 0,
+          moneySaved: 0,
+          cigarettesAvoided: 0,
+          currentPlan: 'Không có gói',
+          quitPlanStatus: 'NONE' as const,
+          totalAchievements: 0,
+          subscriptionStatus: 'NONE' as const,
+        } as MemberProfile;
+
+        // Only determine subscription status for members, not for admins/coaches
+        if (user.role === 'NORMAL_MEMBER' || user.role === 'PREMIUM_MEMBER') {
+          memberProfile.subscriptionStatus = this.determineSubscriptionStatus(memberProfile);
+
+          // Override role based on subscription status for display purposes
+          if (memberProfile.subscriptionStatus === 'NONE' && memberProfile.role === 'PREMIUM_MEMBER') {
+            memberProfile.role = 'NORMAL_MEMBER';
+          }
+        }
+
+        return memberProfile;
+      });
+
+      // Apply filters
+      const filteredUsers = transformedUsers.filter(user => {
+        // Role filter
+        if (filters.role !== 'ALL' && user.role !== filters.role) {
+          return false;
+        }
+
+        // Status filter
+        if (filters.status !== 'ALL') {
+          const isActive = filters.status === 'ACTIVE';
+          if (user.isActive !== isActive) {
+            return false;
+          }
+        }
+
+        // Subscription status filter (only for members)
+        if (filters.subscriptionStatus !== 'ALL' && 
+            (user.role === 'NORMAL_MEMBER' || user.role === 'PREMIUM_MEMBER') &&
+            user.subscriptionStatus !== filters.subscriptionStatus) {
+          return false;
+        }
+
+        // Quit plan status filter (only for members)
+        if (filters.quitPlanStatus !== 'ALL' && 
+            (user.role === 'NORMAL_MEMBER' || user.role === 'PREMIUM_MEMBER') &&
+            user.quitPlanStatus !== filters.quitPlanStatus) {
+          return false;
+        }
+
+        // Search term filter
+        if (filters.searchTerm) {
+          const searchLower = filters.searchTerm.toLowerCase();
+          return user.username.toLowerCase().includes(searchLower) ||
+            user.email.toLowerCase().includes(searchLower);
+        }
+
+        return true;
+      });
+
+      // Apply sorting
+      const sortedUsers = filteredUsers.sort((a, b) => {
+        const aValue = a[sort.field as keyof MemberProfile];
+        const bValue = b[sort.field as keyof MemberProfile];
+        
+        if (aValue === null || aValue === undefined) return 1;
+        if (bValue === null || bValue === undefined) return -1;
+        
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          const comparison = aValue.localeCompare(bValue);
+          return sort.direction === 'ASC' ? comparison : -comparison;
+        }
+        
+        if (aValue < bValue) return sort.direction === 'ASC' ? -1 : 1;
+        if (aValue > bValue) return sort.direction === 'ASC' ? 1 : -1;
+        return 0;
+      });
+
+      // Apply pagination
+      const startIndex = (pagination.page - 1) * pagination.size;
+      const endIndex = startIndex + pagination.size;
+      const paginatedUsers = sortedUsers.slice(startIndex, endIndex);
+
+      console.log('✅ [AdminService] All users filtered client-side:', paginatedUsers.length, 'of', sortedUsers.length);
+
+      return {
+        members: paginatedUsers,
+        total: sortedUsers.length,
+        totalPages: Math.ceil(sortedUsers.length / pagination.size)
+      };
+    } catch (error: unknown) {
+      console.error('❌ [AdminService] Error searching all users client-side:', error);
+      throw new Error('Lỗi khi tìm kiếm người dùng. Vui lòng thử lại.');
     }
   }
 
