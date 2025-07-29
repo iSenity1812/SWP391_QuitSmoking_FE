@@ -244,7 +244,7 @@ export function useDailySummary(date: string): UseDailySummaryState {
     } catch (err) {
       // Nếu getDailySummaryByDate trả về null, nó sẽ không ném lỗi ở đây.
       // Nếu có lỗi khác, nó sẽ được bắt ở đây.
-      setError(err instanceof Error ? err.message : "Failed to fetch daily summary");
+      console.error(`Error fetching daily summary:`, err);
       setDailySummary(null);
     } finally {
       setIsLoading(false);
