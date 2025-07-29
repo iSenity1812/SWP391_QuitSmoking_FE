@@ -109,29 +109,7 @@ export default function AchievementsPage() {
     }
   }
 
-  const getProgressValue = (achievement: Achievement) => {
-    // If achievement is unlocked, return 100%
-    if (unlockedIds.includes(achievement.id)) {
-      return 100;
-    }
 
-    // For locked achievements, we need to calculate based on current progress
-    // This would require additional data from the API about current user stats
-    // For now, return a mock progress based on achievement type
-    const mockProgress = {
-      'DAYS_QUIT': 45,
-      'MONEY_SAVED': 30,
-      'CIGARETTES_NOT_SMOKED': 60,
-      'CRAVING_RESISTED': 25,
-      'RESILIENCE': 70,
-      'HEALTH': 40,
-      'SOCIAL': 20,
-      'SPECIAL': 10,
-      'DAILY': 80
-    };
-
-    return mockProgress[achievement.achievementType as keyof typeof mockProgress] || 0;
-  }
 
   if (loading) {
     return (
@@ -204,21 +182,13 @@ export default function AchievementsPage() {
             </div>
           </div>
 
-          {/* Progress Bar */}
-          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 mb-6">
-            <div
-              className="bg-gradient-to-r from-emerald-500 to-teal-600 h-3 rounded-full transition-all duration-300"
-              style={{ width: `${(unlockedIds.length / allAchievements.length) * 100}%` }}
-            ></div>
-          </div>
-
           {/* Filter Buttons */}
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => setFilter('all')}
               className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${filter === 'all'
-                  ? 'bg-emerald-500 text-white shadow-lg'
-                  : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+                ? 'bg-emerald-500 text-white shadow-lg'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
                 }`}
             >
               Tất cả ({allAchievements.length})
@@ -226,8 +196,8 @@ export default function AchievementsPage() {
             <button
               onClick={() => setFilter('completed')}
               className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${filter === 'completed'
-                  ? 'bg-emerald-500 text-white shadow-lg'
-                  : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+                ? 'bg-emerald-500 text-white shadow-lg'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
                 }`}
             >
               Đã hoàn thành ({unlockedIds.length})
@@ -235,8 +205,8 @@ export default function AchievementsPage() {
             <button
               onClick={() => setFilter('incomplete')}
               className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${filter === 'incomplete'
-                  ? 'bg-emerald-500 text-white shadow-lg'
-                  : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
+                ? 'bg-emerald-500 text-white shadow-lg'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600'
                 }`}
             >
               Chưa hoàn thành ({allAchievements.length - unlockedIds.length})
@@ -288,7 +258,6 @@ export default function AchievementsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {achievements.map((achievement) => {
                     const unlocked = unlockedIds.includes(achievement.id);
-                    const progress = getProgressValue(achievement);
 
                     return (
                       <motion.div
@@ -297,8 +266,8 @@ export default function AchievementsPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.3 }}
                         className={`relative p-4 rounded-xl border-2 transition-all duration-300 ${unlocked
-                            ? `border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 dark:border-emerald-700`
-                            : `border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600`
+                          ? `border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 dark:border-emerald-700`
+                          : `border-slate-200 bg-slate-50 dark:bg-slate-700/50 dark:border-slate-600`
                           }`}
                       >
                         {/* Lock Icon for Locked Achievements */}
@@ -310,8 +279,8 @@ export default function AchievementsPage() {
 
                         {/* Achievement Icon */}
                         <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${unlocked
-                            ? `${getTypeColor(achievement.achievementType || "OTHER")} shadow-lg`
-                            : `bg-slate-200 dark:bg-slate-600`
+                          ? `${getTypeColor(achievement.achievementType || "OTHER")} shadow-lg`
+                          : `bg-slate-200 dark:bg-slate-600`
                           }`}>
                           {getAchievementIcon(achievement.achievementType || "OTHER", unlocked)}
                         </div>
@@ -343,22 +312,6 @@ export default function AchievementsPage() {
                               <span>
                                 Đạt được: {new Date(unlockedMap[achievement.id]).toLocaleDateString("vi-VN")}
                               </span>
-                            </div>
-                          )}
-
-                          {/* Progress Bar for Locked Achievements */}
-                          {!unlocked && (
-                            <div className="mt-3">
-                              <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-                                <span>Tiến độ</span>
-                                <span>{progress}%</span>
-                              </div>
-                              <div className="w-full bg-slate-200 dark:bg-slate-600 rounded-full h-2">
-                                <div
-                                  className="bg-gradient-to-r from-emerald-500 to-teal-600 h-2 rounded-full transition-all duration-300"
-                                  style={{ width: `${progress}%` }}
-                                ></div>
-                              </div>
                             </div>
                           )}
                         </div>
