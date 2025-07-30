@@ -1,4 +1,4 @@
-import { Calendar, ChartColumnIncreasing, Gem, Home, Menu, Wind } from "lucide-react";
+import { Calendar, ChartColumnIncreasing, Gem, Home, Menu, Wind, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

@@ -33,6 +33,7 @@ import { MeetingPage } from "@/pages/meeting/MeetingPage"
 import QuitStatsPage from "@/pages/user/QuitStatsPage"
 import PublicUserProfilePage from "@/pages/user/PublicUserProfilePage"
 import HealthBenefitsPage from "@/pages/health-benefits/HealthBenefitsPage"
+import HealthDashboard from "@/pages/health/HealthDashboard"
 import { NotificationsPage } from "@/pages/notifications/NotificationsPage"
 import { LeaderboardPage } from "@/pages/leaderboard/LeaderboardPage"
 import CreateQuitPlanLayout from "@/layouts/CreateQuitPlanLayout"
@@ -255,7 +256,17 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       />
-
+      <Route
+        path="/health"
+        element={
+          <ProtectedRoute
+            allowedRoles={['NORMAL_MEMBER', 'PREMIUM_MEMBER']}
+            requireAuth={true}
+          >
+            <HealthDashboard />
+          </ProtectedRoute>
+        }
+      />
       {/* Quit Stats - accessible by all members */}
       <Route
         path="/quit-stats"

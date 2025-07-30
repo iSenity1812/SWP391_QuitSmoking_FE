@@ -37,6 +37,7 @@ import {
 } from "@/services/cravingTrackingService";
 import { translateEnumsToVietnamese } from "@/utils/enumTranslations";
 import { format, subDays } from "date-fns";
+import HealthSummary from "@/components/HealthSummary";
 
 interface OverviewTabProps {
   quitPlan: QuitPlanResponseDTO | null; // Kế hoạch bỏ thuốc từ cha
@@ -256,9 +257,9 @@ export function OverviewTab({
   const avgSmokings =
     recordedDays.length > 0
       ? Math.round(
-          recordedDays.reduce((sum, day) => sum + (day.actual ?? 0), 0) /
-            recordedDays.length
-        )
+        recordedDays.reduce((sum, day) => sum + (day.actual ?? 0), 0) /
+        recordedDays.length
+      )
       : 0; // Nếu không có ngày nào được ghi nhận thì trả về 0
 
   // Tính toán các thông số liên quan đến ngày hiện tại
@@ -279,20 +280,20 @@ export function OverviewTab({
     ? quitPlan.reductionType === "IMMEDIATE"
       ? 0 // IMMEDIATE plans luôn có limit = 0
       : QuitPlanCalculator.calculateDailyLimit(
-          quitPlan.reductionType,
-          quitPlan.initialSmokingAmount,
-          daysSinceStart, // Sử dụng daysSinceStart (0-indexed) cho tính toán ngày hiện tại
-          totalDays
-        )
+        quitPlan.reductionType,
+        quitPlan.initialSmokingAmount,
+        daysSinceStart, // Sử dụng daysSinceStart (0-indexed) cho tính toán ngày hiện tại
+        totalDays
+      )
     : 0;
   const yesterdayLimit = quitPlan
     ? QuitPlanCalculator.calculateDailyLimit(
-        // Không sử dụng trong OverviewTab
-        quitPlan.reductionType,
-        quitPlan.initialSmokingAmount,
-        daysSinceStart - 1, // Sử dụng daysSinceStart (0-indexed) cho tính toán ngày hôm qua
-        totalDays
-      )
+      // Không sử dụng trong OverviewTab
+      quitPlan.reductionType,
+      quitPlan.initialSmokingAmount,
+      daysSinceStart - 1, // Sử dụng daysSinceStart (0-indexed) cho tính toán ngày hôm qua
+      totalDays
+    )
     : 0;
 
   // Sử dụng số điếu thuốc đã hút thực tế của ngày hôm nay từ dailySummary
@@ -424,8 +425,8 @@ export function OverviewTab({
         ? 1
         : 0
       : todayLimit > 0
-      ? Math.min(isOverLimit ? (todaySmoked - todayLimit) / todayLimit : 0, 1)
-      : 0; // Xử lý trường hợp chia cho 0 nếu todayLimit là 0
+        ? Math.min(isOverLimit ? (todaySmoked - todayLimit) / todayLimit : 0, 1)
+        : 0; // Xử lý trường hợp chia cho 0 nếu todayLimit là 0
 
   // Hàm xác định tình trạng phổi
   const getLungHealth = ():
@@ -621,12 +622,12 @@ export function OverviewTab({
             className={cn(
               "relative overflow-hidden transition-all duration-500",
               todaySmoked === 0 &&
-                "bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-300",
+              "bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-300",
               todaySmoked > 0 &&
-                todaySmoked <= todayLimit &&
-                "bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-300",
+              todaySmoked <= todayLimit &&
+              "bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-300",
               isOverLimit &&
-                "bg-gradient-to-br from-red-50 to-pink-50 border-red-300"
+              "bg-gradient-to-br from-red-50 to-pink-50 border-red-300"
             )}
           >
             <SmokeOverlay intensity={smokeIntensity} />
@@ -748,7 +749,7 @@ export function OverviewTab({
                                       )}
                                     >
                                       {record.smokedCount !== null &&
-                                      record.smokedCount > 0
+                                        record.smokedCount > 0
                                         ? "Đã hút"
                                         : "Không hút"}
                                     </span>
@@ -820,10 +821,10 @@ export function OverviewTab({
               totalDays={
                 quitPlan.reductionType === "IMMEDIATE"
                   ? new Date(
-                      new Date().getFullYear(),
-                      new Date().getMonth() + 1,
-                      0
-                    ).getDate() // Số ngày trong tháng hiện tại
+                    new Date().getFullYear(),
+                    new Date().getMonth() + 1,
+                    0
+                  ).getDate() // Số ngày trong tháng hiện tại
                   : totalDays
               }
               reductionType={
