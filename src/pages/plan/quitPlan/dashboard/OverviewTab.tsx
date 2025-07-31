@@ -37,7 +37,6 @@ import {
 } from "@/services/cravingTrackingService";
 import { translateEnumsToVietnamese } from "@/utils/enumTranslations";
 import { format, subDays } from "date-fns";
-import HealthSummary from "@/components/HealthSummary";
 
 interface OverviewTabProps {
   quitPlan: QuitPlanResponseDTO | null; // Kế hoạch bỏ thuốc từ cha

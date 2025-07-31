@@ -10,6 +10,7 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { OverviewTab } from "./dashboard/OverviewTab";
 import { ProgressTab } from "./dashboard/ProgressTab";
 import BenefitTab from "./dashboard/BenefitTab";
+import { HealthTab } from "./dashboard/HealthTab";
 import { FailedPlanModal } from "./dashboard/components/FailedPlanModal";
 import { CompletedPlanModal } from "./dashboard/components/CompletedPlanModal";
 import { useQuitPlan } from "@/services/quitPlanService";
@@ -21,7 +22,6 @@ import {
   type DailyChartDataResponse,
 } from "@/services/dataVisualizationService";
 import { useNavigate } from "react-router-dom";
-import HealthDashboard from "@/pages/health/HealthDashboard";
 
 export function QuitPlanDashboard() {
   const navigate = useNavigate();
@@ -94,7 +94,7 @@ export function QuitPlanDashboard() {
   // Hiển thị trạng thái tải
   if (isLoading || isTodaySummaryLoading || isHistoricalDailySummariesLoading) {
     return (
-      <div className="min-h-screen pt-20 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="text-center space-y-4">
             <Skeleton className="h-8 w-64 mx-auto" />
@@ -127,11 +127,11 @@ export function QuitPlanDashboard() {
   // Hiển thị trạng thái lỗi
   if (error || todaySummaryError || historicalDailySummariesError) {
     return (
-      <div className="min-h-screen pt-20 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
+      <div className="min-h-screen pt-20 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-6">
         <div className="max-w-4xl mx-auto">
-          <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
-            <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-            <AlertDescription className="text-red-700 dark:text-red-300">
+          <Alert className="border-red-200 bg-red-50">
+            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-700">
               <strong>Lỗi khi tải dữ liệu: </strong>
               {error || todaySummaryError || historicalDailySummariesError}
             </AlertDescription>
@@ -165,7 +165,7 @@ export function QuitPlanDashboard() {
   const shouldShowModal = isCurrentPlanFailed || isCurrentPlanCompleted;
 
   return (
-    <div className="min-h-screen pt-20 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="min-h-screen pt-20 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
       {/* Failed Plan Modal */}
       {quitPlan && isCurrentPlanFailed && (
         <FailedPlanModal
@@ -193,7 +193,7 @@ export function QuitPlanDashboard() {
       {/* Dashboard Content Container */}
       <div className={shouldShowModal ? "pointer-events-none opacity-50" : ""}>
         {/* câu động lực cho người dùng */}
-        <div className="my-6 max-w-7xl mx-auto bg-orange-400 dark:bg-orange-600 text-white p-4 rounded-lg shadow-lg">
+        <div className="my-6 max-w-7xl mx-auto bg-orange-400 text-white p-4 rounded-lg shadow-lg">
           <div className="my-2 text-sm ">
             ⚡ Bạn hãy nhớ rằng, mục đích việc ghi nhận cơn thèm hoặc hút thuốc
             là để giúp bạn biết được tình trạng hiện tại của bạn như thế nào.
@@ -213,34 +213,34 @@ export function QuitPlanDashboard() {
               className="space-y-6"
             >
               <div className="flex justify-center">
-                <TabsList className="!bg-white/80 !backdrop-blur-sm !border !border-emerald-200 !rounded-lg !p-1 grid w-full max-w-4xl grid-cols-5">
+                <TabsList className="grid w-full max-w-2xl grid-cols-5 bg-white/80 backdrop-blur-sm border border-emerald-200">
                   <TabsTrigger
                     value="overview"
-                    className="!bg-transparent data-[state=active]:!bg-gradient-to-r data-[state=active]:!from-emerald-500 data-[state=active]:!to-teal-600 data-[state=active]:!text-white !rounded-md !transition-all !duration-200"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white"
                   >
                     Kế Hoạch Của Tôi
                   </TabsTrigger>
                   <TabsTrigger
                     value="progress"
-                    className="!bg-transparent data-[state=active]:!bg-gradient-to-r data-[state=active]:!from-emerald-500 data-[state=active]:!to-teal-600 data-[state=active]:!text-white !rounded-md !transition-all !duration-200"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white"
                   >
                     Hành Trình
                   </TabsTrigger>
                   <TabsTrigger
-                    value="health"
-                    className="!bg-transparent data-[state=active]:!bg-gradient-to-r data-[state=active]:!from-emerald-500 data-[state=active]:!to-teal-600 data-[state=active]:!text-white !rounded-md !transition-all !duration-200"
-                  >
-                    Sức Khỏe
-                  </TabsTrigger>
-                  <TabsTrigger
                     value="benefits"
-                    className="!bg-transparent data-[state=active]:!bg-gradient-to-r data-[state=active]:!from-emerald-500 data-[state=active]:!to-teal-600 data-[state=active]:!text-white !rounded-md !transition-all !duration-200"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white"
                   >
                     Thành Tựu
                   </TabsTrigger>
                   <TabsTrigger
+                    value="health"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white"
+                  >
+                    Sức Khỏe
+                  </TabsTrigger>
+                  <TabsTrigger
                     value="breathing_exercises"
-                    className="!bg-transparent data-[state=active]:!bg-gradient-to-r data-[state=active]:!from-emerald-500 data-[state=active]:!to-teal-600 data-[state=active]:!text-white !rounded-md !transition-all !duration-200"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white"
                   >
                     Hỗ Trợ
                   </TabsTrigger>
@@ -285,18 +285,6 @@ export function QuitPlanDashboard() {
                   </motion.div>
                 </TabsContent>
 
-                <TabsContent value="health" className="mt-6">
-                  <motion.div
-                    key="health"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <HealthDashboard />
-                  </motion.div>
-                </TabsContent>
-
                 <TabsContent value="benefits" className="mt-6">
                   <motion.div
                     key="benefits"
@@ -306,6 +294,18 @@ export function QuitPlanDashboard() {
                     transition={{ duration: 0.3 }}
                   >
                     <BenefitTab quitPlan={quitPlan} />
+                  </motion.div>
+                </TabsContent>
+
+                <TabsContent value="health" className="mt-6">
+                  <motion.div
+                    key="health"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <HealthTab quitPlan={quitPlan} />
                   </motion.div>
                 </TabsContent>
 
