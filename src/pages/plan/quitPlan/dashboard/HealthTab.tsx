@@ -18,7 +18,7 @@ import {
 import { useHealth } from '@/hooks/use-health';
 import HealthOverviewCard from '@/components/health/HealthOverviewCard';
 import HealthMetricCard from '@/components/health/HealthMetricCard';
-import { HealthBenefitsTimeline } from '@/components/health/HealthBenefitsTimeline';
+
 import { AutoRefreshIndicator } from '@/components/health/AutoRefreshIndicator';
 import { MilestoneNotification } from '@/components/health/MilestoneNotification';
 import { HealthMetricType } from '@/types/health';
@@ -241,10 +241,7 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
             </Tabs>
 
             {/* Health Benefits Timeline */}
-            <div className="mt-8">
-                <h3 className="text-lg font-semibold mb-4">Timeline Cải thiện Sức khỏe</h3>
-                <HealthBenefitsTimeline metrics={metrics} onRefresh={() => updateProgress(true)} />
-            </div>
+
         </div>
     );
 } 

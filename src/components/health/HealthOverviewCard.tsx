@@ -100,24 +100,6 @@ const HealthOverviewCard: React.FC<HealthOverviewCardProps> = ({
                 </div>
             </div>
 
-            <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700 font-medium">Thời gian bỏ thuốc:</span>
-                    <span className="text-gray-900 font-semibold">
-                        {formatTimeSinceQuit(overview.daysSinceQuit, overview.hoursSinceQuit)}
-                    </span>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700 font-medium">Milestone tiếp theo:</span>
-                    <span className="text-gray-900 font-semibold">{overview.nextMilestone}</span>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700 font-medium">Tiến độ tổng thể:</span>
-                    <span className="text-gray-900 font-semibold">{Math.round(overview.overallProgress)}%</span>
-                </div>
-            </div>
 
             {overview.topProgressMetrics.length > 0 && (
                 <div className="mt-6">
