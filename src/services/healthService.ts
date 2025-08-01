@@ -22,23 +22,109 @@ const createFallbackOverview = (): HealthOverview => ({
 
 const createFallbackMetrics = (): HealthMetric[] => {
     const metrics: HealthMetric[] = [];
+    const now = new Date();
 
-    // Tạo fallback data cho tất cả health metrics
+    // Tạo fallback data cho tất cả health metrics với target dates thực tế
     Object.values(HealthMetricType).forEach((type, index) => {
+        // Tính toán target date dựa trên loại metric
+        let targetDate: string;
+        let currentProgress: number;
+        let isCompleted: boolean = false;
+        let achievedDate: string | null = null;
+        let timeRemainingHours: number | null = null;
+        let timeRemainingFormatted: string;
+
+        // Tính toán dựa trên thời gian cần thiết cho từng loại metric
+        const quitDate = new Date(now.getTime() - (2 * 24 * 60 * 60 * 1000)); // Giả sử bỏ thuốc 2 ngày trước
+
+        switch (type) {
+            case HealthMetricType.PULSE_RATE:
+                targetDate = new Date(quitDate.getTime() + (20 * 60 * 1000)).toISOString(); // 20 phút
+                break;
+            case HealthMetricType.OXYGEN_LEVELS:
+                targetDate = new Date(quitDate.getTime() + (8 * 60 * 60 * 1000)).toISOString(); // 8 giờ
+                break;
+            case HealthMetricType.CARBON_MONOXIDE:
+                targetDate = new Date(quitDate.getTime() + (24 * 60 * 60 * 1000)).toISOString(); // 24 giờ
+                break;
+            case HealthMetricType.NICOTINE_EXPELLED:
+                targetDate = new Date(quitDate.getTime() + (72 * 60 * 60 * 1000)).toISOString(); // 72 giờ
+                break;
+            case HealthMetricType.TASTE_SMELL:
+                targetDate = new Date(quitDate.getTime() + (3 * 24 * 60 * 60 * 1000)).toISOString(); // 3 ngày
+                break;
+            case HealthMetricType.BREATHING:
+                targetDate = new Date(quitDate.getTime() + (3 * 24 * 60 * 60 * 1000) + (20 * 60 * 60 * 1000)).toISOString(); // 3 ngày 20 giờ
+                break;
+            case HealthMetricType.ENERGY_LEVELS:
+                targetDate = new Date(quitDate.getTime() + (4 * 24 * 60 * 60 * 1000) + (20 * 60 * 60 * 1000)).toISOString(); // 4 ngày 20 giờ
+                break;
+            case HealthMetricType.BAD_BREATH_GONE:
+                targetDate = new Date(quitDate.getTime() + (7 * 24 * 60 * 60 * 1000) + (20 * 60 * 60 * 1000)).toISOString(); // 7 ngày 20 giờ
+                break;
+            case HealthMetricType.GUMS_TEETH:
+                targetDate = new Date(quitDate.getTime() + (14 * 24 * 60 * 60 * 1000) + (20 * 60 * 60 * 1000)).toISOString(); // 14 ngày 20 giờ
+                break;
+            case HealthMetricType.TEETH_BRIGHTNESS:
+                targetDate = new Date(quitDate.getTime() + (14 * 24 * 60 * 60 * 1000) + (20 * 60 * 60 * 1000)).toISOString(); // 14 ngày 20 giờ
+                break;
+            case HealthMetricType.CIRCULATION:
+                targetDate = new Date(quitDate.getTime() + (2 * 30 * 24 * 60 * 60 * 1000) + (28 * 24 * 60 * 60 * 1000)).toISOString(); // 2 tháng 28 ngày
+                break;
+            case HealthMetricType.GUM_TEXTURE:
+                targetDate = new Date(quitDate.getTime() + (2 * 30 * 24 * 60 * 60 * 1000) + (28 * 24 * 60 * 60 * 1000)).toISOString(); // 2 tháng 28 ngày
+                break;
+            case HealthMetricType.IMMUNITY_LUNG_FUNCTION:
+                targetDate = new Date(quitDate.getTime() + (4 * 30 * 24 * 60 * 60 * 1000) + (17 * 24 * 60 * 60 * 1000)).toISOString(); // 4 tháng 17 ngày
+                break;
+            case HealthMetricType.HEART_DISEASE_RISK:
+                targetDate = new Date(quitDate.getTime() + (365 * 24 * 60 * 60 * 1000)).toISOString(); // 1 năm
+                break;
+            case HealthMetricType.LUNG_CANCER_RISK:
+                targetDate = new Date(quitDate.getTime() + (10 * 365 * 24 * 60 * 60 * 1000)).toISOString(); // 10 năm
+                break;
+            case HealthMetricType.HEART_ATTACK_RISK:
+                targetDate = new Date(quitDate.getTime() + (15 * 365 * 24 * 60 * 60 * 1000)).toISOString(); // 15 năm
+                break;
+            default:
+                targetDate = new Date(quitDate.getTime() + (7 * 24 * 60 * 60 * 1000)).toISOString(); // 7 ngày mặc định
+        }
+
+        // Tính toán progress dựa trên thời gian đã trôi qua
+        const targetTime = new Date(targetDate).getTime();
+        const elapsedTime = now.getTime() - quitDate.getTime();
+        const totalDuration = targetTime - quitDate.getTime();
+
+        if (elapsedTime >= totalDuration) {
+            currentProgress = 100;
+            isCompleted = true;
+            achievedDate = targetDate;
+            timeRemainingFormatted = 'Đã hoàn thành';
+            timeRemainingHours = 0;
+        } else if (elapsedTime > 0) {
+            currentProgress = Math.round((elapsedTime / totalDuration) * 100);
+            timeRemainingHours = Math.max(0, Math.round((totalDuration - elapsedTime) / (60 * 60 * 1000)));
+            timeRemainingFormatted = `${Math.floor(timeRemainingHours / 24)} ngày ${timeRemainingHours % 24} giờ`;
+        } else {
+            currentProgress = 0;
+            timeRemainingHours = Math.round(totalDuration / (60 * 60 * 1000));
+            timeRemainingFormatted = `${Math.floor(timeRemainingHours / 24)} ngày ${timeRemainingHours % 24} giờ`;
+        }
+
         metrics.push({
             id: `fallback-${index}`,
             userId: 'fallback-user',
             metricType: type,
             displayName: getHealthMetricDisplayName(type),
             description: getHealthMetricDescription(type),
-            currentProgress: 0,
-            targetDate: null,
-            achievedDate: null,
-            isCompleted: false,
-            timeRemainingHours: null,
-            timeRemainingFormatted: 'Chưa bắt đầu',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            currentProgress,
+            targetDate,
+            achievedDate,
+            isCompleted,
+            timeRemainingHours,
+            timeRemainingFormatted,
+            createdAt: quitDate.toISOString(),
+            updatedAt: now.toISOString()
         });
     });
 
@@ -81,20 +167,107 @@ export const healthService = {
             return response.data.data;
         } catch (error) {
             console.warn('Backend không khả dụng, sử dụng fallback data:', error);
+
+            // Tạo fallback data với target date thực tế
+            const now = new Date();
+            const quitDate = new Date(now.getTime() - (2 * 24 * 60 * 60 * 1000)); // Giả sử bỏ thuốc 2 ngày trước
+
+            let targetDate: string;
+            let currentProgress: number;
+            let isCompleted: boolean = false;
+            let achievedDate: string | null = null;
+            let timeRemainingHours: number | null = null;
+            let timeRemainingFormatted: string;
+
+            // Tính toán target date dựa trên loại metric
+            switch (metricType) {
+                case HealthMetricType.PULSE_RATE:
+                    targetDate = new Date(quitDate.getTime() + (20 * 60 * 1000)).toISOString(); // 20 phút
+                    break;
+                case HealthMetricType.OXYGEN_LEVELS:
+                    targetDate = new Date(quitDate.getTime() + (8 * 60 * 60 * 1000)).toISOString(); // 8 giờ
+                    break;
+                case HealthMetricType.CARBON_MONOXIDE:
+                    targetDate = new Date(quitDate.getTime() + (24 * 60 * 60 * 1000)).toISOString(); // 24 giờ
+                    break;
+                case HealthMetricType.NICOTINE_EXPELLED:
+                    targetDate = new Date(quitDate.getTime() + (72 * 60 * 60 * 1000)).toISOString(); // 72 giờ
+                    break;
+                case HealthMetricType.TASTE_SMELL:
+                    targetDate = new Date(quitDate.getTime() + (3 * 24 * 60 * 60 * 1000)).toISOString(); // 3 ngày
+                    break;
+                case HealthMetricType.BREATHING:
+                    targetDate = new Date(quitDate.getTime() + (3 * 24 * 60 * 60 * 1000) + (20 * 60 * 60 * 1000)).toISOString(); // 3 ngày 20 giờ
+                    break;
+                case HealthMetricType.ENERGY_LEVELS:
+                    targetDate = new Date(quitDate.getTime() + (4 * 24 * 60 * 60 * 1000) + (20 * 60 * 60 * 1000)).toISOString(); // 4 ngày 20 giờ
+                    break;
+                case HealthMetricType.BAD_BREATH_GONE:
+                    targetDate = new Date(quitDate.getTime() + (7 * 24 * 60 * 60 * 1000) + (20 * 60 * 60 * 1000)).toISOString(); // 7 ngày 20 giờ
+                    break;
+                case HealthMetricType.GUMS_TEETH:
+                    targetDate = new Date(quitDate.getTime() + (14 * 24 * 60 * 60 * 1000) + (20 * 60 * 60 * 1000)).toISOString(); // 14 ngày 20 giờ
+                    break;
+                case HealthMetricType.TEETH_BRIGHTNESS:
+                    targetDate = new Date(quitDate.getTime() + (14 * 24 * 60 * 60 * 1000) + (20 * 60 * 60 * 1000)).toISOString(); // 14 ngày 20 giờ
+                    break;
+                case HealthMetricType.CIRCULATION:
+                    targetDate = new Date(quitDate.getTime() + (2 * 30 * 24 * 60 * 60 * 1000) + (28 * 24 * 60 * 60 * 1000)).toISOString(); // 2 tháng 28 ngày
+                    break;
+                case HealthMetricType.GUM_TEXTURE:
+                    targetDate = new Date(quitDate.getTime() + (2 * 30 * 24 * 60 * 60 * 1000) + (28 * 24 * 60 * 60 * 1000)).toISOString(); // 2 tháng 28 ngày
+                    break;
+                case HealthMetricType.IMMUNITY_LUNG_FUNCTION:
+                    targetDate = new Date(quitDate.getTime() + (4 * 30 * 24 * 60 * 60 * 1000) + (17 * 24 * 60 * 60 * 1000)).toISOString(); // 4 tháng 17 ngày
+                    break;
+                case HealthMetricType.HEART_DISEASE_RISK:
+                    targetDate = new Date(quitDate.getTime() + (365 * 24 * 60 * 60 * 1000)).toISOString(); // 1 năm
+                    break;
+                case HealthMetricType.LUNG_CANCER_RISK:
+                    targetDate = new Date(quitDate.getTime() + (10 * 365 * 24 * 60 * 60 * 1000)).toISOString(); // 10 năm
+                    break;
+                case HealthMetricType.HEART_ATTACK_RISK:
+                    targetDate = new Date(quitDate.getTime() + (15 * 365 * 24 * 60 * 60 * 1000)).toISOString(); // 15 năm
+                    break;
+                default:
+                    targetDate = new Date(quitDate.getTime() + (7 * 24 * 60 * 60 * 1000)).toISOString(); // 7 ngày mặc định
+            }
+
+            // Tính toán progress dựa trên thời gian đã trôi qua
+            const targetTime = new Date(targetDate).getTime();
+            const elapsedTime = now.getTime() - quitDate.getTime();
+            const totalDuration = targetTime - quitDate.getTime();
+
+            if (elapsedTime >= totalDuration) {
+                currentProgress = 100;
+                isCompleted = true;
+                achievedDate = targetDate;
+                timeRemainingFormatted = 'Đã hoàn thành';
+                timeRemainingHours = 0;
+            } else if (elapsedTime > 0) {
+                currentProgress = Math.round((elapsedTime / totalDuration) * 100);
+                timeRemainingHours = Math.max(0, Math.round((totalDuration - elapsedTime) / (60 * 60 * 1000)));
+                timeRemainingFormatted = `${Math.floor(timeRemainingHours / 24)} ngày ${timeRemainingHours % 24} giờ`;
+            } else {
+                currentProgress = 0;
+                timeRemainingHours = Math.round(totalDuration / (60 * 60 * 1000));
+                timeRemainingFormatted = `${Math.floor(timeRemainingHours / 24)} ngày ${timeRemainingHours % 24} giờ`;
+            }
+
             return {
                 id: `fallback-${metricType}`,
                 userId: 'fallback-user',
                 metricType,
                 displayName: getHealthMetricDisplayName(metricType),
                 description: getHealthMetricDescription(metricType),
-                currentProgress: 0,
-                targetDate: null,
-                achievedDate: null,
-                isCompleted: false,
-                timeRemainingHours: null,
-                timeRemainingFormatted: 'Chưa bắt đầu',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                currentProgress,
+                targetDate,
+                achievedDate,
+                isCompleted,
+                timeRemainingHours,
+                timeRemainingFormatted,
+                createdAt: quitDate.toISOString(),
+                updatedAt: now.toISOString()
             };
         }
     },

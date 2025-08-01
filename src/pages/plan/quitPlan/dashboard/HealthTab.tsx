@@ -3,17 +3,14 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
+
 import {
     RefreshCw,
-    AlertTriangle,
     TrendingUp,
     Brain,
     Zap,
-    Heart,
-    Clock,
-    CheckCircle
+    Heart
+
 } from 'lucide-react';
 import { useHealth } from '@/hooks/use-health';
 import HealthOverviewCard from '@/components/health/HealthOverviewCard';
@@ -21,8 +18,9 @@ import HealthMetricCard from '@/components/health/HealthMetricCard';
 
 import { AutoRefreshIndicator } from '@/components/health/AutoRefreshIndicator';
 import { MilestoneNotification } from '@/components/health/MilestoneNotification';
+import HealthHeaderCountdown from '@/components/health/HealthHeaderCountdown';
 import { HealthMetricType } from '@/types/health';
-import type { QuitPlanResponseDTO } from '@/types/api';
+import type { QuitPlanResponseDTO } from '@/services/quitPlanService';
 
 interface HealthTabProps {
     quitPlan: QuitPlanResponseDTO;
@@ -37,13 +35,9 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
         lastUpdated,
         isAutoRefreshing,
         updateProgress,
-        getCompletedMetrics,
-        getInProgressMetrics,
-        getUpcomingMetrics
     } = useHealth();
 
     const [activeTab, setActiveTab] = useState('overview');
-    const [isBackendOffline, setIsBackendOffline] = useState(false);
 
     const getCategoryMetrics = () => {
         const immediate = metrics.filter(m =>
@@ -65,17 +59,6 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
         return { immediate, shortTerm, longTerm };
     };
 
-    // Kiểm tra xem có phải fallback data không
-    React.useEffect(() => {
-        if (metrics.length > 0 && metrics[0].id.startsWith('fallback-')) {
-            setIsBackendOffline(true);
-        } else {
-            setIsBackendOffline(false);
-        }
-    }, [metrics]);
-
-
-
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
@@ -92,7 +75,7 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
             <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                     <p className="text-red-600 mb-4">{error}</p>
-                    <Button onClick={updateProgress} variant="outline">
+                    <Button onClick={() => updateProgress()} variant="outline">
                         Thử lại
                     </Button>
                 </div>
@@ -106,22 +89,9 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
         <div className="space-y-6">
             {/* Header */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg p-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-2xl font-bold">Theo dõi Sức khỏe</h2>
-                        <p className="text-green-100 mt-1">
-                            Theo dõi sự cải thiện sức khỏe của bạn sau khi bỏ thuốc
-                        </p>
-                        {/* Auto-refresh status */}
-                        <div className="mt-2">
-                            <AutoRefreshIndicator
-                                isAutoRefreshing={isAutoRefreshing}
-                                lastUpdated={lastUpdated}
-                            />
-                        </div>
-                    </div>
+                <div className="flex items-center justify-between mb-4">
                     <div className="text-right">
-                        <p className="text-green-100 text-sm">Cập nhật mỗi 5 phút</p>
+                        <p className="text-green-100 text-sm">Cập nhật mỗi 15 giây</p>
                         <p className="text-green-200 text-xs">Dữ liệu luôn được đồng bộ</p>
                         <Button
                             onClick={() => updateProgress(true)}
@@ -135,27 +105,38 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
                         </Button>
                     </div>
                 </div>
+
+                {/* Real-time countdown header */}
+                {overview && (
+                    <HealthHeaderCountdown
+                        quitDate={quitPlan.startDate}
+                        nextMilestone={overview.nextMilestone}
+                        className="mb-4"
+                    />
+                )}
+
+                {/* Auto-refresh status */}
+                <div className="mt-2">
+                    <AutoRefreshIndicator
+                        isAutoRefreshing={isAutoRefreshing}
+                        lastUpdated={lastUpdated}
+                    />
+                </div>
             </div>
 
             {/* Thông báo milestone mới */}
             {overview?.recentAchievements && (
                 <MilestoneNotification
-                    recentAchievements={overview.recentAchievements}
+                    recentAchievements={overview.recentAchievements
+                        .filter(achievement => achievement.achievedDate !== null)
+                        .map(achievement => ({
+                            ...achievement,
+                            achievedDate: achievement.achievedDate || new Date().toISOString()
+                        }))}
                     onDismiss={(milestoneId) => {
-                        console.log('Dismiss milestone:', milestoneId);
                         // Có thể implement logic để ẩn milestone
                     }}
                 />
-            )}
-
-            {/* Thông báo khi backend offline */}
-            {isBackendOffline && (
-                <Alert className="border-orange-200 bg-orange-50">
-                    <AlertTriangle className="h-4 w-4 text-orange-600" />
-                    <AlertDescription className="text-orange-800">
-                        <strong>Chế độ Demo:</strong> Backend hiện không khả dụng. Dữ liệu hiển thị là demo để bạn có thể xem giao diện.
-                    </AlertDescription>
-                </Alert>
             )}
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -180,68 +161,42 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
 
                 {/* Overview Tab */}
                 <TabsContent value="overview" className="space-y-6">
-                    {overview && <HealthOverviewCard overview={overview} />}
+                    {overview && <HealthOverviewCard overview={overview} quitDate={quitPlan.startDate} />}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                                <CheckCircle className="h-5 w-5 text-blue-600" />
-                                <h3 className="font-semibold text-blue-800">Đã hoàn thành</h3>
-                            </div>
-                            <p className="text-2xl font-bold text-blue-600">{getCompletedMetrics().length}</p>
-                            <p className="text-sm text-blue-600">chỉ số sức khỏe</p>
-                        </div>
+                    {/* Progress Summary */}
+                    \
 
-                        <div className="bg-yellow-50 p-4 rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                                <TrendingUp className="h-5 w-5 text-yellow-600" />
-                                <h3 className="font-semibold text-yellow-800">Đang tiến hành</h3>
-                            </div>
-                            <p className="text-2xl font-bold text-yellow-600">{getInProgressMetrics().length}</p>
-                            <p className="text-sm text-yellow-600">chỉ số sức khỏe</p>
-                        </div>
+                    {/* Health Benefits Timeline */}
 
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Clock className="h-5 w-5 text-gray-600" />
-                                <h3 className="font-semibold text-gray-800">Sắp tới</h3>
-                            </div>
-                            <p className="text-2xl font-bold text-gray-600">{getUpcomingMetrics().length}</p>
-                            <p className="text-sm text-gray-600">chỉ số sức khỏe</p>
-                        </div>
-                    </div>
                 </TabsContent>
 
-                {/* Immediate Benefits Tab */}
+                {/* Immediate Metrics Tab */}
                 <TabsContent value="immediate" className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {immediate.map((metric) => (
-                            <HealthMetricCard key={metric.id} metric={metric} />
+                            <HealthMetricCard key={metric.id} metric={metric} quitDate={quitPlan.startDate} />
                         ))}
                     </div>
                 </TabsContent>
 
-                {/* Short-term Benefits Tab */}
+                {/* Short-term Metrics Tab */}
                 <TabsContent value="short-term" className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {shortTerm.map((metric) => (
-                            <HealthMetricCard key={metric.id} metric={metric} />
+                            <HealthMetricCard key={metric.id} metric={metric} quitDate={quitPlan.startDate} />
                         ))}
                     </div>
                 </TabsContent>
 
-                {/* Long-term Benefits Tab */}
+                {/* Long-term Metrics Tab */}
                 <TabsContent value="long-term" className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {longTerm.map((metric) => (
-                            <HealthMetricCard key={metric.id} metric={metric} />
+                            <HealthMetricCard key={metric.id} metric={metric} quitDate={quitPlan.startDate} />
                         ))}
                     </div>
                 </TabsContent>
             </Tabs>
-
-            {/* Health Benefits Timeline */}
-
         </div>
     );
 } 
