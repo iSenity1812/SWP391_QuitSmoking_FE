@@ -56,25 +56,27 @@ export const useHealth = () => {
             await healthService.updateHealthMetricsProgress();
             // Refresh data after update
             await Promise.all([fetchOverview(), fetchMetrics()]);
-            console.log('✅ Health metrics updated successfully');
+            // console.log('✅ Health metrics updated successfully'); // TẮT LOG
 
-            if (showToast) {
-                toast.success('Cập nhật tiến độ sức khỏe thành công!', {
-                    description: 'Dữ liệu sức khỏe đã được cập nhật mới nhất.',
-                    duration: 3000,
-                });
-            }
+            // TẮT TOAST NOTIFICATION - CHỈ LOG CONSOLE
+            // if (showToast) {
+            //   toast.success('Cập nhật tiến độ sức khỏe thành công!', {
+            //     description: 'Dữ liệu sức khỏe đã được cập nhật mới nhất.',
+            //     duration: 3000,
+            //   });
+            // }
         } catch (err) {
             console.error('Error updating progress:', err);
             // Không set error nếu backend không chạy
             if (!(err instanceof Error && err.message.includes('Network Error'))) {
                 setError('Không thể cập nhật tiến độ');
-                if (showToast) {
-                    toast.error('Không thể cập nhật tiến độ sức khỏe', {
-                        description: 'Vui lòng thử lại sau.',
-                        duration: 5000,
-                    });
-                }
+                // TẮT ERROR TOAST
+                // if (showToast) {
+                //   toast.error('Không thể cập nhật tiến độ sức khỏe', {
+                //     description: 'Vui lòng thử lại sau.',
+                //     duration: 5000,
+                //   });
+                // }
             }
         } finally {
             setIsAutoRefreshing(false);
@@ -88,18 +90,18 @@ export const useHealth = () => {
         }
 
         intervalRef.current = setInterval(async () => {
-            console.log('🔄 Auto-refreshing health metrics...');
+            // console.log('🔄 Auto-refreshing health metrics...'); // TẮT LOG
             await updateProgress(false); // Không hiển thị toast cho auto-refresh
         }, AUTO_REFRESH_INTERVAL);
 
-        console.log('🚀 Auto-refresh started (every 15 seconds)');
+        // console.log('🚀 Auto-refresh started (every 15 seconds)'); // TẮT LOG
     }, [updateProgress]);
 
     const stopAutoRefresh = useCallback(() => {
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
             intervalRef.current = null;
-            console.log('⏹️ Auto-refresh stopped');
+            // console.log('⏹️ Auto-refresh stopped'); // TẮT LOG
         }
     }, []);
 
@@ -138,14 +140,15 @@ export const useHealth = () => {
 
         initializeData();
 
+        // TẮT AUTO-REFRESH - CHUYỂN VỀ THỦ CÔNG
         // Start auto-refresh after initial load
-        const timer = setTimeout(() => {
-            startAutoRefresh();
-        }, 1000); // Start after 1 second
+        // const timer = setTimeout(() => {
+        //   startAutoRefresh();
+        // }, 1000); // Start after 1 second
 
         // Cleanup function
         return () => {
-            clearTimeout(timer);
+            // clearTimeout(timer);
             stopAutoRefresh();
         };
     }, []); // Empty dependency array to run only once
