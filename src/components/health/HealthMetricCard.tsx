@@ -29,22 +29,7 @@ const HealthMetricCard: React.FC<HealthMetricCardProps> = ({
         return '#6b7280'; // Gray for not started
     };
 
-    const formatTimeRemaining = (timeRemaining: string) => {
-        if (timeRemaining === 'Completed') return 'Đã hoàn thành';
-        return timeRemaining;
-    };
 
-    const getStatusText = (isCompleted: boolean, progress: number, hasRegressed?: boolean) => {
-        if (isCompleted) return 'Đã hoàn thành';
-        if (progress > 0) return 'Đang tiến hành';
-        return 'Chưa bắt đầu';
-    };
-
-    const getStatusColor = (isCompleted: boolean, progress: number, hasRegressed?: boolean) => {
-        if (isCompleted) return 'text-green-600';
-        if (progress > 0) return 'text-orange-600';
-        return 'text-gray-600';
-    };
 
     // Tính toán penalty effect - đồng bộ với backend logic
     const calculatePenaltyEffect = () => {
