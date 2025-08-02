@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, Target, Award, Clock } from 'lucide-react';
-import QuitTimeCountdown from './QuitTimeCountdown';
+
 import type { HealthOverview } from '@/types/health';
 
 interface HealthOverviewCardProps {
@@ -24,7 +24,7 @@ const HealthOverviewCard: React.FC<HealthOverviewCardProps> = ({ overview, quitD
             </CardHeader>
             <CardContent className="space-y-4">
                 {/* Progress Overview */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                     <div className="text-center">
                         <div className="text-2xl font-bold text-green-600">{overview.totalMetrics}</div>
                         <div className="text-sm text-green-700">Tổng chỉ số</div>
@@ -36,10 +36,6 @@ const HealthOverviewCard: React.FC<HealthOverviewCardProps> = ({ overview, quitD
                     <div className="text-center">
                         <div className="text-2xl font-bold text-orange-600">{overview.inProgressMetrics}</div>
                         <div className="text-sm text-orange-700">Đang tiến hành</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-bold text-gray-600">{overview.upcomingMilestones.length}</div>
-                        <div className="text-sm text-gray-700">Sắp tới</div>
                     </div>
                 </div>
 
@@ -58,13 +54,7 @@ const HealthOverviewCard: React.FC<HealthOverviewCardProps> = ({ overview, quitD
                 </div>
 
                 {/* Quit Time Display */}
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700 font-medium">Thời gian bỏ thuốc:</span>
-                    <QuitTimeCountdown
-                        quitDate={quitDate}
-                        className="font-semibold"
-                    />
-                </div>
+
 
                 {/* Next Milestone */}
                 <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
