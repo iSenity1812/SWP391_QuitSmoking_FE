@@ -12,8 +12,8 @@ export const useHealth = () => {
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
 
-    // Auto-refresh interval (15 seconds)
-    const AUTO_REFRESH_INTERVAL = 15 * 1000; // 15 seconds
+    // Auto-refresh interval (5 seconds)
+    const AUTO_REFRESH_INTERVAL = 5 * 1000; // 5 seconds
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     const fetchOverview = useCallback(async () => {
@@ -35,15 +35,17 @@ export const useHealth = () => {
 
     const fetchMetrics = useCallback(async () => {
         try {
+            console.log('🔄 Fetching metrics in useHealth hook...');
             const data = await healthService.getAllHealthMetrics();
+            console.log('✅ Metrics data received:', data);
             setMetrics(data);
             setError(null);
             setLastUpdated(new Date());
         } catch (err) {
-            console.error('Error fetching health metrics:', err);
+            console.error('❌ Error fetching health metrics:', err);
             // Không set error nếu backend không chạy, vì đã có fallback data
             if (err instanceof Error && err.message.includes('Network Error')) {
-                console.warn('Backend không khả dụng, sử dụng fallback data');
+                console.warn('⚠️ Backend không khả dụng, sử dụng fallback data');
             } else {
                 setError('Không thể tải dữ liệu sức khỏe');
             }
@@ -52,11 +54,13 @@ export const useHealth = () => {
 
     const updateProgress = useCallback(async (showToast = false) => {
         try {
+            console.log('🔄 Starting progress update...');
             setIsAutoRefreshing(true);
             await healthService.updateHealthMetricsProgress();
+            console.log('✅ Progress update completed, refreshing data...');
             // Refresh data after update
             await Promise.all([fetchOverview(), fetchMetrics()]);
-            // console.log('✅ Health metrics updated successfully'); // TẮT LOG
+            console.log('✅ Health metrics updated successfully');
 
             // TẮT TOAST NOTIFICATION - CHỈ LOG CONSOLE
             // if (showToast) {
@@ -66,7 +70,7 @@ export const useHealth = () => {
             //   });
             // }
         } catch (err) {
-            console.error('Error updating progress:', err);
+            console.error('❌ Error updating progress:', err);
             // Không set error nếu backend không chạy
             if (!(err instanceof Error && err.message.includes('Network Error'))) {
                 setError('Không thể cập nhật tiến độ');
@@ -140,15 +144,15 @@ export const useHealth = () => {
 
         initializeData();
 
-        // TẮT AUTO-REFRESH - CHUYỂN VỀ THỦ CÔNG
+        // BẬT LẠI AUTO-REFRESH - PENALTY SYSTEM ĐÃ SẴN SÀNG
         // Start auto-refresh after initial load
-        // const timer = setTimeout(() => {
-        //   startAutoRefresh();
-        // }, 1000); // Start after 1 second
+        const timer = setTimeout(() => {
+            startAutoRefresh();
+        }, 1000); // Start after 1 second
 
         // Cleanup function
         return () => {
-            // clearTimeout(timer);
+            clearTimeout(timer);
             stopAutoRefresh();
         };
     }, []); // Empty dependency array to run only once
