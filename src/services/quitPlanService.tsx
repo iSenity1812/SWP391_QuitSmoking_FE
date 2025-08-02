@@ -159,6 +159,9 @@ const handleApiError = (error: unknown): string => {
 
 
 export class QuitPlanService {
+  repairImmediatePlans() {
+    throw new Error("Method not implemented.");
+  }
   private static instance: QuitPlanService;
   private readonly API_BASE_URL = '/quit-plans';
 
