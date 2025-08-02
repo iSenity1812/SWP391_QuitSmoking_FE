@@ -28,7 +28,10 @@ export function useMemberAchievements(memberId: string) {
   useEffect(() => {
     if (!memberId) return;
     achievementService.getMemberAchievements(memberId)
-      .then((data) => setMemberAchievements(data ?? []))
+      .then((data) => setMemberAchievements((data ?? []).map(item => ({
+        ...item,
+        unlockedAt: (item as any).unlockedAt || new Date().toISOString()
+      }))))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [memberId]);
