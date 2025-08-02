@@ -13,7 +13,7 @@ import BenefitTab from "./dashboard/BenefitTab";
 import { HealthTab } from "./dashboard/HealthTab";
 import { FailedPlanModal } from "./dashboard/components/FailedPlanModal";
 import { CompletedPlanModal } from "./dashboard/components/CompletedPlanModal";
-import { useQuitPlan } from "@/services/quitPlanService";
+import { useQuitPlan, quitPlanService } from "@/services/quitPlanService";
 import { DeepBreathingExercise } from "@/pages/feature/BreathingExercise";
 import { format } from "date-fns";
 import { useDailySummary } from "@/services/dailySummaryService";
@@ -137,9 +137,18 @@ export function QuitPlanDashboard() {
             </AlertDescription>
           </Alert>
 
-          <div className="text-center mt-6">
+          <div className="text-center mt-6 space-y-4">
             <button
-              onClick={() => {
+              onClick={async () => {
+                try {
+                  // Thử repair IMMEDIATE plans trước
+                  await quitPlanService.repairImmediatePlans();
+                  console.log("Đã thử repair IMMEDIATE plans");
+                } catch (repairError) {
+                  console.error("Không thể repair IMMEDIATE plans:", repairError);
+                }
+
+                // Sau đó thử tải lại dữ liệu
                 refetch(); // Thử tải lại quitPlan
                 refetchTodaySummary(); // Thử tải lại dailySummary hôm nay
                 fetchHistoricalDailySummaries(); // Thử tải lại dailySummaries lịch sử
@@ -148,6 +157,10 @@ export function QuitPlanDashboard() {
             >
               Thử lại
             </button>
+
+            <div className="text-sm text-gray-600">
+              Nếu lỗi vẫn tiếp tục, vui lòng liên hệ hỗ trợ hoặc tạo kế hoạch mới.
+            </div>
           </div>
         </div>
       </div>
