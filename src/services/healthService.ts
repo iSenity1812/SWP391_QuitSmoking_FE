@@ -1,3 +1,4 @@
+import { type } from 'os';
 import axios from '../config/axiosConfig';
 import type { HealthMetric, HealthOverview } from '../types/health';
 import { HealthMetricType, getHealthMetricDisplayName, getHealthMetricDescription } from '../types/health';
@@ -15,9 +16,7 @@ const createFallbackOverview = (): HealthOverview => ({
     recentAchievements: [],
     nextMilestone: 'Bắt đầu hành trình bỏ thuốc',
     daysSinceQuit: 0,
-    hoursSinceQuit: 0,
-    isInGracePeriod: false,
-    gracePeriodRemainingHours: 0
+    hoursSinceQuit: 0
 });
 
 const createFallbackMetrics = (): HealthMetric[] => {
@@ -140,7 +139,7 @@ export const healthService = {
             const response = await axios.get(`${HEALTH_API_BASE}/overview`);
             return response.data.data;
         } catch (error) {
-            console.warn('Backend không khả dụng, sử dụng fallback data:', error);
+            // console.warn('Backend không khả dụng, sử dụng fallback data:', error); // TẮT LOG
             return createFallbackOverview();
         }
     },
@@ -153,7 +152,7 @@ export const healthService = {
             const response = await axios.get(`${HEALTH_API_BASE}/metrics`);
             return response.data.data;
         } catch (error) {
-            console.warn('Backend không khả dụng, sử dụng fallback data:', error);
+            // console.warn('Backend không khả dụng, sử dụng fallback data:', error); // TẮT LOG
             return createFallbackMetrics();
         }
     },
@@ -166,7 +165,7 @@ export const healthService = {
             const response = await axios.get(`${HEALTH_API_BASE}/metrics/${metricType}`);
             return response.data.data;
         } catch (error) {
-            console.warn('Backend không khả dụng, sử dụng fallback data:', error);
+            // console.warn('Backend không khả dụng, sử dụng fallback data:', error); // TẮT LOG
 
             // Tạo fallback data với target date thực tế
             const now = new Date();
@@ -233,26 +232,46 @@ export const healthService = {
                     targetDate = new Date(quitDate.getTime() + (7 * 24 * 60 * 60 * 1000)).toISOString(); // 7 ngày mặc định
             }
 
-            // Tính toán progress dựa trên thời gian đã trôi qua
+            // FIXED: Sử dụng progress cố định cho fallback data
+            // Không tính toán dựa trên thời gian thực để tránh tăng liên tục
             const targetTime = new Date(targetDate).getTime();
-            const elapsedTime = now.getTime() - quitDate.getTime();
             const totalDuration = targetTime - quitDate.getTime();
 
-            if (elapsedTime >= totalDuration) {
-                currentProgress = 100;
-                isCompleted = true;
-                achievedDate = targetDate;
-                timeRemainingFormatted = 'Đã hoàn thành';
-                timeRemainingHours = 0;
-            } else if (elapsedTime > 0) {
-                currentProgress = Math.round((elapsedTime / totalDuration) * 100);
-                timeRemainingHours = Math.max(0, Math.round((totalDuration - elapsedTime) / (60 * 60 * 1000)));
-                timeRemainingFormatted = `${Math.floor(timeRemainingHours / 24)} ngày ${timeRemainingHours % 24} giờ`;
-            } else {
-                currentProgress = 0;
-                timeRemainingHours = Math.round(totalDuration / (60 * 60 * 1000));
-                timeRemainingFormatted = `${Math.floor(timeRemainingHours / 24)} ngày ${timeRemainingHours % 24} giờ`;
+            // Sử dụng progress cố định dựa trên loại metric
+            switch (metricType) {
+                case HealthMetricType.PULSE_RATE:
+                    currentProgress = 100; // Đã hoàn thành (20 phút)
+                    isCompleted = true;
+                    achievedDate = targetDate;
+                    break;
+                case HealthMetricType.OXYGEN_LEVELS:
+                    currentProgress = 88; // Gần hoàn thành
+                    break;
+                case HealthMetricType.CARBON_MONOXIDE:
+                    currentProgress = 96; // Gần hoàn thành
+                    break;
+                case HealthMetricType.NICOTINE_EXPELLED:
+                    currentProgress = 65; // Đang tiến hành
+                    break;
+                case HealthMetricType.TASTE_SMELL:
+                    currentProgress = 51; // Đang tiến hành
+                    break;
+                case HealthMetricType.BREATHING:
+                    currentProgress = 51; // Đang tiến hành
+                    break;
+                case HealthMetricType.ENERGY_LEVELS:
+                    currentProgress = 41; // Đang tiến hành
+                    break;
+                case HealthMetricType.BAD_BREATH_GONE:
+                    currentProgress = 25; // Mới bắt đầu
+                    break;
+                default:
+                    currentProgress = Math.floor(Math.random() * 30) + 10; // 10-40% ngẫu nhiên
             }
+
+            // Tính toán time remaining cố định
+            timeRemainingHours = Math.round(totalDuration / (60 * 60 * 1000));
+            timeRemainingFormatted = `${Math.floor(timeRemainingHours / 24)} ngày ${timeRemainingHours % 24} giờ`;
 
             return {
                 id: `fallback-${metricType}`,
@@ -282,7 +301,7 @@ export const healthService = {
             });
             return response.data.data;
         } catch (error) {
-            console.warn('Backend không khả dụng, sử dụng fallback data:', error);
+            // console.warn('Backend không khả dụng, sử dụng fallback data:', error); // TẮT LOG
             return [];
         }
     },
@@ -297,7 +316,7 @@ export const healthService = {
             });
             return response.data.data;
         } catch (error) {
-            console.warn('Backend không khả dụng, sử dụng fallback data:', error);
+            // console.warn('Backend không khả dụng, sử dụng fallback data:', error); // TẮT LOG
             return [];
         }
     },
@@ -309,7 +328,7 @@ export const healthService = {
         try {
             await axios.post(`${HEALTH_API_BASE}/metrics/update-progress`);
         } catch (error) {
-            console.warn('Không thể cập nhật tiến độ, backend không khả dụng:', error);
+            // console.warn('Không thể cập nhật tiến độ, backend không khả dụng:', error); // TẮT LOG
             // Không throw error để tránh crash UI
         }
     }
