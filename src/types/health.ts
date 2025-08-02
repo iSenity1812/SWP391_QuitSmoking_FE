@@ -91,6 +91,29 @@ export const getHealthMetricCategory = (metricType: HealthMetricType): string =>
   return 'longTerm';
 };
 
+// Helper function để lấy target hours cho từng metric type
+export const getHealthMetricTargetHours = (metricType: HealthMetricType): number => {
+  const targetHours: Record<HealthMetricType, number> = {
+    [HealthMetricType.PULSE_RATE]: 0.33,
+    [HealthMetricType.OXYGEN_LEVELS]: 8.0,
+    [HealthMetricType.CARBON_MONOXIDE]: 24.0,
+    [HealthMetricType.NICOTINE_EXPELLED]: 72.0,
+    [HealthMetricType.TASTE_SMELL]: 80.0,
+    [HealthMetricType.BREATHING]: 92.0,
+    [HealthMetricType.ENERGY_LEVELS]: 116.0,
+    [HealthMetricType.BAD_BREATH_GONE]: 188.0,
+    [HealthMetricType.GUMS_TEETH]: 356.0,
+    [HealthMetricType.TEETH_BRIGHTNESS]: 356.0,
+    [HealthMetricType.CIRCULATION]: 2016.0,
+    [HealthMetricType.GUM_TEXTURE]: 2016.0,
+    [HealthMetricType.IMMUNITY_LUNG_FUNCTION]: 3240.0,
+    [HealthMetricType.HEART_DISEASE_RISK]: 8760.0,
+    [HealthMetricType.LUNG_CANCER_RISK]: 87600.0,
+    [HealthMetricType.HEART_ATTACK_RISK]: 131400.0
+  };
+  return targetHours[metricType];
+};
+
 export type HealthMetric = {
   id: string;
   userId: string;
@@ -103,6 +126,7 @@ export type HealthMetric = {
   isCompleted: boolean;
   timeRemainingHours: number | null;
   timeRemainingFormatted: string;
+  hasRegressed?: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -118,8 +142,6 @@ export type HealthOverview = {
   nextMilestone: string;
   daysSinceQuit: number;
   hoursSinceQuit: number;
-  isInGracePeriod: boolean;
-  gracePeriodRemainingHours: number;
 };
 
 export type HealthMetricCategory = {
