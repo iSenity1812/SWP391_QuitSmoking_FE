@@ -1,4 +1,4 @@
-import { type } from 'os';
+
 import axios from '../config/axiosConfig';
 import type { HealthMetric, HealthOverview } from '../types/health';
 import { HealthMetricType, getHealthMetricDisplayName, getHealthMetricDescription } from '../types/health';
