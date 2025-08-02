@@ -7,6 +7,7 @@ interface DynamicStatusTextProps {
     isCompleted: boolean;
     quitDate: string;
     currentProgress: number; // Backend progress
+    hasRegressed?: boolean; // Add hasRegressed prop
     className?: string;
 }
 
@@ -16,6 +17,7 @@ const DynamicStatusText: React.FC<DynamicStatusTextProps> = ({
     isCompleted,
     quitDate,
     currentProgress, // Backend progress
+    hasRegressed, // Add hasRegressed prop
     className = ''
 }) => {
     const [dynamicProgress, setDynamicProgress] = useState(currentProgress);
@@ -23,7 +25,8 @@ const DynamicStatusText: React.FC<DynamicStatusTextProps> = ({
     const [statusColor, setStatusColor] = useState('');
 
     useEffect(() => {
-        if (isCompleted || achievedDate) {
+        // Sử dụng backend progress trực tiếp
+        if (isCompleted && !hasRegressed) {
             setDynamicProgress(100);
             setStatusText('Đã hoàn thành');
             setStatusColor('text-green-600');
@@ -37,38 +40,21 @@ const DynamicStatusText: React.FC<DynamicStatusTextProps> = ({
             return;
         }
 
-        // Lưu thời điểm bắt đầu để tính toán chính xác
-        const startTime = Date.now();
-        const initialProgress = currentProgress;
+        // Sử dụng backend progress
+        setDynamicProgress(currentProgress);
 
-        const calculateProgress = () => {
-            const now = Date.now();
-            const elapsedHours = (now - startTime) / (1000 * 60 * 60); // Giờ đã trôi qua
-
-            // Tăng progress dần dần theo thời gian (giả định tăng 0.5% mỗi giờ)
-            const progressIncrease = Math.min(100 - initialProgress, elapsedHours * 0.5);
-            const newProgress = Math.min(100, initialProgress + progressIncrease);
-
-            setDynamicProgress(newProgress);
-
-            // Update status based on progress
-            if (newProgress >= 100) {
-                setStatusText('Đã hoàn thành');
-                setStatusColor('text-green-600');
-            } else if (newProgress > 0) {
-                setStatusText('Đang tiến hành');
-                setStatusColor('text-orange-600');
-            } else {
-                setStatusText('Chưa bắt đầu');
-                setStatusColor('text-gray-600');
-            }
-        };
-
-        calculateProgress();
-        const timer = setInterval(calculateProgress, 1000);
-
-        return () => clearInterval(timer);
-    }, [targetDate, achievedDate, isCompleted, quitDate, currentProgress]);
+        // Update status based on backend progress
+        if (currentProgress >= 100) {
+            setStatusText('Đã hoàn thành');
+            setStatusColor('text-green-600');
+        } else if (currentProgress > 0) {
+            setStatusText('Đang tiến hành');
+            setStatusColor('text-orange-600');
+        } else {
+            setStatusText('Chưa bắt đầu');
+            setStatusColor('text-gray-600');
+        }
+    }, [targetDate, achievedDate, isCompleted, hasRegressed, currentProgress]);
 
     return (
         <motion.span
