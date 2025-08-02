@@ -23,7 +23,7 @@ export default function UserAchievements() {
     ])
       .then(([all, unlocked]) => {
         setAllAchievements(all);
-        setUnlockedIds(unlocked.map((a: Achievement) => a.achievementId));
+        setUnlockedIds(unlocked.map((a: Achievement) => a.achievementId).filter((id): id is number => typeof id === 'number'));
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -41,7 +41,7 @@ export default function UserAchievements() {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {allAchievements.length === 0 && <div>Chưa có thành tựu nào.</div>}
         {allAchievements.slice(0, 5).map((ach) => {
-          const unlocked = unlockedIds.includes(ach.achievementId);
+          const unlocked = typeof ach.achievementId === 'number' && unlockedIds.includes(ach.achievementId);
           return (
             <div
               key={ach.achievementId}
