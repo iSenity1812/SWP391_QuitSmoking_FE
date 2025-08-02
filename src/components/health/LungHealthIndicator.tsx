@@ -1,137 +1,144 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Heart, TrendingUp, Zap, Award, Activity, Brain } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
-interface HealthProgressCardProps {
-    title: string;
-    value: number;
-    unit: string;
-    description: string;
-    icon: 'heart' | 'trending' | 'zap' | 'award' | 'activity' | 'brain';
-    color: 'green' | 'blue' | 'purple' | 'amber' | 'red' | 'orange';
+interface LungHealthIndicatorProps {
+    healthLevel: "healthy" | "recovering" | "stressed" | "critical" | "unknown";
+    size?: "sm" | "md" | "lg";
+    showLabel?: boolean;
     className?: string;
 }
 
-const HealthProgressCard: React.FC<HealthProgressCardProps> = ({
-    title,
-    value,
-    unit,
-    description,
-    icon,
-    color,
+export function LungHealthIndicator({
+    healthLevel,
+    size = "md",
+    showLabel = true,
     className = ''
-}) => {
-    const getIconComponent = () => {
-        const iconClass = "w-6 h-6";
-
-        switch (icon) {
-            case 'heart':
-                return <Heart className={iconClass} />;
-            case 'trending':
-                return <TrendingUp className={iconClass} />;
-            case 'zap':
-                return <Zap className={iconClass} />;
-            case 'award':
-                return <Award className={iconClass} />;
-            case 'activity':
-                return <Activity className={iconClass} />;
-            case 'brain':
-                return <Brain className={iconClass} />;
+}: LungHealthIndicatorProps) {
+    const getHealthColor = () => {
+        switch (healthLevel) {
+            case "healthy":
+                return "#10b981"; // emerald-500
+            case "unknown":
+                return "#10b981"; // emerald-500
+            case "recovering":
+                return "#f59e0b"; // amber-500
+            case "stressed":
+                return "#f97316"; // orange-500
+            case "critical":
+                return "#ef4444"; // red-500
             default:
-                return <Activity className={iconClass} />;
+                return "#10b981";
         }
     };
 
-    const getColorClasses = () => {
-        switch (color) {
-            case 'green':
-                return {
-                    bg: 'bg-green-100 dark:bg-green-900/30',
-                    icon: 'text-green-500 dark:text-green-400',
-                    value: 'text-green-500 dark:text-green-400'
-                };
-            case 'blue':
-                return {
-                    bg: 'bg-blue-100 dark:bg-blue-900/30',
-                    icon: 'text-blue-500 dark:text-blue-400',
-                    value: 'text-blue-500 dark:text-blue-400'
-                };
-            case 'purple':
-                return {
-                    bg: 'bg-purple-100 dark:bg-purple-900/30',
-                    icon: 'text-purple-500 dark:text-purple-400',
-                    value: 'text-purple-500 dark:text-purple-400'
-                };
-            case 'amber':
-                return {
-                    bg: 'bg-amber-100 dark:bg-amber-900/30',
-                    icon: 'text-amber-500 dark:text-amber-400',
-                    value: 'text-amber-500 dark:text-amber-400'
-                };
-            case 'red':
-                return {
-                    bg: 'bg-red-100 dark:bg-red-900/30',
-                    icon: 'text-red-500 dark:text-red-400',
-                    value: 'text-red-500 dark:text-red-400'
-                };
-            case 'orange':
-                return {
-                    bg: 'bg-orange-100 dark:bg-orange-900/30',
-                    icon: 'text-orange-500 dark:text-orange-400',
-                    value: 'text-orange-500 dark:text-orange-400'
-                };
+    const getHealthText = () => {
+        switch (healthLevel) {
+            case "healthy":
+                return "Phổi của bạn đang khỏe mạnh, hãy tiếp tục duy trì";
+            case "recovering":
+                return "Phổi của bạn đang phục hồi, hãy tiếp tục cố gắng";
+            case "stressed":
+                return "Phổi của bạn đang mệt mỏi, hãy ngừng hút thuốc";
+            case "critical":
+                return "Phổi của bạn đang hấp hối, cần ngừng hút thuốc ngay";
+            case "unknown":
+                return "Chưa có dữ liệu ghi nhận, chưa thể đánh giá tình trạng phổi";
             default:
-                return {
-                    bg: 'bg-green-100 dark:bg-green-900/30',
-                    icon: 'text-green-500 dark:text-green-400',
-                    value: 'text-green-500 dark:text-green-400'
-                };
+                return "Phổi của bạn đang khỏe mạnh, hãy tiếp tục duy trì";
         }
     };
 
-    const colorClasses = getColorClasses();
+    const sizeClasses = {
+        sm: "w-8 h-8",
+        md: "w-12 h-12",
+        lg: "w-16 h-16",
+    };
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className={className}
-        >
-            <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                <CardContent className="p-6 text-center">
-                    <div className="flex justify-center mb-4">
-                        <motion.div
-                            className={`w-12 h-12 rounded-full ${colorClasses.bg} flex items-center justify-center animate-pulse`}
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <div className={colorClasses.icon}>
-                                {getIconComponent()}
-                            </div>
-                        </motion.div>
-                    </div>
-                    <h3 className="font-semibold text-slate-800 dark:text-slate-200 mb-3">
-                        {title}
-                    </h3>
-                    <div className="space-y-1">
-                        <motion.span
-                            className={`text-2xl font-bold ${colorClasses.value}`}
-                            initial={{ scale: 0.8 }}
-                            animate={{ scale: 1 }}
-                            transition={{ duration: 0.3, delay: 0.1 }}
-                        >
-                            {value}{unit}
-                        </motion.span>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            {description}
-                        </p>
-                    </div>
-                </CardContent>
-            </Card>
-        </motion.div>
-    );
-};
+        <div className={cn("flex items-center gap-3", className)}>
+            {showLabel && (
+                <motion.span
+                    className={cn(
+                        "text-sm font-medium",
+                        healthLevel === "healthy" && "text-emerald-600",
+                        healthLevel === "recovering" && "text-amber-600",
+                        healthLevel === "stressed" && "text-orange-600",
+                        healthLevel === "critical" && "text-red-600",
+                        healthLevel === "unknown" && "text-gray-600",
+                    )}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    {getHealthText()}
+                </motion.span>
+            )}
+            <motion.div
+                className={cn("relative", sizeClasses[size])}
+                animate={{
+                    scale: healthLevel === "critical" ? [1, 1.1, 1] : 1,
+                }}
+                transition={{
+                    duration: 2,
+                    repeat: healthLevel === "critical" ? Number.POSITIVE_INFINITY : 0,
+                }}
+            >
+                <svg viewBox="0 0 100 100" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Left lung */}
+                    <motion.path
+                        d="M30 20 C20 20, 15 30, 15 40 L15 70 C15 80, 25 85, 35 80 L45 75 L45 25 C45 20, 40 15, 35 15 Z"
+                        fill={getHealthColor()}
+                        initial={{ opacity: 0.7 }}
+                        animate={{
+                            opacity: healthLevel === "critical" ? [0.7, 0.4, 0.7] : 0.9,
+                            fill: getHealthColor(),
+                        }}
+                        transition={{ duration: 2, repeat: healthLevel === "critical" ? Number.POSITIVE_INFINITY : 0 }}
+                    />
 
-export default HealthProgressCard; 
+                    {/* Right lung */}
+                    <motion.path
+                        d="M70 20 C80 20, 85 30, 85 40 L85 70 C85 80, 75 85, 65 80 L55 75 L55 25 C55 20, 60 15, 65 15 Z"
+                        fill={getHealthColor()}
+                        initial={{ opacity: 0.7 }}
+                        animate={{
+                            opacity: healthLevel === "critical" ? [0.7, 0.4, 0.7] : 0.9,
+                            fill: getHealthColor(),
+                        }}
+                        transition={{ duration: 2, repeat: healthLevel === "critical" ? Number.POSITIVE_INFINITY : 0 }}
+                    />
+
+                    {/* Bronchi - left lung */}
+                    <motion.path
+                        d="M45 35 L40 45 M45 45 L40 55"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        animate={{ opacity: healthLevel === "healthy" ? 1 : 0.6 }}
+                    />
+
+                    {/* Bronchi - right lung */}
+                    <motion.path
+                        d="M55 35 L60 45 M55 45 L60 55"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        animate={{ opacity: healthLevel === "healthy" ? 1 : 0.6 }}
+                    />
+
+                    {/* Trachea */}
+                    <motion.path
+                        d="M45 20 L50 20 L55 20"
+                        stroke="white"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        animate={{ opacity: healthLevel === "healthy" ? 1 : 0.6 }}
+                    />
+                </svg>
+            </motion.div>
+        </div>
+    );
+}
+
+export default LungHealthIndicator; 
