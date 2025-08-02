@@ -3,18 +3,20 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
 import {
     RefreshCw,
     TrendingUp,
     Brain,
     Zap,
-    Heart
-
+    Heart,
+    Clock,
+    CheckCircle,
+    AlertTriangle
 } from 'lucide-react';
 import { useHealth } from '@/hooks/use-health';
 import HealthOverviewCard from '@/components/health/HealthOverviewCard';
 import HealthMetricCard from '@/components/health/HealthMetricCard';
+
 
 import { AutoRefreshIndicator } from '@/components/health/AutoRefreshIndicator';
 import { MilestoneNotification } from '@/components/health/MilestoneNotification';
@@ -59,6 +61,20 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
         return { immediate, shortTerm, longTerm };
     };
 
+    // Remove regression-related functions
+
+    const getLungHealthLevel = () => {
+        const lungMetrics = metrics.filter(m =>
+            [HealthMetricType.BREATHING, HealthMetricType.IMMUNITY_LUNG_FUNCTION, HealthMetricType.LUNG_CANCER_RISK].includes(m.metricType as any)
+        );
+
+        const completedCount = lungMetrics.filter(m => m.isCompleted).length;
+
+        if (completedCount >= 2) return "healthy";
+        if (completedCount >= 1) return "recovering";
+        return "stressed";
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
@@ -84,6 +100,7 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
     }
 
     const { immediate, shortTerm, longTerm } = getCategoryMetrics();
+    const lungHealthLevel = getLungHealthLevel();
 
     return (
         <div className="space-y-6">
@@ -91,7 +108,7 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                     <div className="text-right">
-                        <p className="text-green-100 text-sm">Cập nhật mỗi 15 giây</p>
+                        <p className="text-green-100 text-sm">Cập nhật mỗi 5 phút</p>
                         <p className="text-green-200 text-xs">Dữ liệu luôn được đồng bộ</p>
                         <Button
                             onClick={() => updateProgress(true)}
@@ -123,6 +140,10 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
                     />
                 </div>
             </div>
+
+            {/* Remove regression warning */}
+
+            {/* Remove recovery celebration */}
 
             {/* Thông báo milestone mới */}
             {overview?.recentAchievements && (
@@ -163,10 +184,7 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
                 <TabsContent value="overview" className="space-y-6">
                     {overview && <HealthOverviewCard overview={overview} quitDate={quitPlan.startDate} />}
 
-                    {/* Progress Summary */}
-                    \
-
-                    {/* Health Benefits Timeline */}
+                    {/* Lung Health Indicator */}
 
                 </TabsContent>
 
