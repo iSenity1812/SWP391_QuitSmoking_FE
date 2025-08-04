@@ -1,20 +1,20 @@
 export const HealthMetricType = {
   PULSE_RATE: 'PULSE_RATE',
+  BLOOD_PRESSURE: 'BLOOD_PRESSURE',
   OXYGEN_LEVELS: 'OXYGEN_LEVELS',
   CARBON_MONOXIDE: 'CARBON_MONOXIDE',
-  NICOTINE_EXPELLED: 'NICOTINE_EXPELLED',
-  TASTE_SMELL: 'TASTE_SMELL',
+  NICOTINE: 'NICOTINE',
+  SENSE_OF_TASTE: 'SENSE_OF_TASTE',
+  SENSE_OF_SMELL: 'SENSE_OF_SMELL',
   BREATHING: 'BREATHING',
+  COUGHING: 'COUGHING',
   ENERGY_LEVELS: 'ENERGY_LEVELS',
-  BAD_BREATH_GONE: 'BAD_BREATH_GONE',
-  GUMS_TEETH: 'GUMS_TEETH',
-  TEETH_BRIGHTNESS: 'TEETH_BRIGHTNESS',
+  LUNG_FUNCTION: 'LUNG_FUNCTION',
   CIRCULATION: 'CIRCULATION',
-  GUM_TEXTURE: 'GUM_TEXTURE',
-  IMMUNITY_LUNG_FUNCTION: 'IMMUNITY_LUNG_FUNCTION',
-  HEART_DISEASE_RISK: 'HEART_DISEASE_RISK',
-  LUNG_CANCER_RISK: 'LUNG_CANCER_RISK',
-  HEART_ATTACK_RISK: 'HEART_ATTACK_RISK'
+  SKIN_IMPROVEMENT: 'SKIN_IMPROVEMENT',
+  STRESS_REDUCTION: 'STRESS_REDUCTION',
+  HEART_ATTACK_RISK: 'HEART_ATTACK_RISK',
+  CANCER_RISK: 'CANCER_RISK'
 } as const;
 
 export type HealthMetricType = typeof HealthMetricType[keyof typeof HealthMetricType];
@@ -23,21 +23,21 @@ export type HealthMetricType = typeof HealthMetricType[keyof typeof HealthMetric
 export const getHealthMetricDisplayName = (metricType: HealthMetricType): string => {
   const displayNames: Record<HealthMetricType, string> = {
     [HealthMetricType.PULSE_RATE]: 'Nhịp tim',
+    [HealthMetricType.BLOOD_PRESSURE]: 'Huyết áp',
     [HealthMetricType.OXYGEN_LEVELS]: 'Nồng độ oxy',
-    [HealthMetricType.CARBON_MONOXIDE]: 'Nồng độ carbon monoxide',
-    [HealthMetricType.NICOTINE_EXPELLED]: 'Nicotine được đào thải',
-    [HealthMetricType.TASTE_SMELL]: 'Vị giác và khứu giác',
+    [HealthMetricType.CARBON_MONOXIDE]: 'Carbon monoxide',
+    [HealthMetricType.NICOTINE]: 'Nicotine',
+    [HealthMetricType.SENSE_OF_TASTE]: 'Vị giác',
+    [HealthMetricType.SENSE_OF_SMELL]: 'Khứu giác',
     [HealthMetricType.BREATHING]: 'Hô hấp',
+    [HealthMetricType.COUGHING]: 'Ho',
     [HealthMetricType.ENERGY_LEVELS]: 'Mức năng lượng',
-    [HealthMetricType.BAD_BREATH_GONE]: 'Hơi thở hôi',
-    [HealthMetricType.GUMS_TEETH]: 'Nướu và răng',
-    [HealthMetricType.TEETH_BRIGHTNESS]: 'Độ trắng răng',
+    [HealthMetricType.LUNG_FUNCTION]: 'Chức năng phổi',
     [HealthMetricType.CIRCULATION]: 'Tuần hoàn máu',
-    [HealthMetricType.GUM_TEXTURE]: 'Kết cấu nướu',
-    [HealthMetricType.IMMUNITY_LUNG_FUNCTION]: 'Miễn dịch và chức năng phổi',
-    [HealthMetricType.HEART_DISEASE_RISK]: 'Giảm nguy cơ bệnh tim',
-    [HealthMetricType.LUNG_CANCER_RISK]: 'Giảm nguy cơ ung thư phổi',
-    [HealthMetricType.HEART_ATTACK_RISK]: 'Giảm nguy cơ đau tim'
+    [HealthMetricType.SKIN_IMPROVEMENT]: 'Cải thiện da',
+    [HealthMetricType.STRESS_REDUCTION]: 'Giảm căng thẳng',
+    [HealthMetricType.HEART_ATTACK_RISK]: 'Giảm nguy cơ đau tim',
+    [HealthMetricType.CANCER_RISK]: 'Giảm nguy cơ ung thư phổi'
   };
   return displayNames[metricType];
 };
@@ -46,21 +46,21 @@ export const getHealthMetricDisplayName = (metricType: HealthMetricType): string
 export const getHealthMetricDescription = (metricType: HealthMetricType): string => {
   const descriptions: Record<HealthMetricType, string> = {
     [HealthMetricType.PULSE_RATE]: 'Sau 20 phút, nhịp tim của bạn sẽ trở về bình thường',
+    [HealthMetricType.BLOOD_PRESSURE]: 'Sau 20 phút, huyết áp sẽ giảm xuống mức bình thường',
     [HealthMetricType.OXYGEN_LEVELS]: 'Sau 8 giờ, nồng độ oxy trong máu sẽ trở về bình thường',
-    [HealthMetricType.CARBON_MONOXIDE]: 'Sau 24 giờ, carbon monoxide từ thuốc lá sẽ được loại bỏ hoàn toàn',
-    [HealthMetricType.NICOTINE_EXPELLED]: 'Sau 72 giờ, nicotine sẽ được đào thải khỏi cơ thể',
-    [HealthMetricType.TASTE_SMELL]: 'Sau 3 ngày, vị giác và khứu giác sẽ được cải thiện đáng kể',
-    [HealthMetricType.BREATHING]: 'Sau 3 ngày 20 giờ, hô hấp sẽ trở về bình thường',
-    [HealthMetricType.ENERGY_LEVELS]: 'Sau 4 ngày 20 giờ, mức năng lượng sẽ trở về bình thường',
-    [HealthMetricType.BAD_BREATH_GONE]: 'Sau 7 ngày 20 giờ, hơi thở hôi do thuốc lá sẽ biến mất',
-    [HealthMetricType.GUMS_TEETH]: 'Sau 14 ngày 20 giờ, lưu thông máu ở nướu và răng sẽ tương tự người không hút thuốc',
-    [HealthMetricType.TEETH_BRIGHTNESS]: 'Sau 14 ngày 20 giờ, vết ố vàng trên răng do thuốc lá sẽ không tăng thêm',
-    [HealthMetricType.CIRCULATION]: 'Sau 2 tháng 28 ngày, tuần hoàn máu sẽ được cải thiện đáng kể',
-    [HealthMetricType.GUM_TEXTURE]: 'Sau 2 tháng 28 ngày, kết cấu và màu sắc nướu sẽ trở về bình thường',
-    [HealthMetricType.IMMUNITY_LUNG_FUNCTION]: 'Sau 4 tháng 17 ngày, hệ miễn dịch và chức năng phổi sẽ được cải thiện',
-    [HealthMetricType.HEART_DISEASE_RISK]: 'Sau 1 năm, nguy cơ bệnh tim sẽ giảm một nửa so với người hút thuốc',
-    [HealthMetricType.LUNG_CANCER_RISK]: 'Sau 10 năm, nguy cơ ung thư phổi sẽ giảm một nửa so với người vẫn hút thuốc',
-    [HealthMetricType.HEART_ATTACK_RISK]: 'Sau 15 năm, nguy cơ đau tim sẽ tương đương người chưa từng hút thuốc'
+    [HealthMetricType.CARBON_MONOXIDE]: 'Sau 24 giờ, carbon monoxide sẽ được loại bỏ khỏi cơ thể',
+    [HealthMetricType.NICOTINE]: 'Sau 72 giờ, nicotine sẽ được loại bỏ khỏi cơ thể',
+    [HealthMetricType.SENSE_OF_TASTE]: 'Sau 48 giờ, vị giác sẽ được cải thiện',
+    [HealthMetricType.SENSE_OF_SMELL]: 'Sau 48 giờ, khứu giác sẽ được cải thiện',
+    [HealthMetricType.BREATHING]: 'Sau 72 giờ, hơi thở sẽ dễ dàng hơn',
+    [HealthMetricType.COUGHING]: 'Sau 1 tuần, ho sẽ giảm đáng kể',
+    [HealthMetricType.ENERGY_LEVELS]: 'Sau 2 tuần, mức năng lượng sẽ tăng lên',
+    [HealthMetricType.LUNG_FUNCTION]: 'Sau 1 tháng, chức năng phổi sẽ được cải thiện',
+    [HealthMetricType.CIRCULATION]: 'Sau 3 tháng, tuần hoàn máu sẽ được cải thiện',
+    [HealthMetricType.SKIN_IMPROVEMENT]: 'Sau 1 tháng, da sẽ trở nên tươi sáng hơn',
+    [HealthMetricType.STRESS_REDUCTION]: 'Sau 2 tuần, mức độ căng thẳng sẽ giảm',
+    [HealthMetricType.HEART_ATTACK_RISK]: 'Sau 15 năm, nguy cơ đau tim sẽ tương đương người chưa từng hút thuốc',
+    [HealthMetricType.CANCER_RISK]: 'Sau 10 năm, nguy cơ ung thư phổi sẽ giảm 50%'
   };
   return descriptions[metricType];
 };
@@ -71,19 +71,19 @@ export const getHealthMetricCategory = (metricType: HealthMetricType): string =>
     HealthMetricType.PULSE_RATE,
     HealthMetricType.OXYGEN_LEVELS,
     HealthMetricType.CARBON_MONOXIDE,
-    HealthMetricType.NICOTINE_EXPELLED,
-    HealthMetricType.TASTE_SMELL,
+    HealthMetricType.NICOTINE,
     HealthMetricType.BREATHING,
     HealthMetricType.ENERGY_LEVELS,
-    HealthMetricType.BAD_BREATH_GONE
+    HealthMetricType.COUGHING
   ];
 
   const shortTermMetrics: HealthMetricType[] = [
-    HealthMetricType.GUMS_TEETH,
-    HealthMetricType.TEETH_BRIGHTNESS,
+    HealthMetricType.BLOOD_PRESSURE,
+    HealthMetricType.SENSE_OF_TASTE,
+    HealthMetricType.SENSE_OF_SMELL,
     HealthMetricType.CIRCULATION,
-    HealthMetricType.GUM_TEXTURE,
-    HealthMetricType.IMMUNITY_LUNG_FUNCTION
+    HealthMetricType.SKIN_IMPROVEMENT,
+    HealthMetricType.STRESS_REDUCTION
   ];
 
   if (immediateMetrics.includes(metricType)) return 'immediate';
@@ -95,21 +95,21 @@ export const getHealthMetricCategory = (metricType: HealthMetricType): string =>
 export const getHealthMetricTargetHours = (metricType: HealthMetricType): number => {
   const targetHours: Record<HealthMetricType, number> = {
     [HealthMetricType.PULSE_RATE]: 0.33,
+    [HealthMetricType.BLOOD_PRESSURE]: 0.33,
     [HealthMetricType.OXYGEN_LEVELS]: 8.0,
     [HealthMetricType.CARBON_MONOXIDE]: 24.0,
-    [HealthMetricType.NICOTINE_EXPELLED]: 72.0,
-    [HealthMetricType.TASTE_SMELL]: 80.0,
-    [HealthMetricType.BREATHING]: 92.0,
-    [HealthMetricType.ENERGY_LEVELS]: 116.0,
-    [HealthMetricType.BAD_BREATH_GONE]: 188.0,
-    [HealthMetricType.GUMS_TEETH]: 356.0,
-    [HealthMetricType.TEETH_BRIGHTNESS]: 356.0,
-    [HealthMetricType.CIRCULATION]: 2016.0,
-    [HealthMetricType.GUM_TEXTURE]: 2016.0,
-    [HealthMetricType.IMMUNITY_LUNG_FUNCTION]: 3240.0,
-    [HealthMetricType.HEART_DISEASE_RISK]: 8760.0,
-    [HealthMetricType.LUNG_CANCER_RISK]: 87600.0,
-    [HealthMetricType.HEART_ATTACK_RISK]: 131400.0
+    [HealthMetricType.NICOTINE]: 72.0,
+    [HealthMetricType.SENSE_OF_TASTE]: 48.0,
+    [HealthMetricType.SENSE_OF_SMELL]: 48.0,
+    [HealthMetricType.BREATHING]: 72.0,
+    [HealthMetricType.COUGHING]: 7.0,
+    [HealthMetricType.ENERGY_LEVELS]: 14.0,
+    [HealthMetricType.LUNG_FUNCTION]: 30.0,
+    [HealthMetricType.CIRCULATION]: 90.0,
+    [HealthMetricType.SKIN_IMPROVEMENT]: 30.0,
+    [HealthMetricType.STRESS_REDUCTION]: 14.0,
+    [HealthMetricType.HEART_ATTACK_RISK]: 131400.0,
+    [HealthMetricType.CANCER_RISK]: 87600.0
   };
   return targetHours[metricType];
 };

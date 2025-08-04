@@ -35,18 +35,15 @@ const HealthBenefitsTimeline: React.FC<HealthBenefitsTimelineProps> = ({
             // Determine icon based on metric type
             switch (metric.metricType) {
                 case 'PULSE_RATE':
+                case 'BLOOD_PRESSURE':
                 case 'CIRCULATION':
-                case 'HEART_DISEASE_RISK':
                 case 'HEART_ATTACK_RISK':
+                case 'CANCER_RISK':
                     icon = 'heart';
                     break;
                 case 'BREATHING':
-                case 'IMMUNITY_LUNG_FUNCTION':
-                case 'LUNG_CANCER_RISK':
+                case 'LUNG_FUNCTION':
                     icon = 'activity';
-                    break;
-                case 'ENERGY_LEVELS':
-                    icon = 'zap';
                     break;
                 case 'ENERGY_LEVELS':
                     icon = 'zap';
@@ -168,10 +165,10 @@ const HealthBenefitsTimeline: React.FC<HealthBenefitsTimelineProps> = ({
                             <div
                                 key={item.id}
                                 className={`flex items-start space-x-4 p-4 rounded-lg border transition-all duration-300 hover:shadow-md ${item.status === 'regressed'
-                                    ? 'border-red-200 bg-red-50/50'
-                                    : item.status === 'completed'
-                                        ? 'border-green-200 bg-green-50/50'
-                                        : 'border-slate-200 bg-slate-50/50'
+                                        ? 'border-red-200 bg-red-50/50'
+                                        : item.status === 'completed'
+                                            ? 'border-green-200 bg-green-50/50'
+                                            : 'border-slate-200 bg-slate-50/50'
                                     }`}
                             >
                                 <div className="flex-shrink-0">

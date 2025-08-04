@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { healthService } from '../services/healthService';
 import type { HealthMetric, HealthOverview } from '../types/health';
 import { HealthMetricType } from '../types/health';
@@ -10,11 +10,7 @@ export const useHealth = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-    const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
-
-    // Auto-refresh interval (5 seconds)
-    const AUTO_REFRESH_INTERVAL = 5 * 1000; // 5 seconds
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const fetchOverview = useCallback(async () => {
         try {
@@ -36,8 +32,9 @@ export const useHealth = () => {
     const fetchMetrics = useCallback(async () => {
         try {
             console.log('🔄 Fetching metrics in useHealth hook...');
+            // Sử dụng data thật từ DB thay vì sample data
             const data = await healthService.getAllHealthMetrics();
-            console.log('✅ Metrics data received:', data);
+            console.log('✅ Sample metrics data received:', data);
             setMetrics(data);
             setError(null);
             setLastUpdated(new Date());
@@ -54,60 +51,26 @@ export const useHealth = () => {
 
     const updateProgress = useCallback(async (showToast = false) => {
         try {
-            console.log('🔄 Starting progress update...');
-            setIsAutoRefreshing(true);
-            await healthService.updateHealthMetricsProgress();
-            console.log('✅ Progress update completed, refreshing data...');
-            // Refresh data after update
-            await Promise.all([fetchOverview(), fetchMetrics()]);
-            console.log('✅ Health metrics updated successfully');
+            setIsRefreshing(true);
+            console.log('🔄 Updating health metrics progress...');
 
-            // TẮT TOAST NOTIFICATION - CHỈ LOG CONSOLE
-            // if (showToast) {
-            //   toast.success('Cập nhật tiến độ sức khỏe thành công!', {
-            //     description: 'Dữ liệu sức khỏe đã được cập nhật mới nhất.',
-            //     duration: 3000,
-            //   });
-            // }
-        } catch (err) {
-            console.error('❌ Error updating progress:', err);
-            // Không set error nếu backend không chạy
-            if (!(err instanceof Error && err.message.includes('Network Error'))) {
-                setError('Không thể cập nhật tiến độ');
-                // TẮT ERROR TOAST
-                // if (showToast) {
-                //   toast.error('Không thể cập nhật tiến độ sức khỏe', {
-                //     description: 'Vui lòng thử lại sau.',
-                //     duration: 5000,
-                //   });
-                // }
+            await healthService.updateHealthMetricsProgress();
+            await Promise.all([fetchOverview(), fetchMetrics()]);
+
+            if (showToast) {
+                toast.success('Cập nhật sức khỏe thành công!');
+            }
+
+            console.log('✅ Health metrics updated successfully');
+        } catch (error) {
+            console.error('❌ Error updating health metrics:', error);
+            if (showToast) {
+                toast.error('Không thể cập nhật sức khỏe');
             }
         } finally {
-            setIsAutoRefreshing(false);
+            setIsRefreshing(false);
         }
     }, [fetchOverview, fetchMetrics]);
-
-    // Auto-refresh function
-    const startAutoRefresh = useCallback(() => {
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-        }
-
-        intervalRef.current = setInterval(async () => {
-            // console.log('🔄 Auto-refreshing health metrics...'); // TẮT LOG
-            await updateProgress(false); // Không hiển thị toast cho auto-refresh
-        }, AUTO_REFRESH_INTERVAL);
-
-        // console.log('🚀 Auto-refresh started (every 15 seconds)'); // TẮT LOG
-    }, [updateProgress]);
-
-    const stopAutoRefresh = useCallback(() => {
-        if (intervalRef.current) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-            // console.log('⏹️ Auto-refresh stopped'); // TẮT LOG
-        }
-    }, []);
 
     const getMetricByType = useCallback((type: HealthMetricType) => {
         return metrics.find(metric => metric.metricType === type);
@@ -125,12 +88,42 @@ export const useHealth = () => {
         return metrics.filter(metric => !metric.isCompleted && metric.currentProgress === 0);
     }, [metrics]);
 
-    // Initialize data and start auto-refresh
+    // Manual refresh function
+    const manualRefresh = useCallback(async () => {
+        try {
+            console.log('🔄 Manual refresh triggered by user');
+            setIsRefreshing(true);
+
+            // Force update progress từ backend
+            await healthService.updateHealthMetricsProgress();
+
+            // Fetch lại data mới
+            await Promise.all([fetchOverview(), fetchMetrics()]);
+
+            toast.success('Đã cập nhật dữ liệu sức khỏe!');
+            console.log('✅ Manual refresh completed successfully');
+        } catch (error) {
+            console.error('❌ Error during manual refresh:', error);
+            toast.error('Không thể cập nhật dữ liệu sức khỏe');
+        } finally {
+            setIsRefreshing(false);
+        }
+    }, [fetchOverview, fetchMetrics]);
+
+    // Initialize data only
     useEffect(() => {
         const initializeData = async () => {
             try {
                 setLoading(true);
+
+                // FIX: Gọi update trước khi fetch data để có data mới nhất
+                console.log('🔄 Initializing health data with update...');
+                await healthService.updateHealthMetricsProgress();
+
+                // Sau đó fetch data đã được update
                 await Promise.all([fetchOverview(), fetchMetrics()]);
+
+                console.log('✅ Health data initialized with latest updates');
             } catch (err) {
                 console.error('Error initializing health data:', err);
                 // Không set error nếu backend không chạy
@@ -143,19 +136,7 @@ export const useHealth = () => {
         };
 
         initializeData();
-
-        // BẬT LẠI AUTO-REFRESH - PENALTY SYSTEM ĐÃ SẴN SÀNG
-        // Start auto-refresh after initial load
-        const timer = setTimeout(() => {
-            startAutoRefresh();
-        }, 1000); // Start after 1 second
-
-        // Cleanup function
-        return () => {
-            clearTimeout(timer);
-            stopAutoRefresh();
-        };
-    }, []); // Empty dependency array to run only once
+    }, [fetchOverview, fetchMetrics]);
 
     return {
         overview,
@@ -163,15 +144,14 @@ export const useHealth = () => {
         loading,
         error,
         lastUpdated,
-        isAutoRefreshing,
+        isRefreshing,
         fetchOverview,
         fetchMetrics,
         updateProgress,
-        startAutoRefresh,
-        stopAutoRefresh,
         getMetricByType,
         getCompletedMetrics,
         getInProgressMetrics,
-        getUpcomingMetrics
+        getUpcomingMetrics,
+        manualRefresh
     };
 }; 

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import {
     RefreshCw,
     TrendingUp,
@@ -16,11 +17,8 @@ import {
 import { useHealth } from '@/hooks/use-health';
 import HealthOverviewCard from '@/components/health/HealthOverviewCard';
 import HealthMetricCard from '@/components/health/HealthMetricCard';
-
-
 import { AutoRefreshIndicator } from '@/components/health/AutoRefreshIndicator';
 import { MilestoneNotification } from '@/components/health/MilestoneNotification';
-import HealthHeaderCountdown from '@/components/health/HealthHeaderCountdown';
 import { HealthMetricType } from '@/types/health';
 import type { QuitPlanResponseDTO } from '@/services/quitPlanService';
 
@@ -35,45 +33,46 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
         loading,
         error,
         lastUpdated,
-        isAutoRefreshing,
+        isRefreshing,
         updateProgress,
+        manualRefresh, // FIX: Thêm manual refresh
+        getCompletedMetrics,
+        getInProgressMetrics,
+        getUpcomingMetrics
     } = useHealth();
 
     const [activeTab, setActiveTab] = useState('overview');
 
     const getCategoryMetrics = () => {
-        const immediate = metrics.filter(m =>
-            [HealthMetricType.PULSE_RATE, HealthMetricType.OXYGEN_LEVELS, HealthMetricType.CARBON_MONOXIDE,
-            HealthMetricType.NICOTINE_EXPELLED, HealthMetricType.TASTE_SMELL, HealthMetricType.BREATHING,
-            HealthMetricType.ENERGY_LEVELS, HealthMetricType.BAD_BREATH_GONE].includes(m.metricType as any)
+        // IMMEDIATE: 22 giờ - 1 ngày 21 giờ
+        const immediateMetrics = metrics.filter(m =>
+            ['PULSE_RATE', 'OXYGEN_LEVELS', 'CARBON_MONOXIDE'].includes(m.metricType)
         );
 
-        const shortTerm = metrics.filter(m =>
-            [HealthMetricType.GUMS_TEETH, HealthMetricType.TEETH_BRIGHTNESS, HealthMetricType.CIRCULATION,
-            HealthMetricType.GUM_TEXTURE, HealthMetricType.IMMUNITY_LUNG_FUNCTION].includes(m.metricType as any)
+        // SHORT TERM: 2 ngày 21 giờ - 7 ngày 21 giờ
+        const shortTermMetrics = metrics.filter(m =>
+            ['NICOTINE_EXPELLED', 'TASTE_SMELL', 'BREATHING', 'ENERGY_LEVELS', 'BAD_BREATH_GONE'].includes(m.metricType)
         );
 
-        const longTerm = metrics.filter(m =>
-            [HealthMetricType.HEART_DISEASE_RISK, HealthMetricType.LUNG_CANCER_RISK,
-            HealthMetricType.HEART_ATTACK_RISK].includes(m.metricType as any)
+        // MEDIUM TERM: 14 ngày 21 giờ - 4 tháng 18 ngày
+        const mediumTermMetrics = metrics.filter(m =>
+            ['GUMS_TEETH', 'TEETH_BRIGHTNESS', 'CIRCULATION', 'GUM_TEXTURE', 'IMMUNITY_LUNG_FUNCTION'].includes(m.metricType)
         );
 
-        return { immediate, shortTerm, longTerm };
+        // LONG TERM: 1 năm - 15 năm
+        const longTermMetrics = metrics.filter(m =>
+            ['HEART_DISEASE_RISK', 'LUNG_CANCER_RISK', 'HEART_ATTACK_RISK'].includes(m.metricType)
+        );
+
+        return {
+            immediate: immediateMetrics,
+            shortTerm: shortTermMetrics,
+            mediumTerm: mediumTermMetrics,
+            longTerm: longTermMetrics
+        };
     };
 
-    // Remove regression-related functions
 
-    const getLungHealthLevel = () => {
-        const lungMetrics = metrics.filter(m =>
-            [HealthMetricType.BREATHING, HealthMetricType.IMMUNITY_LUNG_FUNCTION, HealthMetricType.LUNG_CANCER_RISK].includes(m.metricType as any)
-        );
-
-        const completedCount = lungMetrics.filter(m => m.isCompleted).length;
-
-        if (completedCount >= 2) return "healthy";
-        if (completedCount >= 1) return "recovering";
-        return "stressed";
-    };
 
     if (loading) {
         return (
@@ -99,51 +98,44 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
         );
     }
 
-    const { immediate, shortTerm, longTerm } = getCategoryMetrics();
-    const lungHealthLevel = getLungHealthLevel();
+    const { immediate, shortTerm, mediumTerm, longTerm } = getCategoryMetrics();
 
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 className="text-2xl font-bold">Theo dõi Sức khỏe</h2>
+                        <p className="text-green-100 mt-1">
+                            Theo dõi sự cải thiện sức khỏe của bạn sau khi bỏ thuốc
+                        </p>
+                    </div>
                     <div className="text-right">
                         <p className="text-green-100 text-sm">Cập nhật mỗi 5 phút</p>
-                        <p className="text-green-200 text-xs">Dữ liệu luôn được đồng bộ</p>
                         <Button
-                            onClick={() => updateProgress(true)}
+                            onClick={() => manualRefresh()}
                             variant="ghost"
                             size="sm"
-                            disabled={isAutoRefreshing}
+                            disabled={isRefreshing}
                             className="mt-2 bg-white/20 text-white hover:bg-white/30 disabled:opacity-50"
                         >
-                            <RefreshCw className={`h-3 w-3 mr-1 ${isAutoRefreshing ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
                             Cập nhật ngay
                         </Button>
                     </div>
                 </div>
 
-                {/* Real-time countdown header */}
-                {overview && (
-                    <HealthHeaderCountdown
-                        quitDate={quitPlan.startDate}
-                        nextMilestone={overview.nextMilestone}
-                        className="mb-4"
-                    />
-                )}
+
 
                 {/* Auto-refresh status */}
                 <div className="mt-2">
                     <AutoRefreshIndicator
-                        isAutoRefreshing={isAutoRefreshing}
+                        isRefreshing={isRefreshing}
                         lastUpdated={lastUpdated}
                     />
                 </div>
             </div>
-
-            {/* Remove regression warning */}
-
-            {/* Remove recovery celebration */}
 
             {/* Thông báo milestone mới */}
             {overview?.recentAchievements && (
@@ -161,7 +153,7 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
             )}
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="overview" className="flex items-center gap-2">
                         <TrendingUp className="h-4 w-4" />
                         Tổng quan
@@ -174,6 +166,10 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
                         <Brain className="h-4 w-4" />
                         Ngắn hạn
                     </TabsTrigger>
+                    <TabsTrigger value="medium-term" className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Trung hạn
+                    </TabsTrigger>
                     <TabsTrigger value="long-term" className="flex items-center gap-2">
                         <Heart className="h-4 w-4" />
                         Dài hạn
@@ -184,7 +180,6 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
                 <TabsContent value="overview" className="space-y-6">
                     {overview && <HealthOverviewCard overview={overview} quitDate={quitPlan.startDate} />}
 
-                    {/* Lung Health Indicator */}
 
                 </TabsContent>
 
@@ -201,6 +196,15 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
                 <TabsContent value="short-term" className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {shortTerm.map((metric) => (
+                            <HealthMetricCard key={metric.id} metric={metric} quitDate={quitPlan.startDate} />
+                        ))}
+                    </div>
+                </TabsContent>
+
+                {/* Medium-term Metrics Tab */}
+                <TabsContent value="medium-term" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {mediumTerm.map((metric) => (
                             <HealthMetricCard key={metric.id} metric={metric} quitDate={quitPlan.startDate} />
                         ))}
                     </div>

@@ -16,21 +16,15 @@ export default function HealthBenefitsPage() {
         error,
         fetchMetrics,
         lastUpdated,
-        isAutoRefreshing,
-        startAutoRefresh,
-        stopAutoRefresh
+        isRefreshing,
+        manualRefresh
     } = useHealth();
 
     const [activeTab, setActiveTab] = useState<'overview' | 'detailed'>('overview');
 
     useEffect(() => {
         fetchMetrics();
-        startAutoRefresh();
-
-        return () => {
-            stopAutoRefresh();
-        };
-    }, []);
+    }, [fetchMetrics]);
 
     // Format last updated time
     const formatLastUpdated = () => {
@@ -86,30 +80,34 @@ export default function HealthBenefitsPage() {
     // Phân loại metrics theo thời gian
     const immediateMetrics = metrics.filter(m => {
         const hours = m.metricType === 'PULSE_RATE' ? 0.33 :
-            m.metricType === 'OXYGEN_LEVELS' ? 8 :
-                m.metricType === 'CARBON_MONOXIDE' ? 24 : 0;
+            m.metricType === 'BLOOD_PRESSURE' ? 0.33 :
+                m.metricType === 'OXYGEN_LEVELS' ? 8 :
+                    m.metricType === 'CARBON_MONOXIDE' ? 24 : 0;
         return hours <= 24;
     });
 
     const shortTermMetrics = metrics.filter(m => {
-        const hours = m.metricType === 'NICOTINE_EXPELLED' ? 72 :
-            m.metricType === 'TASTE_SMELL' ? 80 :
-                m.metricType === 'BREATHING' ? 92 :
-                    m.metricType === 'ENERGY_LEVELS' ? 116 :
-                        m.metricType === 'BAD_BREATH_GONE' ? 188 :
-                            m.metricType === 'GUMS_TEETH' ? 356 :
-                                m.metricType === 'TEETH_BRIGHTNESS' ? 356 : 0;
-        return hours > 24 && hours <= 720; // 1-30 ngày
+        const hours = m.metricType === 'NICOTINE' ? 72 :
+            m.metricType === 'SENSE_OF_TASTE' ? 48 :
+                m.metricType === 'SENSE_OF_SMELL' ? 48 :
+                    m.metricType === 'BREATHING' ? 72 :
+                        m.metricType === 'COUGHING' ? 168 :
+                            m.metricType === 'ENERGY_LEVELS' ? 336 :
+                                m.metricType === 'STRESS_REDUCTION' ? 336 : 0;
+        return hours > 24 && hours <= 336; // 1-14 ngày
     });
 
     const longTermMetrics = metrics.filter(m => {
-        const hours = m.metricType === 'CIRCULATION' ? 2016 :
-            m.metricType === 'GUM_TEXTURE' ? 2016 :
-                m.metricType === 'IMMUNITY_LUNG_FUNCTION' ? 3240 :
-                    m.metricType === 'HEART_DISEASE_RISK' ? 8760 :
-                        m.metricType === 'LUNG_CANCER_RISK' ? 87600 :
-                            m.metricType === 'HEART_ATTACK_RISK' ? 131400 : 0;
-        return hours > 720; // > 30 ngày
+        const hours = m.metricType === 'LUNG_FUNCTION' ? 720 :
+            m.metricType === 'SKIN_IMPROVEMENT' ? 720 :
+                m.metricType === 'CIRCULATION' ? 2160 : 0;
+        return hours > 336 && hours <= 8760; // 2 tuần - 1 năm
+    });
+
+    const veryLongTermMetrics = metrics.filter(m => {
+        const hours = m.metricType === 'HEART_ATTACK_RISK' ? 131400 :
+            m.metricType === 'CANCER_RISK' ? 87600 : 0;
+        return hours > 8760; // > 1 năm
     });
 
     return (
@@ -130,11 +128,11 @@ export default function HealthBenefitsPage() {
                     <div className="flex items-center space-x-2">
                         <div className="text-right">
                             <div className="flex items-center space-x-2 mb-1">
-                                <Badge variant={isAutoRefreshing ? "default" : "secondary"}>
-                                    {isAutoRefreshing ? "Tự động cập nhật" : "Tạm dừng"}
+                                <Badge variant={isRefreshing ? "default" : "secondary"}>
+                                    {isRefreshing ? "Đang cập nhật" : "Tạm dừng"}
                                 </Badge>
                                 <span className="text-xs text-gray-500">
-                                    {isAutoRefreshing ? "Mỗi 5 giây" : ""}
+                                    {isRefreshing ? "Mỗi 5 giây" : ""}
                                 </span>
                             </div>
                             <div className="text-xs text-gray-500">
@@ -191,7 +189,7 @@ export default function HealthBenefitsPage() {
                                 <div className="space-y-3">
                                     {immediateMetrics.map((metric) => (
                                         <div key={metric.id} className="flex items-center justify-between p-2 bg-white rounded">
-                                            <span className="text-sm font-medium">{metric.metricType}</span>
+                                            <span className="text-sm font-medium">{metric.displayName}</span>
                                             {metric.isCompleted ? (
                                                 <CheckCircle className="w-4 h-4 text-green-600" />
                                             ) : (
@@ -220,7 +218,7 @@ export default function HealthBenefitsPage() {
                                 <div className="space-y-3">
                                     {shortTermMetrics.map((metric) => (
                                         <div key={metric.id} className="flex items-center justify-between p-2 bg-white rounded">
-                                            <span className="text-sm font-medium">{metric.metricType}</span>
+                                            <span className="text-sm font-medium">{metric.displayName}</span>
                                             {metric.isCompleted ? (
                                                 <CheckCircle className="w-4 h-4 text-green-600" />
                                             ) : (
@@ -249,7 +247,36 @@ export default function HealthBenefitsPage() {
                                 <div className="space-y-3">
                                     {longTermMetrics.map((metric) => (
                                         <div key={metric.id} className="flex items-center justify-between p-2 bg-white rounded">
-                                            <span className="text-sm font-medium">{metric.metricType}</span>
+                                            <span className="text-sm font-medium">{metric.displayName}</span>
+                                            {metric.isCompleted ? (
+                                                <CheckCircle className="w-4 h-4 text-green-600" />
+                                            ) : (
+                                                <span className="text-xs text-gray-500">
+                                                    {metric.timeRemainingHours ? `${Math.round(metric.timeRemainingHours)}h` : 'N/A'}
+                                                </span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Very Long-term Effects */}
+                        <Card className="border-red-200 bg-red-50">
+                            <CardHeader>
+                                <CardTitle className="flex items-center space-x-2 text-red-800">
+                                    <Heart className="w-5 h-5" />
+                                    <span>Tác động rất dài hạn</span>
+                                </CardTitle>
+                                <CardDescription>
+                                    {veryLongTermMetrics.filter(m => m.isCompleted).length}/{veryLongTermMetrics.length} hoàn thành
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-3">
+                                    {veryLongTermMetrics.map((metric) => (
+                                        <div key={metric.id} className="flex items-center justify-between p-2 bg-white rounded">
+                                            <span className="text-sm font-medium">{metric.displayName}</span>
                                             {metric.isCompleted ? (
                                                 <CheckCircle className="w-4 h-4 text-green-600" />
                                             ) : (
@@ -285,7 +312,7 @@ export default function HealthBenefitsPage() {
                         <div>
                             <h2 className="text-2xl font-bold text-blue-800 mb-4 flex items-center">
                                 <Clock className="w-6 h-6 mr-2" />
-                                Tác động ngắn hạn (1-30 ngày)
+                                Tác động ngắn hạn (1-14 ngày)
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {shortTermMetrics.map((metric) => (
@@ -298,10 +325,23 @@ export default function HealthBenefitsPage() {
                         <div>
                             <h2 className="text-2xl font-bold text-purple-800 mb-4 flex items-center">
                                 <Heart className="w-6 h-6 mr-2" />
-                                Tác động dài hạn (1+ tháng)
+                                Tác động dài hạn (2 tuần - 1 năm)
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {longTermMetrics.map((metric) => (
+                                    <HealthMetricCard key={metric.id} metric={metric} quitDate={new Date().toISOString()} />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Very Long-term Effects */}
+                        <div>
+                            <h2 className="text-2xl font-bold text-red-800 mb-4 flex items-center">
+                                <Heart className="w-6 h-6 mr-2" />
+                                Tác động rất dài hạn (1+ năm)
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {veryLongTermMetrics.map((metric) => (
                                     <HealthMetricCard key={metric.id} metric={metric} quitDate={new Date().toISOString()} />
                                 ))}
                             </div>

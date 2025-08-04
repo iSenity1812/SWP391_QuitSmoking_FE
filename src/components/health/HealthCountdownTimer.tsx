@@ -8,8 +8,8 @@ interface HealthCountdownTimerProps {
   className?: string;
   // Add metricId for unique localStorage keys
   metricId?: string;
-  // Add flag to prevent auto-refresh from overwriting localStorage
-  isAutoRefreshing?: boolean;
+  // Add flag to prevent refresh from overwriting localStorage
+  isRefreshing?: boolean;
 }
 
 interface TimeLeft {
@@ -37,7 +37,7 @@ const HealthCountdownTimer: React.FC<HealthCountdownTimerProps> = ({
   hasRegressed = false,
   className = '',
   metricId = 'default',
-  isAutoRefreshing = false
+  isRefreshing = false
 }) => {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
@@ -50,8 +50,8 @@ const HealthCountdownTimer: React.FC<HealthCountdownTimerProps> = ({
   const startTimeRef = useRef<number>(Date.now());
   const initialTimeRemainingHoursRef = useRef<number | null>(timeRemainingHours);
 
-  // Thêm unique key cho mỗi metric để đảm bảo countdown độc lập
-  const metricKey = `${metricId}-${timeRemainingHours}`;
+  // FIX: Loại bỏ metricKey để tránh timer bị reset liên tục
+  // const metricKey = `${metricId}-${timeRemainingHours}`;
 
   // Get color based on remaining time
   const getCountdownColor = (hours: number): string => {
@@ -71,14 +71,24 @@ const HealthCountdownTimer: React.FC<HealthCountdownTimerProps> = ({
 
   // Logic countdown real-time
   useEffect(() => {
-    // Nếu đã hoàn thành và không regressed, không cần countdown
-    if (isCompleted && !hasRegressed) {
+    // FIX: Đơn giản hóa logic - chỉ kiểm tra targetDate và isCompleted
+    console.log(`🕐 HealthCountdownTimer [${metricId}]: useEffect triggered`, {
+      targetDate,
+      timeRemainingHours,
+      isCompleted,
+      hasRegressed
+    });
+
+    // Nếu đã hoàn thành, không cần countdown
+    if (isCompleted) {
+      console.log(`🕐 HealthCountdownTimer [${metricId}]: Completed, stopping timer`);
       setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       return;
     }
 
-    // Nếu không có targetDate hoặc timeRemainingHours, không cần countdown
-    if (!targetDate || timeRemainingHours === null || timeRemainingHours <= 0) {
+    // Nếu không có targetDate, không cần countdown
+    if (!targetDate) {
+      console.log(`🕐 HealthCountdownTimer [${metricId}]: No targetDate, stopping timer`);
       setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       return;
     }
@@ -86,30 +96,45 @@ const HealthCountdownTimer: React.FC<HealthCountdownTimerProps> = ({
     const calculateTime = () => {
       const now = Date.now();
       const targetTime = new Date(targetDate).getTime();
-      
+
       // Tính thời gian còn lại trực tiếp từ targetDate
       const totalRemainingSeconds = Math.max(0, (targetTime - now) / 1000);
-      
+
       const days = Math.floor(totalRemainingSeconds / (3600 * 24));
       const hours = Math.floor((totalRemainingSeconds % (3600 * 24)) / 3600);
       const minutes = Math.floor((totalRemainingSeconds % 3600) / 60);
       const seconds = Math.floor(totalRemainingSeconds % 60);
 
-      setTimeLeft({ days, hours, minutes, seconds });
+      const newTimeLeft = { days, hours, minutes, seconds };
+
+      // FIX: Thêm debug log cho timer update
+      console.log(`🕐 HealthCountdownTimer [${metricId}]: Timer update`, {
+        totalRemainingSeconds,
+        newTimeLeft,
+        targetDate: new Date(targetDate).toISOString(),
+        now: new Date(now).toISOString()
+      });
+
+      setTimeLeft(newTimeLeft);
     };
 
     // Tính toán ngay lập tức
     calculateTime();
-    
+
     // Bắt đầu timer cập nhật mỗi giây
     const timer = setInterval(calculateTime, 1000);
 
+    console.log(`🕐 HealthCountdownTimer [${metricId}]: Timer started, interval: 1000ms`);
+
     // Cleanup khi component unmount hoặc dependencies thay đổi
-    return () => clearInterval(timer);
-  }, [targetDate, timeRemainingHours, isCompleted, hasRegressed, metricKey]);
+    return () => {
+      clearInterval(timer);
+      console.log(`🕐 HealthCountdownTimer [${metricId}]: Timer stopped`);
+    };
+  }, [targetDate, timeRemainingHours, isCompleted, hasRegressed, metricId]); // FIX: Giữ dependencies cần thiết để timer restart khi data thay đổi
 
   // Hiển thị "Hoàn thành" khi thực sự hoàn thành
-  if (isCompleted && !hasRegressed) {
+  if (isCompleted) {
     return (
       <span className={`text-green-600 font-medium ${className}`}>
         Hoàn thành
@@ -122,38 +147,33 @@ const HealthCountdownTimer: React.FC<HealthCountdownTimerProps> = ({
   const backgroundColor = getBackgroundColor(totalHours);
 
   return (
-    <div 
-      key={metricKey}
+    <div
       className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-sm font-medium ${backgroundColor} ${countdownColor} ${className}`}
     >
-      {/* Hiển thị countdown timer đơn giản và chính xác */}
+      {/* Hiển thị countdown timer với format đẹp */}
       {timeLeft.days > 0 && (
         <span>
-          {timeLeft.days} {translateTimeUnit('days')}
+          {timeLeft.days.toString().padStart(2, '0')} {translateTimeUnit('days')}
         </span>
       )}
       {timeLeft.hours > 0 && (
         <span>
-          {timeLeft.hours} {translateTimeUnit('hours')}
+          {timeLeft.hours.toString().padStart(2, '0')} {translateTimeUnit('hours')}
         </span>
       )}
       {timeLeft.minutes > 0 && (
         <span>
-          {timeLeft.minutes} {translateTimeUnit('minutes')}
+          {timeLeft.minutes.toString().padStart(2, '0')} {translateTimeUnit('minutes')}
         </span>
       )}
       {timeLeft.seconds > 0 && (
         <span>
-          {timeLeft.seconds} {translateTimeUnit('seconds')}
+          {timeLeft.seconds.toString().padStart(2, '0')} {translateTimeUnit('seconds')}
         </span>
       )}
       {/* Hiển thị "Hoàn thành" khi thực sự hoàn thành */}
-      {timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0 && !hasRegressed && (
+      {timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0 && (
         <span>Hoàn thành</span>
-      )}
-      {/* Khi regressed và không có thời gian còn lại */}
-      {timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0 && hasRegressed && (
-        <span>0 giây</span>
       )}
     </div>
   );

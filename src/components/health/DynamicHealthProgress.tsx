@@ -67,22 +67,27 @@ const DynamicHealthProgress: React.FC<DynamicHealthProgressProps> = ({
   // Calculate penalty effect for color indication - đồng bộ với backend logic
   const calculatePenaltyEffect = () => {
     if (!targetDate || !metricType) return false;
-    
+
+    // FIX: Không hiển thị penalty cho metrics đã completed
+    if (isCompleted) {
+      return false;
+    }
+
     const quitDateObj = new Date(quitDate);
     const targetDateObj = new Date(targetDate);
     const targetHours = getHealthMetricTargetHours(metricType as any);
     const originalTargetDate = new Date(quitDateObj.getTime() + (targetHours * 60 * 60 * 1000));
-    
+
     // Check if target date is extended due to penalty
     const penaltyTime = targetDateObj.getTime() - originalTargetDate.getTime();
-    
+
     // Nếu metric đã regressed, penalty được tính từ now()
     if (hasRegressed && !isCompleted) {
       const now = new Date();
       const regressionPenaltyTime = targetDateObj.getTime() - now.getTime();
       return regressionPenaltyTime > 0;
     }
-    
+
     return penaltyTime > 0;
   };
 
@@ -106,7 +111,7 @@ const DynamicHealthProgress: React.FC<DynamicHealthProgressProps> = ({
           strokeWidth={strokeWidth}
           fill="none"
         />
-        
+
         {/* Progress circle */}
         <circle
           cx={size / 2}
@@ -121,7 +126,7 @@ const DynamicHealthProgress: React.FC<DynamicHealthProgressProps> = ({
           className="transition-all duration-1000 ease-out"
         />
       </svg>
-      
+
       {/* Center content */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         {showPercentage && (
@@ -142,7 +147,7 @@ const DynamicHealthProgress: React.FC<DynamicHealthProgressProps> = ({
             </div>
           </div>
         )}
-        
+
         {/* Completion indicator */}
         {isCompleted && (
           <div className="absolute inset-0 flex items-center justify-center">
