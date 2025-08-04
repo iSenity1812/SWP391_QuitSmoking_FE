@@ -327,7 +327,7 @@ export class QuitPlanService {
    * Đặt lại trạng thái của một kế hoạch từ FAILED sang IN_PROGRESS.
    * POST /api/quit-plans/reset/{quitPlanId}
    * @param quitPlanId ID của kế hoạch cần đặt lại.
-   * @returns QuitPlanResponseDTO của kế hoạch đã được đặt lại trạng thái.
+   * @returns A Promise that resolves with the QuitPlanResponseDTO.
    */
   resetQuitPlanStatus = async (quitPlanId: number): Promise<QuitPlanResponseDTO> => {
     try {
@@ -339,6 +339,26 @@ export class QuitPlanService {
       }
     } catch (error: unknown) {
       console.error(`Error resetting quit plan status for ID ${quitPlanId}:`, error);
+      throw new Error(handleApiError(error));
+    }
+  };
+
+  /**
+   * Repairs IMMEDIATE plans that may be corrupted in the database.
+   * Sửa chữa các IMMEDIATE plan bị lỗi trong database.
+   * POST /api/quit-plans/repair-immediate-plans
+   * @returns A Promise that resolves with a success message.
+   */
+  repairImmediatePlans = async (): Promise<string> => {
+    try {
+      const response = await axiosConfig.post<ApiResponse<string>>(`${this.API_BASE_URL}/repair-immediate-plans`);
+      if (response.status === 200 && response.data && response.data.data) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.message || 'Failed to repair immediate plans');
+      }
+    } catch (error: unknown) {
+      console.error('Error repairing immediate plans:', error);
       throw new Error(handleApiError(error));
     }
   };

@@ -224,8 +224,6 @@ export function BookingTab({ user }: BookingTabProps) {
         return "from-emerald-500 to-emerald-600"
     }
 
-<<<<<<< HEAD
-=======
     const getPremiumStatusText = () => {
         const daysRemaining = getDaysRemaining()
         if (!daysRemaining) return "Đã hết hạn"
@@ -235,7 +233,6 @@ export function BookingTab({ user }: BookingTabProps) {
         return "Đang hoạt động"
     }
 
->>>>>>> origin/ngan/quitplan-tracking
     const handleCoachSelect = (coach: any) => {
         setSelectedCoach(coach)
         if (isPremium) {

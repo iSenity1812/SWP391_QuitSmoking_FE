@@ -10,6 +10,7 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { OverviewTab } from "./dashboard/OverviewTab";
 import { ProgressTab } from "./dashboard/ProgressTab";
 import BenefitTab from "./dashboard/BenefitTab";
+import { HealthTab } from "./dashboard/HealthTab";
 import { FailedPlanModal } from "./dashboard/components/FailedPlanModal";
 import { CompletedPlanModal } from "./dashboard/components/CompletedPlanModal";
 import { useQuitPlan } from "@/services/quitPlanService";
@@ -212,7 +213,7 @@ export function QuitPlanDashboard() {
               className="space-y-6"
             >
               <div className="flex justify-center">
-                <TabsList className="grid w-full max-w-lg grid-cols-4 bg-white/80 backdrop-blur-sm border border-emerald-200">
+                <TabsList className="grid w-full max-w-lg grid-cols-5 bg-white/80 backdrop-blur-sm border border-emerald-200">
                   <TabsTrigger
                     value="overview"
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white"
@@ -230,6 +231,12 @@ export function QuitPlanDashboard() {
                     className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white"
                   >
                     Thành Tựu
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="health"
+                    className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white"
+                  >
+                    Sức Khỏe
                   </TabsTrigger>
                   <TabsTrigger
                     value="breathing_exercises"
@@ -287,6 +294,18 @@ export function QuitPlanDashboard() {
                     transition={{ duration: 0.3 }}
                   >
                     <BenefitTab quitPlan={quitPlan} />
+                  </motion.div>
+                </TabsContent>
+
+                <TabsContent value="health" className="mt-6">
+                  <motion.div
+                    key="health"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <HealthTab quitPlan={quitPlan} />
                   </motion.div>
                 </TabsContent>
 
