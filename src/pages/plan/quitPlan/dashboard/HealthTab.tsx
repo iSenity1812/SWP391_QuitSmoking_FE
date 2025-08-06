@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { 
-  RefreshCw, 
-  TrendingUp, 
-  Brain, 
-  Zap, 
+import {
+  RefreshCw,
+  TrendingUp,
+  Brain,
+  Zap,
   Heart,
   Clock,
   CheckCircle,
@@ -45,30 +45,30 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
 
   const getCategoryMetrics = () => {
     // IMMEDIATE: 22 giờ - 1 ngày 21 giờ
-    const immediateMetrics = metrics.filter(m => 
+    const immediateMetrics = metrics.filter(m =>
       ['PULSE_RATE', 'OXYGEN_LEVELS', 'CARBON_MONOXIDE'].includes(m.metricType)
     );
 
     // SHORT TERM: 2 ngày 21 giờ - 7 ngày 21 giờ
-    const shortTermMetrics = metrics.filter(m => 
+    const shortTermMetrics = metrics.filter(m =>
       ['NICOTINE_EXPELLED', 'TASTE_SMELL', 'BREATHING', 'ENERGY_LEVELS', 'BAD_BREATH_GONE'].includes(m.metricType)
     );
 
     // MEDIUM TERM: 14 ngày 21 giờ - 4 tháng 18 ngày
-    const mediumTermMetrics = metrics.filter(m => 
+    const mediumTermMetrics = metrics.filter(m =>
       ['GUMS_TEETH', 'TEETH_BRIGHTNESS', 'CIRCULATION', 'GUM_TEXTURE', 'IMMUNITY_LUNG_FUNCTION'].includes(m.metricType)
     );
 
     // LONG TERM: 1 năm - 15 năm
-    const longTermMetrics = metrics.filter(m => 
+    const longTermMetrics = metrics.filter(m =>
       ['HEART_DISEASE_RISK', 'LUNG_CANCER_RISK', 'HEART_ATTACK_RISK'].includes(m.metricType)
     );
 
-    return { 
-      immediate: immediateMetrics, 
-      shortTerm: shortTermMetrics, 
+    return {
+      immediate: immediateMetrics,
+      shortTerm: shortTermMetrics,
       mediumTerm: mediumTermMetrics,
-      longTerm: longTermMetrics 
+      longTerm: longTermMetrics
     };
   };
 
@@ -102,6 +102,8 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
 
   return (
     <div className="space-y-6">
+
+
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
@@ -113,8 +115,12 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
           </div>
           <div className="text-right">
             <p className="text-green-100 text-sm">Cập nhật mỗi 5 phút</p>
-            <Button 
-              onClick={() => manualRefresh()}
+            <Button
+              onClick={() => {
+                console.log('🔄 Button "Cập nhật ngay" clicked!');
+                console.log('🔄 Calling manualRefresh()...');
+                manualRefresh();
+              }}
               variant="ghost"
               size="sm"
               disabled={isRefreshing}
@@ -125,12 +131,12 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
             </Button>
           </div>
         </div>
-        
 
-        
+
+
         {/* Auto-refresh status */}
         <div className="mt-2">
-          <AutoRefreshIndicator 
+          <AutoRefreshIndicator
             isRefreshing={isRefreshing}
             lastUpdated={lastUpdated}
           />
@@ -139,7 +145,7 @@ export function HealthTab({ quitPlan }: HealthTabProps) {
 
       {/* Thông báo milestone mới */}
       {overview?.recentAchievements && (
-        <MilestoneNotification 
+        <MilestoneNotification
           recentAchievements={overview.recentAchievements
             .filter(achievement => achievement.achievedDate !== null)
             .map(achievement => ({

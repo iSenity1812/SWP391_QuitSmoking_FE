@@ -104,9 +104,10 @@ const HealthMetricCard: React.FC<HealthMetricCardProps> = ({
           />
         </div>
         
-        {/* Countdown Timer: targetDate - now() */}
+        {/* Countdown Timer: sử dụng timeRemainingHours từ backend (bao gồm penalty) */}
         <CountdownTimer
           targetDate={metric.targetDate}
+          timeRemainingHours={metric.timeRemainingHours}
           isCompleted={metric.isCompleted}
           className="text-sm"
         />

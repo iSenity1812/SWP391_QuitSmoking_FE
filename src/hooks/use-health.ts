@@ -20,12 +20,7 @@ export const useHealth = () => {
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Error fetching health overview:', err);
-      // Không set error nếu backend không chạy, vì đã có fallback data
-      if (err instanceof Error && err.message.includes('Network Error')) {
-        console.warn('Backend không khả dụng, sử dụng fallback data');
-      } else {
-        setError('Không thể tải tổng quan sức khỏe');
-      }
+      setError('Không thể tải tổng quan sức khỏe');
     }
   }, []);
 
@@ -34,18 +29,19 @@ export const useHealth = () => {
       console.log('🔄 Fetching metrics in useHealth hook...');
       // Sử dụng data thật từ DB thay vì sample data
       const data = await healthService.getAllHealthMetrics();
-      console.log('✅ Sample metrics data received:', data);
+      console.log('✅ Real metrics data received:', data);
+      
+      // Debug: Kiểm tra targetDate của từng metric
+      data.forEach(metric => {
+        console.log(`📅 ${metric.metricType}: targetDate = ${metric.targetDate}, progress = ${metric.currentProgress}%`);
+      });
+      
       setMetrics(data);
       setError(null);
       setLastUpdated(new Date());
     } catch (err) {
       console.error('❌ Error fetching health metrics:', err);
-      // Không set error nếu backend không chạy, vì đã có fallback data
-      if (err instanceof Error && err.message.includes('Network Error')) {
-        console.warn('⚠️ Backend không khả dụng, sử dụng fallback data');
-      } else {
-        setError('Không thể tải dữ liệu sức khỏe');
-      }
+      setError('Không thể tải dữ liệu sức khỏe');
     }
   }, []);
 
@@ -110,6 +106,25 @@ export const useHealth = () => {
     }
   }, [fetchOverview, fetchMetrics]);
 
+  // Auto-refresh function (không hiển thị toast)
+  const autoRefresh = useCallback(async () => {
+    try {
+      console.log('🔄 Auto-refresh triggered (every 5 minutes)');
+      
+      // Update progress từ backend (bao gồm penalty calculation)
+      await healthService.updateHealthMetricsProgress();
+      
+      // Fetch lại data mới (bao gồm targetDate đã được cập nhật)
+      await Promise.all([fetchOverview(), fetchMetrics()]);
+      
+      console.log('✅ Auto-refresh completed successfully');
+      console.log('📊 Current metrics after refresh:', metrics);
+    } catch (error) {
+      console.error('❌ Error during auto-refresh:', error);
+      // Không hiển thị toast cho auto-refresh
+    }
+  }, [fetchOverview, fetchMetrics]);
+
   // Initialize data only
   useEffect(() => {
     const initializeData = async () => {
@@ -126,10 +141,7 @@ export const useHealth = () => {
         console.log('✅ Health data initialized with latest updates');
       } catch (err) {
         console.error('Error initializing health data:', err);
-        // Không set error nếu backend không chạy
-        if (!(err instanceof Error && err.message.includes('Network Error'))) {
-          setError('Không thể khởi tạo dữ liệu sức khỏe');
-        }
+        setError('Không thể khởi tạo dữ liệu sức khỏe');
       } finally {
         setLoading(false);
       }
@@ -137,6 +149,21 @@ export const useHealth = () => {
 
     initializeData();
   }, [fetchOverview, fetchMetrics]);
+
+  // Auto-refresh timer - cập nhật mỗi 5 phút để check penalty
+  useEffect(() => {
+    console.log('🕐 Setting up auto-refresh timer (every 5 minutes)');
+    
+    const interval = setInterval(() => {
+      autoRefresh();
+    }, 5 * 60 * 1000); // 5 phút = 300,000ms
+    
+    // Cleanup khi component unmount
+    return () => {
+      console.log('🕐 Clearing auto-refresh timer');
+      clearInterval(interval);
+    };
+  }, [autoRefresh]);
 
   return {
     overview,

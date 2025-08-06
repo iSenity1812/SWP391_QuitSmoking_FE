@@ -16,12 +16,21 @@ const healthAxios = axios.create({
 healthAxios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('jwt_token');
+    console.log('🔐 Interceptor - JWT Token exists:', !!token);
+    console.log('🔐 Interceptor - Token length:', token?.length || 0);
+    console.log('🔐 Interceptor - Request URL:', config.url);
+    console.log('🔐 Interceptor - Request method:', config.method);
+    
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
+      console.log('🔐 Interceptor - Authorization header added');
+    } else {
+      console.warn('⚠️ Interceptor - No JWT token found!');
     }
     return config;
   },
   (err) => {
+    console.error('❌ Interceptor error:', err);
     return Promise.reject(err);
   }
 );
@@ -198,10 +207,15 @@ export const healthService = {
   async getHealthOverview(): Promise<HealthOverview> {
     try {
       const response = await healthAxios.get(`${HEALTH_API_BASE}/overview`);
+      console.log('✅ Health overview response:', response.data);
       return response.data.data;
     } catch (error) {
-      console.warn('⚠️ Backend không khả dụng, sử dụng fallback data:', error);
-      return createFallbackOverview();
+      console.error('❌ Backend error:', error);
+      console.error('❌ Error status:', error.response?.status);
+      console.error('❌ Error message:', error.message);
+      
+      // KHÔNG fallback về data giả nữa - throw error để UI biết
+      throw error;
     }
   },
 
@@ -213,11 +227,32 @@ export const healthService = {
       console.log('🔄 Fetching health metrics from backend...');
       const response = await healthAxios.get(`${HEALTH_API_BASE}/metrics`);
       console.log('✅ Backend response:', response.data);
+      console.log('✅ Response data.data:', response.data.data);
+      console.log('✅ Metrics count:', response.data.data?.length || 0);
+      
+      // Debug: Kiểm tra từng metric có penalty không
+      if (response.data.data && Array.isArray(response.data.data)) {
+        response.data.data.forEach((metric, index) => {
+          console.log(`📊 Metric ${index}:`, {
+            id: metric.id,
+            metricType: metric.metricType,
+            targetDate: metric.targetDate,
+            currentProgress: metric.currentProgress,
+            isCompleted: metric.isCompleted,
+            hasRegressed: metric.hasRegressed,
+            timeRemainingHours: metric.timeRemainingHours
+          });
+        });
+      }
+      
       return response.data.data;
     } catch (error) {
-      console.error('❌ Backend error, using fallback data:', error);
-      console.warn('⚠️ Using fallback data - simplified without penalty logic');
-      return createFallbackMetrics();
+      console.error('❌ Backend error:', error);
+      console.error('❌ Error status:', error.response?.status);
+      console.error('❌ Error message:', error.message);
+      
+      // KHÔNG fallback về data giả nữa - throw error để UI biết
+      throw error;
     }
   },
 
@@ -425,11 +460,17 @@ export const healthService = {
   async updateHealthMetricsProgress(): Promise<void> {
     try {
       console.log('🔄 Updating health metrics progress...');
+      console.log('🔄 Calling endpoint:', `${HEALTH_API_BASE}/update-progress`);
       const response = await healthAxios.post(`${HEALTH_API_BASE}/update-progress`);
       console.log('✅ Progress update response:', response.data);
+      console.log('✅ Progress update status:', response.status);
     } catch (error) {
       console.error('❌ Failed to update progress:', error);
-      // Không throw error để tránh crash UI
+      console.error('❌ Update error status:', error.response?.status);
+      console.error('❌ Update error message:', error.message);
+      console.error('❌ Update error data:', error.response?.data);
+      // Throw error để UI biết có lỗi
+      throw error;
     }
   }
 }; 
